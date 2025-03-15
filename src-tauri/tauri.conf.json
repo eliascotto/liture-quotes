@@ -1,0 +1,59 @@
+{
+  "productName": "notes-vault",
+  "version": "0.0.0",
+  "identifier": "com.tauri.dev",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "withGlobalTauri": true,
+		"macOSPrivateApi": true,
+    "windows": [
+      {
+        "title": "Notes Vault",
+        "hiddenTitle": true,
+        "width": 1040,
+        "height": 690,
+        "minWidth": 768,
+				"minHeight": 500,
+        "resizable": true,
+				"fullscreen": false,
+				"alwaysOnTop": false,
+				"focus": false,
+				"visible": true,
+				"dragDropEnabled": true,
+				"decorations": true,
+				"transparent": true,
+				"center": true,
+        "windowEffects": {
+					"effects": ["sidebar"],
+					"state": "followsWindowActiveState",
+					"radius": 9
+				},
+        "label": "main"
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  },
+  "plugins": {
+    "shell": {
+      "open": true
+    }
+  }
+}
