@@ -71,6 +71,10 @@ fn main() {
             .plugin(tauri_plugin_os::init())
             .plugin(tauri_plugin_shell::init())
             .setup(|app| {
+                // Initialize the database
+                let conn = notes_vault_lib::db::get_connection().expect("Failed to get database connection");
+                notes_vault_lib::db::init_db(&conn).expect("Failed to initialize database");
+                
                 #[cfg(target_os = "macos")]
                 {
                     if let Some(window) = app.get_window("main") {
@@ -84,12 +88,19 @@ fn main() {
                 notes_vault_lib::commands::fetch_book_notes,
                 notes_vault_lib::commands::fetch_books_by_author,
                 notes_vault_lib::commands::new_author,
+                notes_vault_lib::commands::new_book,
+                notes_vault_lib::commands::new_note,
                 notes_vault_lib::commands::update_note,
                 notes_vault_lib::commands::star_note,
                 notes_vault_lib::commands::hide_note,
                 notes_vault_lib::commands::search_notes,
                 notes_vault_lib::commands::search_books_by_title,
                 notes_vault_lib::commands::search_authors_by_name,
+                notes_vault_lib::commands::set_note_starred,
+                notes_vault_lib::commands::set_book_deleted,
+                notes_vault_lib::commands::set_author_deleted,
+                notes_vault_lib::commands::get_random_quote,
+                notes_vault_lib::commands::fetch_starred_notes,
             ])
             .run(tauri::generate_context!())
             .expect("error while running tauri application");

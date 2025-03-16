@@ -1,17 +1,99 @@
-import PlusIcon from "./icons/Plus"
+import { useState } from "react";
+import PlusIcon from "./icons/Plus";
+import Popover from "./Popover";
+import AuthorForm from "./AuthorForm";
+import BookForm from "./BookForm";
+import { useDialog } from "../context/DialogContext";
 
-function AddButton(props) {
-  const currentOptionName = props.selectedOption.slice(0, -1).toLowerCase()
+function AddButton({ onClick, selectedOption, authors, selectedAuthor }) {
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const { openDialog } = useDialog();
+
+  const togglePopover = () => {
+    setIsPopoverOpen(!isPopoverOpen);
+  };
+
+  const closePopover = () => {
+    setIsPopoverOpen(false);
+  };
+
+  const handleAddAuthor = () => {
+    closePopover();
+    
+    openDialog(
+      "Add New Author",
+      <AuthorForm 
+        onSubmit={async (authorName) => {
+          try {
+            return await onClick("author", { name: authorName });
+          } catch (error) {
+            console.error("Error creating author:", error);
+            return false;
+          }
+        }}
+        onCancel={() => {}} // Dialog will be closed by the DialogProvider
+      />
+    );
+  };
+
+  const handleAddBook = () => {
+    closePopover();
+    
+    openDialog(
+      "Add New Book",
+      <BookForm
+        onSubmit={async (bookData) => {
+          try {
+            return await onClick("book", bookData);
+          } catch (error) {
+            console.error("Error creating book:", error);
+            return false;
+          }
+        }}
+        onCancel={() => {}} // Dialog will be closed by the DialogProvider
+        authors={authors || []}
+        selectedAuthor={selectedAuthor}
+      />
+    );
+  };
 
   return (
-    <div 
-      className="bg-slate-800/50 hover:bg-slate-700/60 rounded-md p-1.5 cursor-pointer transition-all duration-200 text-slate-400 hover:text-cyan-300 border border-slate-700/30"
-      title={`Add ${currentOptionName}`}
-      onClick={props.onClick}
-    >
-      <PlusIcon />
+    <div className="relative z-40">
+      <button
+        className="p-1.5 rounded-md transition-colors duration-200 text-slate-300 hover:text-cyan-400 hover:bg-slate-700/50"
+        title="Add new item"
+        onClick={togglePopover}
+        aria-expanded={isPopoverOpen}
+      >
+        <PlusIcon />
+      </button>
+
+      <Popover isOpen={isPopoverOpen} onClose={closePopover} position="bottom-left">
+        <div className="py-2">
+          <div className="mt-1">
+            <button
+              className="w-full text-left px-4 py-2.5 text-sm transition-colors duration-150 text-slate-300 hover:bg-slate-700/50 hover:text-cyan-400 flex items-center"
+              onClick={handleAddAuthor}
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              New Author
+            </button>
+            <button
+              className="w-full text-left px-4 py-2.5 text-sm transition-colors duration-150 text-slate-300 hover:bg-slate-700/50 hover:text-cyan-400 flex items-center"
+              onClick={handleAddBook}
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+              New Book
+            </button>
+          </div>
+        </div>
+      </Popover>
     </div>
-  )
+  );
 }
 
-export default AddButton
+export default AddButton;

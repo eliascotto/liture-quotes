@@ -270,9 +270,14 @@ pub fn import_notes(path: &str) -> Result<String, String> {
     Ok("Notes imported correctly".into())
 }
 
-pub fn get_all_books(conn: &DbConn) -> rusqlite::Result<Vec<Book>> {
-    let mut stmt = conn.prepare("SELECT * FROM Books")?;
-    let rows = stmt.query_map([], |row| {
+/// Get all books
+pub fn get_books(conn: &DbConn) -> rusqlite::Result<Vec<Book>> {
+    let sql = "
+        SELECT id, title, author_id, publication_date 
+        FROM Books WHERE deleted = 0
+        ORDER BY title COLLATE NOCASE";
+    let mut stmt = conn.prepare(sql)?;
+    let books_iter = stmt.query_map([], |row| {
         Ok(Book {
             id: row.get(0)?,
             title: row.get(1)?,
@@ -281,17 +286,22 @@ pub fn get_all_books(conn: &DbConn) -> rusqlite::Result<Vec<Book>> {
         })
     })?;
 
-    let mut names = Vec::new();
-    for name_result in rows {
-        names.push(name_result?);
+    let mut books = Vec::new();
+    for book in books_iter {
+        books.push(book?);
     }
 
-    Ok(names)
+    Ok(books)
 }
 
-pub fn get_all_authors(conn: &DbConn) -> rusqlite::Result<Vec<Author>> {
-    let mut stmt = conn.prepare("SELECT * FROM Authors ORDER BY name")?;
-    let rows = stmt.query_map([], |row| {
+/// Get all authors
+pub fn get_authors(conn: &DbConn) -> rusqlite::Result<Vec<Author>> {
+    let sql = "
+        SELECT id, name, photo, goodreads_url 
+        FROM Authors WHERE deleted = 0 
+        ORDER BY name COLLATE NOCASE";
+    let mut stmt = conn.prepare(sql)?;
+    let authors_iter = stmt.query_map([], |row| {
         Ok(Author {
             id: row.get(0)?,
             name: row.get(1)?,
@@ -300,16 +310,16 @@ pub fn get_all_authors(conn: &DbConn) -> rusqlite::Result<Vec<Author>> {
         })
     })?;
 
-    let mut names = Vec::new();
-    for name_result in rows {
-        names.push(name_result?);
+    let mut authors = Vec::new();
+    for author in authors_iter {
+        authors.push(author?);
     }
 
-    Ok(names)
+    Ok(authors)
 }
 
 pub fn get_all_books_by_author(conn: &DbConn, author_id: i32) -> rusqlite::Result<Vec<Book>> {
-    let mut stmt = conn.prepare("SELECT * FROM Books WHERE author_id = ?")?;
+    let mut stmt = conn.prepare("SELECT * FROM Books WHERE author_id = ? AND deleted = 0 ORDER BY title COLLATE NOCASE")?;
     let rows = stmt.query_map([author_id], book_from_row)?;
 
     let mut books = Vec::new();
@@ -399,6 +409,26 @@ pub fn set_note_hidden(conn: &DbConn, note_id: &str) -> rusqlite::Result<()> {
     Ok(())
 }
 
+/// Mark a book as deleted
+pub fn set_book_deleted(conn: &DbConn, book_id: &str) -> rusqlite::Result<()> {
+    let mut stmt = conn.prepare("UPDATE Books SET deleted = 1 WHERE id = ?")?;
+    stmt.execute(rusqlite::params![book_id])?;
+    Ok(())
+}
+
+/// Mark an author as deleted
+pub fn set_author_deleted(conn: &DbConn, author_id: i32) -> rusqlite::Result<()> {
+    // First mark the author as deleted
+    let mut stmt = conn.prepare("UPDATE Authors SET deleted = 1 WHERE id = ?")?;
+    stmt.execute(rusqlite::params![author_id])?;
+    
+    // Then mark all books by this author as deleted
+    let mut stmt = conn.prepare("UPDATE Books SET deleted = 1 WHERE author_id = ?")?;
+    stmt.execute(rusqlite::params![author_id])?;
+    
+    Ok(())
+}
+
 /// Get if a Note is starred
 pub fn get_note_starred(conn: &DbConn, note_id: &str) -> rusqlite::Result<u8> {
     let sql = "SELECT starred FROM Notes WHERE id = ?";
@@ -428,4 +458,114 @@ pub fn update_note(conn: &DbConn, note: &Note) -> rusqlite::Result<()> {
     ])?;
 
     Ok(())
+}
+
+pub fn init_db(conn: &DbConn) -> rusqlite::Result<()> {
+    // Check if the deleted column exists in the Authors table
+    let mut stmt = conn.prepare("PRAGMA table_info(Authors)")?;
+    let column_info = stmt.query_map([], |row| {
+        let name: String = row.get(1)?;
+        Ok(name)
+    })?;
+    
+    let mut has_deleted_column = false;
+    for name in column_info {
+        if let Ok(column_name) = name {
+            if column_name == "deleted" {
+                has_deleted_column = true;
+                break;
+            }
+        }
+    }
+    
+    // Add the deleted column if it doesn't exist
+    if !has_deleted_column {
+        conn.execute("ALTER TABLE Authors ADD COLUMN deleted INTEGER DEFAULT 0", [])?;
+    }
+    
+    // Check if the deleted column exists in the Books table
+    let mut stmt = conn.prepare("PRAGMA table_info(Books)")?;
+    let column_info = stmt.query_map([], |row| {
+        let name: String = row.get(1)?;
+        Ok(name)
+    })?;
+    
+    let mut has_deleted_column = false;
+    for name in column_info {
+        if let Ok(column_name) = name {
+            if column_name == "deleted" {
+                has_deleted_column = true;
+                break;
+            }
+        }
+    }
+    
+    // Add the deleted column if it doesn't exist
+    if !has_deleted_column {
+        conn.execute("ALTER TABLE Books ADD COLUMN deleted INTEGER DEFAULT 0", [])?;
+    }
+
+    Ok(())
+}
+
+/// Get a book by ID
+pub fn get_book(conn: &DbConn, id: &str) -> rusqlite::Result<Book> {
+    let mut stmt = conn.prepare("SELECT id, title, author_id, publication_date FROM Books WHERE id = ? AND deleted = 0")?;
+    stmt.query_row(rusqlite::params![id], |row| {
+        Ok(Book {
+            id: row.get(0)?,
+            title: row.get(1)?,
+            author_id: row.get(2)?,
+            publication_date: row.get(3)?,
+        })
+    })
+}
+
+/// Get an author by ID
+pub fn get_author(conn: &DbConn, id: i32) -> rusqlite::Result<Author> {
+    let mut stmt = conn.prepare("SELECT id, name, photo, goodreads_url FROM Authors WHERE id = ? AND deleted = 0")?;
+    stmt.query_row(rusqlite::params![id], |row| {
+        Ok(Author {
+            id: row.get(0)?,
+            name: row.get(1)?,
+            photo: row.get(2)?,
+            goodreads_url: row.get(3)?,
+        })
+    })
+}
+
+/// Returns a connection to the database
+pub fn get_connection() -> rusqlite::Result<DbConn> {
+    DbConn::new(DB_PATH)
+}
+
+/// Get a random quote from the Notes table
+pub fn get_random_quote(conn: &DbConn) -> rusqlite::Result<Option<(String, String, String)>> {
+    // Get a random note that's not hidden and has content
+    let sql = "
+        SELECT n.content, b.title, a.name 
+        FROM Notes n
+        JOIN Books b ON n.book_id = b.id
+        JOIN Authors a ON b.author_id = a.id
+        WHERE n.hidden = 0 
+        AND n.content IS NOT NULL 
+        AND n.content != ''
+        AND b.deleted = 0
+        AND a.deleted = 0
+        ORDER BY RANDOM()
+        LIMIT 1
+    ";
+    
+    let mut stmt = conn.prepare(sql)?;
+    let mut rows = stmt.query([])?;
+    
+    if let Some(row) = rows.next()? {
+        let content: String = row.get(0)?;
+        let book_title: String = row.get(1)?;
+        let author_name: String = row.get(2)?;
+        
+        Ok(Some((content, book_title, author_name)))
+    } else {
+        Ok(None)
+    }
 }

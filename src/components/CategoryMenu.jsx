@@ -38,7 +38,7 @@ function DropdownMenu({ isOpen, onClose, options, onSelect, selected }) {
               onClose();
             }}
             className={clsx(
-              "w-full text-left px-3 py-1.5 text-sm transition-colors duration-150 flex items-center",
+              "w-full text-left px-3 py-1.5 text-sm transition-colors duration-150 flex items-center select-none",
               option === selected 
                 ? "text-cyan-300 bg-slate-700/50" 
                 : "text-slate-300 hover:bg-slate-700/50 hover:text-white"
@@ -63,7 +63,7 @@ function CategoryMenu(props) {
   return (
     <div className="relative" ref={menuRef}>
       <div
-        className="flex flex-row rounded-md py-1.5 px-3 cursor-default bg-slate-800/50 hover:bg-slate-700/60 text-slate-300 hover:text-cyan-300 text-sm items-center gap-2 font-medium transition-all duration-200 border border-slate-700/30 shadow-sm"
+        className="flex flex-row rounded-md py-1.5 px-3 cursor-default bg-slate-800/50 hover:bg-slate-700/60 text-slate-300 hover:text-cyan-300 text-sm items-center gap-2 font-medium transition-all duration-200 border border-slate-700/30 shadow-sm select-none"
         title="Switch category"
         onClick={handleClick}
       >
