@@ -50,7 +50,7 @@ fn main() {
             "read-books" => {
                 let json_path = &args[2];
                 println!("Reading books json...");
-                match notes_vault_lib::import_books(&json_path) {
+                match litforge_notes_lib::import_books(&json_path) {
                     Ok(_) => println!("Books imported correctly!"),
                     Err(e) => println!("Error importing books: {e}"),
                 }
@@ -58,7 +58,7 @@ fn main() {
             "read-notes" => {
                 let json_path = &args[2];
                 println!("Reading notes json...");
-                match notes_vault_lib::import_notes(&json_path) {
+                match litforge_notes_lib::import_notes(&json_path) {
                     Ok(_) => println!("Notes imported correctly!"),
                     Err(e) => println!("Error importing notes: {e}"),
                 }
@@ -72,8 +72,8 @@ fn main() {
             .plugin(tauri_plugin_shell::init())
             .setup(|app| {
                 // Initialize the database
-                let conn = notes_vault_lib::db::get_connection().expect("Failed to get database connection");
-                notes_vault_lib::db::init_db(&conn).expect("Failed to initialize database");
+                let conn = litforge_notes_lib::db::get_connection().expect("Failed to get database connection");
+                litforge_notes_lib::db::init_db(&conn).expect("Failed to initialize database");
                 
                 #[cfg(target_os = "macos")]
                 {
@@ -84,23 +84,23 @@ fn main() {
                 Ok(())
             })
             .invoke_handler(tauri::generate_handler![
-                notes_vault_lib::commands::fetch_all,
-                notes_vault_lib::commands::fetch_book_notes,
-                notes_vault_lib::commands::fetch_books_by_author,
-                notes_vault_lib::commands::new_author,
-                notes_vault_lib::commands::new_book,
-                notes_vault_lib::commands::new_note,
-                notes_vault_lib::commands::update_note,
-                notes_vault_lib::commands::star_note,
-                notes_vault_lib::commands::hide_note,
-                notes_vault_lib::commands::search_notes,
-                notes_vault_lib::commands::search_books_by_title,
-                notes_vault_lib::commands::search_authors_by_name,
-                notes_vault_lib::commands::set_note_starred,
-                notes_vault_lib::commands::set_book_deleted,
-                notes_vault_lib::commands::set_author_deleted,
-                notes_vault_lib::commands::get_random_quote,
-                notes_vault_lib::commands::fetch_starred_notes,
+                litforge_notes_lib::commands::fetch_all,
+                litforge_notes_lib::commands::fetch_book_notes,
+                litforge_notes_lib::commands::fetch_books_by_author,
+                litforge_notes_lib::commands::new_author,
+                litforge_notes_lib::commands::new_book,
+                litforge_notes_lib::commands::new_note,
+                litforge_notes_lib::commands::update_note,
+                litforge_notes_lib::commands::star_note,
+                litforge_notes_lib::commands::hide_note,
+                litforge_notes_lib::commands::search_notes,
+                litforge_notes_lib::commands::search_books_by_title,
+                litforge_notes_lib::commands::search_authors_by_name,
+                litforge_notes_lib::commands::set_note_starred,
+                litforge_notes_lib::commands::set_book_deleted,
+                litforge_notes_lib::commands::set_author_deleted,
+                litforge_notes_lib::commands::get_random_quote,
+                litforge_notes_lib::commands::fetch_starred_notes,
             ])
             .run(tauri::generate_context!())
             .expect("error while running tauri application");

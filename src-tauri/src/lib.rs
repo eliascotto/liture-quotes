@@ -432,12 +432,12 @@ pub use commands::*;
 //     Ok(note)
 // }
 
-// match notes_vault_lib::import_books("/Users/elia/dev/books_list.json") {
+// match litforge_notes_lib::import_books("/Users/elia/dev/books_list.json") {
 //     Ok(s) => println!("{}", s),
 //     Err(e) => println!("{}", e),
 // }
 
-// match notes_vault_lib::import_notes("/Users/elia/dev/notes.json") {
+// match litforge_notes_lib::import_notes("/Users/elia/dev/notes.json") {
 //     Ok(s) => println!("{}", s),
 //     Err(e) => println!("{}", e),
 // }

@@ -1,12 +1,12 @@
 [package]
-name = "notes-vault"
+name = "litforge-notes"
 version = "0.1.0"
 description = "Notes Manager"
 authors = ["Elia Scotto"]
 edition = "2021"
 
 [lib]
-name = "notes_vault_lib"
+name = "litforge_notes_lib"
 crate-type = ["lib", "cdylib", "staticlib"]
 
 [build-dependencies]

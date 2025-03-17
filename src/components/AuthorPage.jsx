@@ -16,16 +16,16 @@ function AuthorPage(props) {
             itemName={props.author.name}
           />
         </div>
-        <div className="bg-slate-800/30 rounded-lg p-6 shadow-lg border border-slate-700/30 mb-4">
+        <div className="mb-4">
           <h3 className="text-slate-300 font-medium text-lg mb-4 flex items-center">
-            <BookOpen className="h-5 w-5 mr-2" />
+            {/* <BookOpen className="h-5 w-5 mr-2" /> */}
             Books
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="flex flex-col gap-3">
             {props.books.map((book) => (
               <div
                 key={`book_${book.id}`}
-                className="p-3 rounded-md bg-slate-800/50 border border-slate-700/30 cursor-pointer hover:bg-slate-700/50 transition-all duration-200 group"
+                className="p-3 rounded-md bg-gradient-to-r from-slate-800/70 to-slate-800/80 cursor-pointer hover:bg-slate-700/50 transition-all duration-200 group"
                 title={book.title}
                 onClick={() => props.onBookSelect(book)}
               >

@@ -1,5 +1,5 @@
 {
-  "productName": "notes-vault",
+  "productName": "litforge-notes",
   "version": "0.0.0",
   "identifier": "com.tauri.dev",
   "build": {
@@ -13,7 +13,7 @@
 		"macOSPrivateApi": true,
     "windows": [
       {
-        "title": "Notes Vault",
+        "title": "LitForge Notes",
         "hiddenTitle": true,
         "width": 1040,
         "height": 690,

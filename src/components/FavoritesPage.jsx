@@ -1,6 +1,19 @@
 import NoteBox from "./NoteBox";
 
 function FavoritesPage(props) {
+  // Group notes by book
+  const notesByBook = props.notes.reduce((acc, note) => {
+    if (!acc[note.book_id]) {
+      acc[note.book_id] = {
+        title: note.book_title,
+        author: note.author_name,
+        notes: []
+      };
+    }
+    acc[note.book_id].notes.push(note);
+    return acc;
+  }, {});
+
   return (
     <div className="flex-1 flex flex-col items-center w-full h-full">
       <div className="flex-1 flex flex-col overflow-y-auto overscroll-none w-full max-w-6xl px-10 lg:px-14 xl:px-20 py-6 min-h-0">
@@ -10,35 +23,33 @@ function FavoritesPage(props) {
           </h1>
         </div>
         
-        {props.notes.length > 0 ? (
-          <div className="flex flex-col mt-2 space-y-4 pb-4">
-            {props.notes.map((note) => (
-              <div key={`note-${note.id}`} className="relative">
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-2 text-sm">
-                    <button 
-                      onClick={() => props.navigateToBook(note.book_id)}
-                      className="text-slate-400 hover:text-cyan-400 transition-colors duration-200"
-                    >
-                      {note.book_title}
-                    </button>
-                    <span className="text-slate-600">•</span>
-                    <button
-                      onClick={() => props.navigateToAuthor(note.author_id)}
-                      className="text-slate-500 hover:text-cyan-400 transition-colors duration-200"
-                    >
-                      {note.author_name}
-                    </button>
-                  </div>
-                  <NoteBox
-                    note={note}
-                    selected={false}
-                    starred={true}
-                    setSelected={() => {}}
-                    updateNote={props.updateNote}
-                    starNote={props.starNote}
-                    removeNote={props.removeNote}
-                  />
+        {Object.entries(notesByBook).length > 0 ? (
+          <div className="flex flex-col space-y-8">
+            {Object.entries(notesByBook).map(([bookId, bookData]) => (
+              <div key={bookId} className="flex flex-col gap-4">
+                <div className="flex items-baseline gap-3">
+                  <button 
+                    onClick={() => props.navigateToBook(bookId)}
+                    className="text-lg font-medium text-slate-200 hover:text-cyan-400 transition-colors duration-200 truncate max-w-[500px]"
+                    title={bookData.title}
+                  >
+                    {bookData.title}
+                  </button>
+                  <span className="text-sm text-slate-500">by {bookData.author}</span>
+                </div>
+                <div className="flex flex-col gap-4 pl-4 border-l border-slate-700/30">
+                  {bookData.notes.map((note) => (
+                    <NoteBox
+                      key={note.id}
+                      note={note}
+                      selected={false}
+                      starred={true}
+                      setSelected={() => {}}
+                      updateNote={props.updateNote}
+                      starNote={props.starNote}
+                      removeNote={props.removeNote}
+                    />
+                  ))}
                 </div>
               </div>
             ))}
