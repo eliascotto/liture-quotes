@@ -59,7 +59,7 @@ function DropdownMenu({ isOpen, onClose, onEdit, onStar, onRemove, isStarred }) 
 }
 
 function EditableBox(props) {
-  const [currentText, setCurrentText] = useState(props.note);
+  const [currentText, setCurrentText] = useState(props.content);
   const textareaRef = useRef(null);
 
   useEffect(() => {
@@ -72,11 +72,13 @@ function EditableBox(props) {
     }
   }, [currentText]);
 
-  const handleBlur = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    props.onEdit(currentText);
-  }, [currentText])
+  const handleKeyDown = (e) => {
+    if (e.key === 'Escape') {
+      props.onCancel();
+    } else if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      props.onSave(currentText);
+    }
+  };
 
   return (
     <div className="rounded-lg my-2 bg-slate-800/80 shadow-lg border border-slate-700/50 py-3 px-5 backdrop-blur-sm">
@@ -86,8 +88,23 @@ function EditableBox(props) {
         autoFocus
         value={currentText}
         onChange={(e) => setCurrentText(e.target.value)}
-        onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
       />
+      <div className="flex justify-end mt-2 border-t border-slate-700/30 pt-2">
+        <button
+          onClick={props.onCancel}
+          className="px-3 py-1.5 rounded-md text-slate-400 hover:text-white transition-colors duration-200"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={() => props.onSave(currentText)}
+          className="px-3 py-1.5 rounded-md text-cyan-500 hover:bg-slate-700/50 font-medium transition-colors duration-200"
+          disabled={!currentText.trim()}
+        >
+          Save
+        </button>
+      </div>
     </div>
   );
 }
@@ -102,33 +119,36 @@ function NoteBox(props) {
 
   const handleClick = useCallback((e) => {
     if (e.detail === 1) {
-      props.setSelected(props.note);
+      props.onClick?.(e);
     } else if (e.detail > 1) {
       // Multiple clicks
-      props.setSelected(props.note);
+      props.onClick?.(e);
       window.getSelection().empty();
       setEditable(true);
     }
-
     e.preventDefault();
     e.stopPropagation();
-  }, [props.onClick, props.onDoubleClick]);
+  }, [props.onClick]);
 
   const handleContextMenu = useCallback((e) => {
     e.preventDefault();
-    props.setSelected(props.note);
+    props.onClick?.(e);
     setMenuOpen(true);
-  }, []);
+  }, [props.onClick]);
 
   const handleNoteEdit = useCallback((content) => {
     setEditable(false);
-    props.note.content = content;
-    props.updateNote(props.note);
-  }, [props.note]);
+    if (props.onEdit) {
+      props.onEdit(content);
+    }
+  }, [props.onEdit]);
 
-  const handleStarClick = useCallback(() => {
-    props.starNote(props.note);
-  }, [props.note]);
+  const handleStarClick = useCallback((e) => {
+    e.stopPropagation();
+    if (props.onStarClick) {
+      props.onStarClick();
+    }
+  }, [props.onStarClick]);
 
   const handleMenuEdit = useCallback(() => {
     setMenuOpen(false);
@@ -137,19 +157,24 @@ function NoteBox(props) {
 
   const handleMenuStar = useCallback(() => {
     setMenuOpen(false);
-    props.starNote(props.note);
-  }, [props.note]);
+    if (props.onStarClick) {
+      props.onStarClick();
+    }
+  }, [props.onStarClick]);
 
   const handleMenuRemove = useCallback(() => {
     setMenuOpen(false);
-    props.removeNote(props.note);
-  }, [props.note]);
+    if (props.onRemove) {
+      props.onRemove();
+    }
+  }, [props.onRemove]);
 
   if (editable) {
     return (
       <EditableBox
-        note={props.note.content}
-        onEdit={handleNoteEdit}
+        content={props.note.content}
+        onSave={handleNoteEdit}
+        onCancel={() => setEditable(false)}
       />
     );
   }

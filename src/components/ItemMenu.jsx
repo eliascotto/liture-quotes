@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import DotsVertical from './icons/DotsVertical';
-import { useDialog } from '../context/DialogContext';
-import DeleteConfirmationDialog from './DeleteConfirmationDialog';
+import DotsVertical from '@icons/DotsVertical';
+import { useDialog } from '@context/DialogContext';
+import DeleteConfirmationDialog from '@components/DeleteConfirmationDialog';
 
 const ItemMenu = ({ onDelete, itemType, itemName }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

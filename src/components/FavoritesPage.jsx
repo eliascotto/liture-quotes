@@ -1,4 +1,4 @@
-import NoteBox from "./NoteBox";
+import NoteBox from "@components/NoteBox";
 
 function FavoritesPage(props) {
   // Group notes by book

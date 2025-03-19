@@ -1,46 +1,72 @@
 use serde_json::Value;
+use chrono::NaiveDateTime;
 use std::error;
 
 // SQLITE tables
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, serde::Serialize, serde::Deserialize, Clone, sqlx::FromRow)]
 pub struct Author {
-    pub id: i32,
+    pub id: String,
     pub name: String,
-    pub photo: Option<String>,
-    pub goodreads_url: Option<String>,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
+    pub deleted_at: Option<NaiveDateTime>,
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, serde::Serialize, serde::Deserialize, Clone, sqlx::FromRow)]
 pub struct Book {
     pub id: String,
+    pub author_id: Option<String>,
     pub title: String,
-    pub author_id: Option<i32>,
     pub publication_date: Option<String>,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
+    pub deleted_at: Option<NaiveDateTime>,
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
-pub struct Note {
+#[derive(Debug, serde::Serialize, serde::Deserialize, Clone, sqlx::FromRow)]
+pub struct Quote {
     pub id: String,
     pub book_id: Option<String>,
-    pub author_id: Option<i32>,
-    pub date_created: Option<String>,
-    pub date_modified: Option<String>,
-    pub note_type: String,
+    pub author_id: Option<String>,
     pub chapter: Option<String>,
     pub chapter_progress: Option<f64>,
     pub content: Option<String>,
-    pub annotations: Option<String>,
-    pub hidden: i32,
-    pub starred: i32,
+    pub starred: Option<i64>,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
+    pub deleted_at: Option<NaiveDateTime>,
 }
 
-#[derive(Debug, serde::Serialize)]
-pub struct NoteFts {
+#[derive(Debug, serde::Serialize, serde::Deserialize, Clone, sqlx::FromRow)]
+pub struct Chapter {
+    pub id: String,
+    pub book_id: Option<String>,
+    pub title: String,
+    pub created_at: String,
+    pub updated_at: String,
+    pub deleted_at: Option<String>,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize, Clone, sqlx::FromRow)]
+pub struct Note {
+    pub id: String,
+    pub book_id: Option<String>,
+    pub author_id: Option<String>,
+    pub quote_id: Option<String>,
+    pub note_type: String,
+    pub content: Option<String>,
+    pub created_at: String,
+    pub updated_at: String,
+    pub deleted_at: Option<String>,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize, Clone, sqlx::FromRow)]
+pub struct QuoteFts {
     pub id: String,
     pub content: Option<String>,
-    pub book: String,
-    pub author: String,
+    pub book: Option<String>,
+    pub author: Option<String>,
 }
 
 // JSON data structures for parsing json files as input
@@ -78,16 +104,15 @@ pub fn parse_book(value: &Value) -> Result<BookJson, Box<dyn error::Error>> {
 }
 
 #[derive(Debug)]
-pub struct NoteJson {
+pub struct QuoteJson {
     pub id: String,
     pub book_id: Option<String>,
     pub text: Option<String>,
-    pub datecreated: Option<String>,
-    pub datemodified: Option<String>,
     pub chapter: Option<String>,
     pub chapter_progress: Option<f64>,
-    pub note_type: String,
     pub annotation: Option<String>,
+    pub created_at: String,
+    pub updated_at: String,
 }
 
 // {
@@ -104,11 +129,11 @@ pub struct NoteJson {
 //     "kind": "highlight",
 //     "dateformatted": "Monday, 24 December 2012 20:06:50"
 //  }
-pub fn parse_note(value: &Value) -> Result<NoteJson, Box<dyn error::Error>> {
-    Ok(NoteJson {
+pub fn parse_quote(value: &Value) -> Result<QuoteJson, Box<dyn error::Error>> {
+    Ok(QuoteJson {
         id: value["bookmarkid"]
             .as_str()
-            .ok_or("Invalid parameter bookmarkid")?
+            .ok_or("Invalid parameter id for quote")?
             .to_string(),
         book_id: match value["volumeid"].as_str() {
             Some(x) => Some(x.to_string()),
@@ -122,14 +147,14 @@ pub fn parse_note(value: &Value) -> Result<NoteJson, Box<dyn error::Error>> {
             Some(x) => Some(x.to_string()),
             None => None,
         },
-        datecreated: match value["datecreated"].as_str() {
-            Some(x) => Some(x.to_string()),
-            None => None,
-        },
-        datemodified: match value["datemodified"].as_str() {
-            Some(x) => Some(x.to_string()),
-            None => None,
-        },
+        created_at: value["datecreated"]
+            .as_str()
+            .ok_or("Invalid parameter created_at for quote")?
+            .to_string(),
+        updated_at: value["datemodified"]
+            .as_str()
+            .ok_or("Invalid parameter updated_at for quote")?
+            .to_string(),
         chapter: match value["chapter"].as_str() {
             Some(x) => Some(x.to_string()),
             None => None,
@@ -138,9 +163,5 @@ pub fn parse_note(value: &Value) -> Result<NoteJson, Box<dyn error::Error>> {
             Some(x) => Some(x),
             None => None,
         },
-        note_type: value["kind"]
-            .as_str()
-            .ok_or("Invalid parameter kind")?
-            .to_string(),
     })
 }

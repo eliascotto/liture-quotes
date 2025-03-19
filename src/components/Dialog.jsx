@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import XIcon from './icons/XIcon';
+import XIcon from '@icons/XIcon';
 
 function Dialog({ isOpen, onClose, title, children }) {
   const dialogRef = useRef(null);

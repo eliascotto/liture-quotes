@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import path from 'path';
 
 const host = process.env.TAURI_DEV_HOST;
 
@@ -7,13 +8,24 @@ const host = process.env.TAURI_DEV_HOST;
 export default defineConfig(async () => ({
   plugins: [react()],
 
+  resolve: {
+    alias: {
+      '@components': path.resolve(__dirname, 'src/components'), // Maps @components to src/components
+      '@layouts': path.resolve(__dirname, 'src/components/layouts'), // Maps @layouts to src/components/layouts
+      '@icons': path.resolve(__dirname, 'src/components/icons'), // Maps @icons to src/components/icons
+      '@hooks': path.resolve(__dirname, 'src/hooks'), // Maps @hooks to src/hooks
+      '@utils': path.resolve(__dirname, 'src/utils'), // Maps @utils to src/utils
+      '@context': path.resolve(__dirname, 'src/context'), // Maps @context to src/context
+    },
+  },
+
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
   // 1. prevent vite from obscuring rust errors
   clearScreen: false,
   // 2. tauri expects a fixed port, fail if that port is not available
   server: {
-    port: 1420,
+    port: 1424,
     strictPort: true,
     host: host || false,
     hmr: host

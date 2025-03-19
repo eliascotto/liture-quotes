@@ -3,16 +3,13 @@ import clsx from 'clsx';
 import { invoke } from "@tauri-apps/api/core";
 import { platform } from '@tauri-apps/plugin-os';
 
-import Navbar from "./components/Navbar";
-import BookPage from "./components/BookPage";
-import SearchBox from "./components/SearchBox";
-import AuthorPage from "./components/AuthorPage";
-import SearchPage from "./components/SearchPage";
-import AddButton from "./components/AddButton";
-import NavigationControls from "./components/NavigationControls";
-import RandomQuote from "./components/RandomQuote";
-import StarredButton from "./components/StarredButton";
-import FavoritesPage from "./components/FavoritesPage";
+import Navbar from "@components/layouts/Navbar";
+import BookPage from "@components/BookPage";
+import AuthorPage from "@components/AuthorPage";
+import SearchPage from "@components/SearchPage";
+import FavoritesPage from "@components/FavoritesPage";
+import Header from "@components/layouts/Header";
+import RandomQuote from "@components/RandomQuote";
 
 import { useWindowState } from "./hooks/useWindowState";
 
@@ -241,24 +238,26 @@ function App() {
   async function onAddButtonClick(type, data) {
     if (type === "author") {
       return await addAuthor(data.name);
-    } else if (type === "book") {
+    } 
+    
+    if (type === "book") {
       const { title, authorOption, authorId, newAuthorName } = data;
       
       if (authorOption === 'existing') {
         // Use existing author
         return await addBook(title, parseInt(authorId));
-      } else {
-        // Create new author first, then create book
-        try {
-          const newAuthor = await invoke("new_author", { name: newAuthorName });
-          return await addBook(title, newAuthor.id);
-        } catch (error) {
-          console.error("Error creating author for book:", error);
-          alert(`Error creating author for book: ${error.message || 'Unknown error'}`);
-          return false;
-        }
+      }
+
+      // Create new author first, then create book
+      try {
+        const newAuthor = await invoke("new_author", { name: newAuthorName });
+        return await addBook(title, newAuthor.id);
+      } catch (error) {
+        console.error("Error creating author for book:", error);
+        return false;
       }
     }
+
     return false;
   }
 
@@ -566,7 +565,6 @@ function App() {
         ]
       )}
     >
-      {/* <WindowFrame /> */}
       <div className="flex flex-row w-full h-full overflow-hidden">
         {/* Sidebar - Full height */}
         <Navbar
@@ -582,37 +580,14 @@ function App() {
         {/* Main content area with header */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Header only for the right part */}
-          <header 
-            className="z-20 border-b border-slate-700/50 bg-slate-900/90 backdrop-blur-sm min-h-12 
-            flex flex-row py-2.5 px-4 w-full items-center justify-between gap-4 shadow-md"
-            data-tauri-drag-region
-          >
-            <div className="flex flex-row items-center gap-4">
-              <NavigationControls 
-                canGoBack={canGoBack}
-                canGoForward={canGoForward}
-                onBack={goBack}
-                onForward={goForward}
-              />
-              <StarredButton
-                onClick={() => setShowingStarred(!showingStarred)}
-                isActive={showingStarred}
-              />
-              <AddButton
-                selectedOption={selectedOption}
-                onClick={(type, data) => onAddButtonClick(type, data)}
-                authors={authors}
-                selectedAuthor={!isBooksSelected ? selectedAuthor : null}
-              />
-            </div>
-            <SearchBox 
-              onSearch={(searchTerm, results) => {
-                setSearch(searchTerm);
-                setSearchResults(results);
-              }} 
-              onExit={onSearchExit} 
-            />
-          </header>
+          <Header
+            showingStarred={showingStarred}
+            setShowingStarred={setShowingStarred}
+            selectedOption={selectedOption}
+            onAddButtonClick={onAddButtonClick}
+            authors={authors}
+            onSearchExit={onSearchExit}
+          />
           
           {/* Content area */}
           <div className="flex-1 overflow-hidden bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-sm">

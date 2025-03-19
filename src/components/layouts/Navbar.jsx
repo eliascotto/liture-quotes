@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import BookIcon from "./icons/BookIcon";
-import UsersIcon from "./icons/UsersIcon";
+import BookIcon from "@icons/BookIcon";
+import UsersIcon from "@icons/UsersIcon";
+
+const MIN_WIDTH = 180;
+const MAX_WIDTH = 400;
 
 function Navbar(props) {
   const [width, setWidth] = useState(240); // Default width
@@ -22,7 +25,7 @@ function Navbar(props) {
       const newWidth = e.clientX;
       
       // Set min and max constraints
-      if (newWidth >= 150 && newWidth <= 400) {
+      if (newWidth >= MIN_WIDTH && newWidth <= MAX_WIDTH) {
         setWidth(newWidth);
       }
     };
@@ -48,7 +51,7 @@ function Navbar(props) {
     <div 
       ref={navbarRef} 
       className="relative h-full border-r border-slate-700/50 dark:bg-[#1a1a24] bg-gradient-to-b from-slate-900/90 to-slate-800/90 backdrop-blur-sm" 
-      style={{ width: `${width}px`, minWidth: '150px', maxWidth: '400px' }}
+      style={{ width: `${width}px`, minWidth: `${MIN_WIDTH}px`, maxWidth: `${MAX_WIDTH}px` }}
     >
       <div className="h-full flex flex-col backdrop-blur-sm shadow-lg">
         {/* Sticky header with icons */}

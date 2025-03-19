@@ -1,38 +1,44 @@
-use rusqlite::Connection;
-use std::ops::{Deref, DerefMut};
+use sqlx::{SqlitePool, Transaction, Sqlite};
+use sqlx::sqlite::SqliteConnectOptions;
+use std::sync::OnceLock;
+use std::path::Path;
+use std::fs;
 
-pub struct DbConn {
-    connection: Option<Connection>,
+const DB_PATH: &str = "/Users/elia/dev/litforge/notes/database/notes.db";
+static DB_POOL: OnceLock<SqlitePool> = OnceLock::new();
+
+pub async fn init_pool() -> Result<(), sqlx::Error> {
+    // Ensure the parent directory exists
+    let db_dir = Path::new(DB_PATH).parent().expect("No parent directory");
+    fs::create_dir_all(db_dir).expect("Failed to create database directory");
+    println!("Database directory exists: {:?}", db_dir.exists());
+
+    // Check if file exists or will be created
+    println!("Database file exists before connection: {:?}", Path::new(DB_PATH).exists());
+
+    let options = SqliteConnectOptions::new()
+        .filename(Path::new(DB_PATH))
+        .create_if_missing(true);
+
+    let pool = SqlitePool::connect_with(options).await?;
+    DB_POOL.set(pool).expect("Failed to set database pool");
+    Ok(())
 }
 
-impl DbConn {
-    pub fn new(path: &str) -> rusqlite::Result<Self> {
-        let conn = Connection::open(path)?;
-        Ok(DbConn {
-            connection: Some(conn),
-        })
+pub fn get_pool() -> &'static SqlitePool {
+    DB_POOL.get().expect("Database pool not initialized")
+}
+
+pub async fn close_pool() {
+    if let Some(pool) = DB_POOL.get() {
+        pool.close().await;
     }
 }
 
-impl Deref for DbConn {
-    type Target = Connection;
-
-    fn deref(&self) -> &Self::Target {
-        self.connection.as_ref().unwrap()
-    }
-}
-
-impl DerefMut for DbConn {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        self.connection.as_mut().unwrap()
-    }
-}
-
-impl Drop for DbConn {
-    fn drop(&mut self) {
-        // Close the connection when DbConn is dropped
-        if let Some(conn) = self.connection.take() {
-            let _ = conn.close();
-        }
+/// Returns a new database transaction (rollback/commit)
+pub async fn new_tx() -> Result<Transaction<'static, Sqlite>, String> {
+    match get_pool().begin().await {
+        Ok(t) => Ok(t),
+        Err(e) => return Err(format!("Error creating new db transaction: {e}")),
     }
 }
