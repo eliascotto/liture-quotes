@@ -33,7 +33,7 @@ function RandomQuote() {
   if (!quote) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-slate-500">No quotes available. Add some notes first!</div>
+        <div className="text-slate-500">No quotes to show, add some first!</div>
       </div>
     );
   }

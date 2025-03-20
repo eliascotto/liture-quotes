@@ -5,27 +5,11 @@ mod sqlschema;
 use once_cell::sync::Lazy;
 use serde::Serialize;
 use sqlschema::*;
-use sqlx::sqlite::SqliteRow;
-use sqlx::Row;
 
 #[derive(Debug, serde::Serialize)]
 pub struct DataFields {
     pub books: Vec<Book>,
     pub authors: Vec<Author>,
-}
-
-#[derive(Debug, Serialize)]
-pub struct StarredQuote {
-    pub id: String,
-    pub content: String,
-    pub book_id: String,
-    pub book_title: String,
-    pub author_id: String,
-    pub author_name: String,
-    pub starred: Option<i64>,
-    pub created_at: String,
-    pub updated_at: String,
-    pub deleted_at: Option<String>,
 }
 
 pub async fn import_books(path: &str) -> Result<String, String> {
@@ -110,7 +94,8 @@ pub mod commands {
     }
 
     #[tauri::command]
-    pub async fn new_author(name: &str) -> Result<Author, String> {
+    pub async fn create_author(name: &str) -> Result<Author, String> {
+        debug_print!("Creating author {}", name);
         if name.len() < 2 {
             return Err("Invalid author name".to_string());
         }
@@ -119,67 +104,38 @@ pub mod commands {
             Ok(_) => Err(format!("Author {name} already present")),
             Err(_) => db::insert_author(name.to_string())
                 .await
-                .map_err(|e| format!("Error creating author {}", e)),
+                .map_err(|e| format!("Error creating author: {}", e)),
         }
     }
 
     #[tauri::command]
-    pub async fn new_book(title: &str, author_id: String) -> Result<Book, String> {
+    pub async fn create_book(title: &str, author_id: String) -> Result<Book, String> {
         if title.len() < 2 {
             return Err("Invalid book title".to_string());
         }
 
-        // Generate a unique ID for the book
-        use uuid::Uuid;
-        let book_id = Uuid::new_v4().to_string();
-
         // Insert the book
-        db::insert_book(book_id.clone(), title.to_string(), Some(author_id))
+        let new_book = db::insert_book(title.to_string(), Some(author_id))
             .await
             .map_err(|e| format!("Error creating book: {}", e))?;
 
         // Get the book to return
-        db::get_book_by_id(book_id)
-            .await
-            .map_err(|e| format!("Error retrieving created book: {}", e))
+        Ok(new_book)
     }
 
     #[tauri::command]
-    pub async fn hide_note(quote_id: &str) -> Result<Quote, String> {
-        db::delete_quote(quote_id).await.map_err(|e| e.to_string())?;
-
-        db::get_quote_by_id(quote_id)
-            .await
-            .map_err(|e| format!("Error getting note with id {}: {}", quote_id, e))
-    }
-
-    #[tauri::command]
-    pub async fn star_note(quote_id: &str) -> Result<Quote, String> {
+    pub async fn toggle_quote_starred(quote_id: &str) -> Result<Quote, String> {
         let starred = db::get_quote_starred(quote_id)
             .await
             .map_err(|e| format!("Error extracting note with id {}: {}", quote_id, e))?;
 
         db::set_quote_starred(quote_id, 1 - starred)
             .await
-            .map_err(|e| e.to_string())?;
-
-        db::get_quote_by_id(quote_id)
-            .await
-            .map_err(|e| format!("Error getting note with id {}: {}", quote_id, e))
+            .map_err(|e| e.to_string())
     }
 
     #[tauri::command]
-    pub async fn update_quote(quote: Quote) -> Result<Quote, String> {
-        debug_print!("Updating quote {}", quote.id);
-        db::update_quote(&quote).await.map_err(|e| e.to_string())?;
-
-        db::get_quote_by_id(quote.id.as_str())
-            .await
-            .map_err(|e| format!("Error getting quote with id {}: {}", quote.id, e))
-    }
-
-    #[tauri::command]
-    pub async fn new_quote(book_id: &str, content: &str) -> Result<Quote, String> {
+    pub async fn create_quote(book_id: &str, content: &str) -> Result<Quote, String> {
         if content.trim().is_empty() {
             return Err("Note content cannot be empty".to_string());
         }
@@ -211,45 +167,33 @@ pub mod commands {
             deleted_at: None,
         };
 
-        // Insert the note
-        sqlx::query(
-            "INSERT OR IGNORE INTO quote 
-             (id, book_id, author_id, chapter, chapter_progress, content, starred) 
-             VALUES (?, ?, ?, ?, ?, ?, ?)",
-        )
-        .bind(quote.id.clone())
-        .bind(quote.book_id.clone())
-        .bind(quote.author_id.clone())
-        .bind(quote.chapter.clone())
-        .bind(quote.chapter_progress)
-        .bind(quote.content.clone())
-        .bind(quote.starred)
-        .execute(dbconn::get_pool())
-        .await
-        .map_err(|e| format!("Error creating note: {}", e))?;
+        db::insert_quote(&quote).await.map_err(|e| e.to_string())
+    }
 
-        db::get_quote_by_id(&quote.id)
-            .await
-            .map_err(|e| format!("Error retrieving created note: {}", e))
+    #[tauri::command]
+    pub async fn update_quote(quote: Quote) -> Result<Quote, String> {
+        debug_print!("Updating quote {}", quote.id);
+        db::update_quote(&quote).await.map_err(|e| e.to_string())
     }
 
     #[tauri::command]
     pub async fn set_quote_starred(note_id: &str, starred: i64) -> Result<(), String> {
-        db::set_quote_starred(note_id, starred)
+        let _ = db::set_quote_starred(note_id, starred)
+            .await
+            .map_err(|e| e.to_string());
+        Ok(())
+    }
+
+    #[tauri::command]
+    pub async fn delete_book(book_id: &str) -> Result<(), String> {
+        db::delete_book(book_id)
             .await
             .map_err(|e| e.to_string())
     }
 
     #[tauri::command]
-    pub async fn set_book_deleted(book_id: &str) -> Result<(), String> {
-        db::set_book_deleted(book_id)
-            .await
-            .map_err(|e| e.to_string())
-    }
-
-    #[tauri::command]
-    pub async fn set_author_deleted(author_id: String) -> Result<(), String> {
-        db::set_author_deleted(author_id)
+    pub async fn delete_author(author_id: String) -> Result<(), String> {
+        db::delete_author(author_id)
             .await
             .map_err(|e| e.to_string())
     }
@@ -260,46 +204,8 @@ pub mod commands {
     }
 
     #[tauri::command]
-    pub async fn fetch_starred_notes() -> Result<Vec<StarredQuote>, String> {
-        let pool = dbconn::get_pool();
-
-        let notes = sqlx::query(
-            "SELECT 
-                q.id,
-                q.content,
-                q.book_id,
-                b.title as book_title,
-                b.author_id,
-                a.name as author_name,
-                q.starred,
-                q.created_at,
-                q.updated_at
-            FROM quote q
-            JOIN book b ON q.book_id = b.id
-            JOIN author a ON b.author_id = a.id
-            WHERE q.starred = 1
-            AND q.deleted_at IS NULL
-            AND b.deleted_at IS NULL
-            AND a.deleted_at IS NULL
-            ORDER BY q.updated_at DESC",
-        )
-        .map(|row: SqliteRow| StarredQuote {
-            id: row.get(0),
-            content: row.get(1),
-            book_id: row.get(2),
-            book_title: row.get(3),
-            author_id: row.get(4),
-            author_name: row.get(5),
-            starred: row.get(6),
-            created_at: row.get(7),
-            updated_at: row.get(8),
-            deleted_at: row.get(9),
-        })
-        .fetch_all(pool)
-        .await
-        .map_err(|e| e.to_string())?;
-
-        Ok(notes)
+    pub async fn get_starred_quotes() -> Result<Vec<StarredQuote>, String> {
+        db::get_starred_quotes().await.map_err(|e| e.to_string())
     }
 }
 

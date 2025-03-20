@@ -136,7 +136,7 @@ function NoteBox(props) {
     setMenuOpen(true);
   }, [props.onClick]);
 
-  const handleNoteEdit = useCallback((content) => {
+  const handleQuoteEdit = useCallback((content) => {
     setEditable(false);
     if (props.onEdit) {
       props.onEdit(content);
@@ -172,8 +172,8 @@ function NoteBox(props) {
   if (editable) {
     return (
       <EditableBox
-        content={props.note.content}
-        onSave={handleNoteEdit}
+        content={props.quote.content}
+        onSave={handleQuoteEdit}
         onCancel={() => setEditable(false)}
       />
     );
@@ -204,7 +204,7 @@ function NoteBox(props) {
           )}
           onClick={handleClick}
           onContextMenu={handleContextMenu}
-        >{props.note.content}</div>
+        >{props.quote.content}</div>
         
         <DropdownMenu 
           isOpen={menuOpen}

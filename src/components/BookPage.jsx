@@ -6,25 +6,25 @@ import SortMenu from '@components/SortMenu';
 import PlusIcon from '@icons/Plus';
 
 function BookPage(props) {
-  const [selectedNote, setSelectedNote] = useState(null);
+  const [selectedQuote, setSelectedQuote] = useState(null);
   const [sortBy, setSortBy] = useState("date_modified");
   const [sortOrder, setSortOrder] = useState("DESC");
-  const [notes, setNotes] = useState([]);
-  const [isCreatingNote, setIsCreatingNote] = useState(false);
-  const [newNoteContent, setNewNoteContent] = useState("");
+  const [quotes, setQuotes] = useState([]);
+  const [isCreatingQuote, setIsCreatingQuote] = useState(false);
+  const [newQuoteContent, setNewQuoteContent] = useState("");
 
   useEffect(() => {
-    loadNotes();
+    loadQuotes();
   }, [props.book.id, sortBy, sortOrder]);
 
-  const loadNotes = async () => {
+  const loadQuotes = async () => {
     try {
       const result = await invoke('fetch_book_notes', {
         bookId: props.book.id,
         sortBy: sortBy,
         sortOrder: sortOrder
       });
-      setNotes(result);
+      setQuotes(result);
     } catch (error) {
       console.error('Error loading notes:', error);
     }
@@ -35,15 +35,15 @@ function BookPage(props) {
     setSortOrder(order);
   };
 
-  const handleRemoveNote = async (note) => {
+  const handleRemoveQuote = async (quote) => {
     try {
-      await invoke('remove_note', {
-        noteId: note.id
+      await invoke('hide_note', {
+        noteId: quote.id
       });
-      setSelectedNote(null);
-      await loadNotes(); // Refresh notes after removing
+      setSelectedQuote(null);
+      await loadQuotes(); // Refresh quotes after removing
     } catch (error) {
-      console.error('Error removing note:', error);
+      console.error('Error removing quote:', error);
     }
   };
 
@@ -53,36 +53,36 @@ function BookPage(props) {
       await invoke('toggle_star_note', {
         noteId: note.id
       });
-      await loadNotes(); // Refresh notes after starring
+      await loadQuotes(); // Refresh notes after starring
     } catch (error) {
       console.error('Error starring note:', error);
     }
-  }, [loadNotes]);
+  }, [loadQuotes]);
 
-  const handleCreateNote = () => {
-    setIsCreatingNote(true);
-    setNewNoteContent("");
+  const handleCreateQuote = () => {
+    setIsCreatingQuote(true);
+    setNewQuoteContent("");
   };
 
-  const handleSaveNote = async () => {
-    if (!newNoteContent.trim()) return;
+  const handleSaveQuote = async () => {
+    if (!newQuoteContent.trim()) return;
     
     try {
-      await invoke('new_note', {
+      await invoke('create_quote', {
         bookId: props.book.id,
-        content: newNoteContent
+        content: newQuoteContent
       });
-      setIsCreatingNote(false);
-      setNewNoteContent("");
-      await loadNotes(); // Refresh notes after creating
+      setIsCreatingQuote(false);
+      setNewQuoteContent("");
+      await loadQuotes(); // Refresh quotes after creating
     } catch (error) {
-      console.error('Error creating note:', error);
+      console.error('Error creating quote:', error);
     }
   };
 
-  const handleCancelNote = () => {
-    setIsCreatingNote(false);
-    setNewNoteContent("");
+  const handleCancelQuote = () => {
+    setIsCreatingQuote(false);
+    setNewQuoteContent("");
   };
 
   const handleAuthorClick = () => {
@@ -118,13 +118,13 @@ function BookPage(props) {
   );
 
   return (
-    <div className="flex-1 flex flex-col items-center w-full h-full" onClick={() => setSelectedNote(null)}>
+    <div className="flex-1 flex flex-col items-center w-full h-full" onClick={() => setSelectedQuote(null)}>
       <div className="flex-1 flex flex-col overflow-y-auto overscroll-none w-full max-w-6xl px-10 lg:px-14 xl:px-20 py-6 min-h-0">
         {bookHeader}
 
         <div className="flex justify-between items-center mb-4">
           <button
-            onClick={handleCreateNote}
+            onClick={handleCreateQuote}
             title="Add new highlight"
             className="px-1.5 py-1.5 rounded-md text-slate-400 hover:text-cyan-400 hover:bg-slate-700/20 transition-colors duration-200 flex items-center space-x-1"
           >
@@ -137,47 +137,47 @@ function BookPage(props) {
           />
         </div>
 
-        {isCreatingNote && (
+        {isCreatingQuote && (
           <div className="mb-4 p-4 bg-slate-800/50 rounded-lg border border-slate-700/50 animate-fadeIn" onClick={(e) => e.stopPropagation()}>
             <textarea
               className="w-full h-32 p-3 bg-slate-900/50 rounded border border-slate-700/50 text-slate-300 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition-all duration-200"
-              placeholder="Write your note here..."
-              value={newNoteContent}
-              onChange={(e) => setNewNoteContent(e.target.value)}
+              placeholder="Write your quote here..."
+              value={newQuoteContent}
+              onChange={(e) => setNewQuoteContent(e.target.value)}
               autoFocus
             />
             <div className="flex justify-end space-x-2 mt-2">
               <button
-                onClick={handleCancelNote}
+                onClick={handleCancelQuote}
                 className="px-3 py-1.5 rounded-md text-slate-400 hover:text-white transition-colors duration-200"
               >
                 Cancel
               </button>
               <button
-                onClick={handleSaveNote}
+                onClick={handleSaveQuote}
                 className="px-3 py-1.5 rounded-md bg-cyan-500 hover:bg-cyan-600 text-white font-medium transition-colors duration-200"
-                disabled={!newNoteContent.trim()}
+                disabled={!newQuoteContent.trim()}
               >
-                Save Note
+                Save Quote
               </button>
             </div>
           </div>
         )}
 
         <div className="space-y-4">
-          {notes.map((note) => (
+          {quotes.map((quote) => (
             <NoteBox
-              key={note.id}
-              note={note}
-              selected={selectedNote && selectedNote.id === note.id}
+              key={quote.id}
+              quote={quote}
+              selected={selectedQuote && selectedQuote.id === quote.id}
               onClick={(e) => {
                 e.stopPropagation();
-                setSelectedNote(note);
+                setSelectedQuote(quote);
               }}
-              onStarClick={() => handleStarNote(note)}
-              onEdit={(content) => props.updateNote(note, content)}
-              onRemove={() => handleRemoveNote(note)}
-              starred={note.starred}
+              onStarClick={() => handleStarNote(quote)}
+              onEdit={(content) => props.updateQuote(quote, content)}
+              onRemove={() => handleRemoveQuote(quote)}
+              starred={quote.starred}
             />
           ))}
         </div>

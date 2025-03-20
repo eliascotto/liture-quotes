@@ -200,7 +200,7 @@ function App() {
 
   async function fetchStarredNotes() {
     try {
-      const notes = await invoke("fetch_starred_notes");
+      const notes = await invoke("get_starred_quotes");
       setStarredNotes(notes);
     } catch (error) {
       console.error("Error fetching starred notes:", error);
@@ -209,7 +209,7 @@ function App() {
 
   async function addAuthor(authorName) {
     try {
-      const newAuthor = await invoke("new_author", { name: authorName });
+      const newAuthor = await invoke("create_author", { name: authorName });
       await fetchAll();
       setSelectedOption("Authors");
       setSelectedAuthor(newAuthor);
@@ -250,7 +250,7 @@ function App() {
 
       // Create new author first, then create book
       try {
-        const newAuthor = await invoke("new_author", { name: newAuthorName });
+        const newAuthor = await invoke("create_author", { name: newAuthorName });
         return await addBook(title, newAuthor.id);
       } catch (error) {
         console.error("Error creating author for book:", error);
@@ -261,9 +261,9 @@ function App() {
     return false;
   }
 
-  async function updateNote(note) {
+  async function updateQuote(quote) {
     try {
-      await invoke("update_note", { note: note });
+      await invoke("update_quote", { quote: quote });
       await fetchBookNotes();
     } catch {
       console.error("Error updating note");
@@ -289,16 +289,16 @@ function App() {
     }
   }
 
-  async function addNote(bookId) {
+  async function addQuote(bookId) {
     try {
-      await invoke("new_note", { 
-        bookId: bookId, 
-        content: "New note" 
+      await invoke("create_quote", { 
+        bookId: bookId,
+        content: "New quote"
       });
       await fetchBookNotes();
     } catch (error) {
-      console.error("Error adding note:", error);
-      alert(`Error adding note: ${error.message || 'Unknown error'}`);
+      console.error("Error adding quote:", error);
+      alert(`Error adding quote: ${error.message || 'Unknown error'}`);
     }
   }
 
@@ -489,7 +489,7 @@ function App() {
     currentPage = (
       <FavoritesPage
         notes={starredNotes}
-        updateNote={updateNote}
+        updateNote={updateQuote}
         starNote={starNote}
         removeNote={removeNote}
         navigateToBook={(bookId) => {
@@ -515,7 +515,7 @@ function App() {
       <SearchPage
         search={search}
         searchResults={searchResults}
-        updateNote={updateNote}
+        updateNote={updateQuote}
         starNote={starNote}
         removeNote={removeNote}
         navigateToBook={navigateToBook}
@@ -530,11 +530,11 @@ function App() {
         book={selectedBook}
         author={selectedBookAuthor}
         notes={notes}
-        updateNote={updateNote}
+        updateQuote={updateQuote}
         starNote={starNote}
         removeNote={removeNote}
         navigateToAuthor={navigateToAuthor}
-        addNote={addNote}
+        addNote={addQuote}
         onDeleteBook={deleteBook}
       />
     )
@@ -587,6 +587,10 @@ function App() {
             onAddButtonClick={onAddButtonClick}
             authors={authors}
             onSearchExit={onSearchExit}
+            canGoBack={canGoBack}
+            canGoForward={canGoForward}
+            goBack={goBack}
+            goForward={goForward}
           />
           
           {/* Content area */}

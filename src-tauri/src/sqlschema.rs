@@ -69,6 +69,22 @@ pub struct QuoteFts {
     pub author: Option<String>,
 }
 
+// Metaschema
+
+#[derive(Debug, serde::Serialize)]
+pub struct StarredQuote {
+    pub id: String,
+    pub content: String,
+    pub book_id: String,
+    pub book_title: String,
+    pub author_id: String,
+    pub author_name: String,
+    pub starred: Option<i64>,
+    pub created_at: String,
+    pub updated_at: String,
+    pub deleted_at: Option<String>,
+}
+
 // JSON data structures for parsing json files as input
 
 #[derive(Debug)]

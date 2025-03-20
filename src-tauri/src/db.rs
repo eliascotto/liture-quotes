@@ -6,6 +6,8 @@ use std::fs::File;
 use std::io::{self, Read};
 use std::path::Path;
 use sqlx::Row;
+use uuid::Uuid;
+use sqlx::sqlite::SqliteRow;
 
 fn read_file(path: &str) -> io::Result<String> {
     let path = Path::new(path);
@@ -41,7 +43,8 @@ pub async fn get_book_by_id(id: String) -> Result<Book, sqlx::Error> {
 /// Insert a new author
 pub async fn insert_author(author_name: String) -> Result<Author, sqlx::Error> {
     // First insert the author
-    sqlx::query("INSERT OR IGNORE INTO author (name) VALUES (?)")
+    sqlx::query("INSERT OR IGNORE INTO author (id, name) VALUES (?, ?)")
+        .bind(Uuid::new_v4().to_string())
         .bind(author_name.clone())
         .execute(get_pool())
         .await?;
@@ -52,24 +55,28 @@ pub async fn insert_author(author_name: String) -> Result<Author, sqlx::Error> {
 
 /// Insert a new book
 pub async fn insert_book(
-    book_id: String,
     book_title: String,
     author_id: Option<String>,
-) -> Result<(), sqlx::Error> {
-    sqlx::query("INSERT OR IGNORE INTO book (id, title, author_id) VALUES (?, ?, ?)")
-        .bind(book_id)
+) -> Result<Book, sqlx::Error> {
+    let inserted = sqlx::query_as::<_, Book>(
+        "INSERT OR IGNORE INTO book (id, title, author_id) VALUES (?, ?, ?) RETURNING *"
+        )
+        .bind(Uuid::new_v4().to_string())
         .bind(book_title)
         .bind(author_id)
-        .execute(get_pool())
+        .fetch_one(get_pool())
         .await?;
 
-    Ok(())
+    Ok(inserted)
 }
 
 pub async fn insert_quote(quote: &Quote) -> Result<Quote, sqlx::Error> {
-    sqlx::query("INSERT OR IGNORE INTO quote 
-        (id, book_id, author_id, chapter, chapter_progress, content, starred, created_at, updated_at) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)")
+    let inserted = sqlx::query_as::<_, Quote>(
+        "INSERT OR IGNORE INTO quote 
+            (id, book_id, author_id, chapter, chapter_progress, content, starred) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            RETURNING *"
+        )
         .bind(quote.id.clone())
         .bind(quote.book_id.clone())
         .bind(quote.author_id.clone())
@@ -77,10 +84,10 @@ pub async fn insert_quote(quote: &Quote) -> Result<Quote, sqlx::Error> {
         .bind(quote.chapter_progress)
         .bind(quote.content.clone())
         .bind(quote.starred)
-        .execute(get_pool())
+        .fetch_one(get_pool())
         .await?;
 
-    get_quote_by_id(&quote.id).await
+   Ok(inserted)
 }
 
 /// Get all books
@@ -223,7 +230,7 @@ pub async fn delete_quote(note_id: &str) -> Result<(), sqlx::Error> {
 }
 
 /// Set book as deleted
-pub async fn set_book_deleted(book_id: &str) -> Result<(), sqlx::Error> {
+pub async fn delete_book(book_id: &str) -> Result<(), sqlx::Error> {
     sqlx::query("UPDATE book SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
         .bind(book_id)
         .execute(get_pool())
@@ -232,7 +239,7 @@ pub async fn set_book_deleted(book_id: &str) -> Result<(), sqlx::Error> {
 }
 
 /// Set author as deleted
-pub async fn set_author_deleted(author_id: String) -> Result<(), sqlx::Error> {
+pub async fn delete_author(author_id: String) -> Result<(), sqlx::Error> {
     // First mark the author as deleted
     sqlx::query("UPDATE author SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
         .bind(author_id.clone())
@@ -248,7 +255,7 @@ pub async fn set_author_deleted(author_id: String) -> Result<(), sqlx::Error> {
     Ok(())
 }
 
-/// Get note starred status
+/// Get quote starred status
 pub async fn get_quote_starred(quote_id: &str) -> Result<i64, sqlx::Error> {
     let result = sqlx::query("SELECT starred FROM quote WHERE id = ?")
         .bind(quote_id)
@@ -258,25 +265,30 @@ pub async fn get_quote_starred(quote_id: &str) -> Result<i64, sqlx::Error> {
     Ok(result.get("starred"))
 }
 
-/// Set note starred status
-pub async fn set_quote_starred(quote_id: &str, starred: i64) -> Result<(), sqlx::Error> {
-    sqlx::query("UPDATE quote SET starred = ? WHERE id = ?")
+/// Set quote starred status
+pub async fn set_quote_starred(quote_id: &str, starred: i64) -> Result<Quote, sqlx::Error> {
+    let updated = sqlx::query_as::<_, Quote>(
+            "UPDATE quote SET starred = ? WHERE id = ? RETURNING *"
+        )
         .bind(starred)
         .bind(quote_id)
-        .execute(get_pool())
+        .fetch_one(get_pool())
         .await?;
 
-    Ok(())
+    Ok(updated)
 }
 
 /// Update note
-pub async fn update_quote(quote: &Quote) -> Result<(), sqlx::Error> {
-    sqlx::query("UPDATE quote SET content = ? WHERE id = ?")
+pub async fn update_quote(quote: &Quote) -> Result<Quote, sqlx::Error> {
+    let updated = sqlx::query_as::<_, Quote>(
+            "UPDATE quote SET content = ? WHERE id = ? RETURNING *"
+        )
         .bind(quote.content.clone())
         .bind(quote.id.clone())
-        .execute(get_pool())
+        .fetch_one(get_pool())
         .await?;
-    Ok(())
+
+    Ok(updated)
 }
 
 /// Get random quote
@@ -332,7 +344,7 @@ pub async fn import_books(path: &str) -> Result<String, String> {
             None => None,
         };
 
-        insert_book(book.id.clone(), book.title.clone(), author_id)
+        insert_book( book.title.clone(), author_id)
             .await
             .map_err(|e| format!("Error creating Book => {}", e))?;
     }
@@ -413,4 +425,41 @@ pub async fn import_quotes(path: &str) -> Result<String, String> {
 
     tx.commit().await.map_err(|e| e.to_string())?;
     Ok("Notes imported correctly".into())
+}
+
+pub async fn get_starred_quotes() -> Result<Vec<StarredQuote>, sqlx::Error> {
+    sqlx::query(
+            "SELECT 
+                q.id,
+                q.content,
+                q.book_id,
+                b.title as book_title,
+                b.author_id,
+                a.name as author_name,
+                q.starred,
+                q.created_at,
+                q.updated_at
+            FROM quote q
+            JOIN book b ON q.book_id = b.id
+            JOIN author a ON b.author_id = a.id
+            WHERE q.starred = 1
+            AND q.deleted_at IS NULL
+            AND b.deleted_at IS NULL
+            AND a.deleted_at IS NULL
+            ORDER BY q.updated_at DESC",
+        )
+        .map(|row: SqliteRow| StarredQuote {
+            id: row.get(0),
+            content: row.get(1),
+            book_id: row.get(2),
+            book_title: row.get(3),
+            author_id: row.get(4),
+            author_name: row.get(5),
+            starred: row.get(6),
+            created_at: row.get(7),
+            updated_at: row.get(8),
+            deleted_at: row.get(9),
+        })
+        .fetch_all(get_pool())
+        .await
 }
