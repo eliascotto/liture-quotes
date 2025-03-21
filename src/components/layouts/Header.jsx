@@ -28,6 +28,7 @@ function Header(props) {
         <StarredButton
           onClick={() => props.setShowingStarred(!props.showingStarred)}
           isActive={props.showingStarred}
+          isHeader
         />
         <SearchBox
           onSearch={(searchTerm, results) => {

@@ -1,10 +1,9 @@
+pub mod queries;
 pub mod db;
-pub mod dbconn;
-mod sqlschema;
+mod utils;
+mod models;
 
-use once_cell::sync::Lazy;
-use serde::Serialize;
-use sqlschema::*;
+use models::*;
 
 #[derive(Debug, serde::Serialize)]
 pub struct DataFields {
@@ -13,28 +12,11 @@ pub struct DataFields {
 }
 
 pub async fn import_books(path: &str) -> Result<String, String> {
-    db::import_books(path).await
+    queries::import_books(path).await
 }
 
 pub async fn import_notes(path: &str) -> Result<String, String> {
-    db::import_quotes(path).await
-}
-
-// Store the debug flag directly, initialized only once
-static IS_DEBUG: Lazy<bool> = Lazy::new(|| {
-    std::env::var("TAURI_ENV_DEBUG")
-        .unwrap_or("false".to_string())
-        .parse::<bool>()
-        .unwrap_or(false)
-});
-
-// Macro for debug_print with parameterized strings
-macro_rules! debug_print {
-    ($($arg:tt)*) => {
-        if *IS_DEBUG {
-            println!("DEBUG: {}", format!($($arg)*));
-        }
-    };
+    queries::import_quotes(path).await
 }
 
 // Create a separate module for the Tauri commands
@@ -43,11 +25,11 @@ pub mod commands {
 
     #[tauri::command]
     pub async fn fetch_all() -> Result<DataFields, String> {
-        let books = db::get_books()
+        let books = queries::get_books()
             .await
             .map_err(|e| format!("Error fetching books {}", e))?;
 
-        let authors = db::get_authors()
+        let authors = queries::get_authors()
             .await
             .map_err(|e| format!("Error fetching authors {}", e))?;
 
@@ -56,39 +38,39 @@ pub mod commands {
 
     #[tauri::command]
     pub async fn fetch_books_by_author(author_id: String) -> Result<Vec<Book>, String> {
-        db::get_all_books_by_author(author_id)
+        queries::get_all_books_by_author(author_id)
             .await
             .map_err(|e| format!("Error fetching books {}", e))
     }
 
     #[tauri::command]
-    pub async fn fetch_book_notes(
+    pub async fn get_all_quotes(
         book_id: &str,
         sort_by: Option<&str>,
         sort_order: Option<&str>,
     ) -> Result<Vec<Quote>, String> {
-        db::get_all_quotes_by_book_id(book_id, sort_by, sort_order)
+        queries::get_all_quotes_by_book_id(book_id, sort_by, sort_order)
             .await
             .map_err(|e| format!("Error fetching notes {}", e))
     }
 
     #[tauri::command]
     pub async fn search_notes(search: &str) -> Result<Vec<QuoteFts>, String> {
-        db::find_quotes(search)
+        queries::find_quotes(search)
             .await
             .map_err(|e| format!("Error fetching notes {}", e))
     }
 
     #[tauri::command]
     pub async fn search_books_by_title(search: &str) -> Result<Vec<Book>, String> {
-        db::find_books_by_title(search)
+        queries::find_books_by_title(search)
             .await
             .map_err(|e| format!("Error searching books {}", e))
     }
 
     #[tauri::command]
     pub async fn search_authors_by_name(search: &str) -> Result<Vec<Author>, String> {
-        db::find_authors_by_name(search)
+        queries::find_authors_by_name(search)
             .await
             .map_err(|e| format!("Error searching authors {}", e))
     }
@@ -100,9 +82,9 @@ pub mod commands {
             return Err("Invalid author name".to_string());
         }
 
-        match db::get_author_by_name(name.to_string()).await {
+        match queries::get_author_by_name(name.to_string()).await {
             Ok(_) => Err(format!("Author {name} already present")),
-            Err(_) => db::insert_author(name.to_string())
+            Err(_) => queries::insert_author(name.to_string())
                 .await
                 .map_err(|e| format!("Error creating author: {}", e)),
         }
@@ -115,23 +97,12 @@ pub mod commands {
         }
 
         // Insert the book
-        let new_book = db::insert_book(title.to_string(), Some(author_id))
+        let new_book = queries::insert_book(title.to_string(), Some(author_id))
             .await
             .map_err(|e| format!("Error creating book: {}", e))?;
 
         // Get the book to return
         Ok(new_book)
-    }
-
-    #[tauri::command]
-    pub async fn toggle_quote_starred(quote_id: &str) -> Result<Quote, String> {
-        let starred = db::get_quote_starred(quote_id)
-            .await
-            .map_err(|e| format!("Error extracting note with id {}: {}", quote_id, e))?;
-
-        db::set_quote_starred(quote_id, 1 - starred)
-            .await
-            .map_err(|e| e.to_string())
     }
 
     #[tauri::command]
@@ -141,7 +112,7 @@ pub mod commands {
         }
 
         // Get the book to ensure it exists and to get the author_id
-        let book = db::get_book_by_id(book_id.to_string())
+        let book = queries::get_book_by_id(book_id.to_string())
             .await
             .map_err(|e| format!("Book not found: {}", e))?;
 
@@ -167,18 +138,27 @@ pub mod commands {
             deleted_at: None,
         };
 
-        db::insert_quote(&quote).await.map_err(|e| e.to_string())
+        queries::insert_quote(&quote).await.map_err(|e| e.to_string())
     }
 
     #[tauri::command]
     pub async fn update_quote(quote: Quote) -> Result<Quote, String> {
         debug_print!("Updating quote {}", quote.id);
-        db::update_quote(&quote).await.map_err(|e| e.to_string())
+        queries::update_quote(&quote).await.map_err(|e| e.to_string())
     }
 
     #[tauri::command]
+    pub async fn toggle_quote_starred(quote_id: &str) -> Result<Quote, String> {
+        debug_print!("Toggling quote starred status for {}", quote_id);
+        queries::toggle_quote_starred(quote_id)
+            .await
+            .map_err(|e| e.to_string())
+    }
+
+
+    #[tauri::command]
     pub async fn set_quote_starred(note_id: &str, starred: i64) -> Result<(), String> {
-        let _ = db::set_quote_starred(note_id, starred)
+        let _ = queries::set_quote_starred(note_id, starred)
             .await
             .map_err(|e| e.to_string());
         Ok(())
@@ -186,26 +166,26 @@ pub mod commands {
 
     #[tauri::command]
     pub async fn delete_book(book_id: &str) -> Result<(), String> {
-        db::delete_book(book_id)
+        queries::delete_book(book_id)
             .await
             .map_err(|e| e.to_string())
     }
 
     #[tauri::command]
     pub async fn delete_author(author_id: String) -> Result<(), String> {
-        db::delete_author(author_id)
+        queries::delete_author(author_id)
             .await
             .map_err(|e| e.to_string())
     }
 
     #[tauri::command]
     pub async fn get_random_quote() -> Result<Option<(String, String, String)>, String> {
-        db::get_random_quote().await.map_err(|e| e.to_string())
+        queries::get_random_quote().await.map_err(|e| e.to_string())
     }
 
     #[tauri::command]
     pub async fn get_starred_quotes() -> Result<Vec<StarredQuote>, String> {
-        db::get_starred_quotes().await.map_err(|e| e.to_string())
+        queries::get_starred_quotes().await.map_err(|e| e.to_string())
     }
 }
 

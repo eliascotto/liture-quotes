@@ -41,7 +41,7 @@ async fn main() {
     let args: Vec<String> = env::args().collect();
 
     // Initialize the database pool
-    litforge_notes_lib::dbconn::init_pool()
+    litforge_notes_lib::db::init_pool()
         .await
         .expect("Failed to initialize database pool");
 
@@ -84,7 +84,7 @@ async fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             litforge_notes_lib::commands::fetch_all,
-            litforge_notes_lib::commands::fetch_book_notes,
+            litforge_notes_lib::commands::get_all_quotes,
             litforge_notes_lib::commands::fetch_books_by_author,
             litforge_notes_lib::commands::create_author,
             litforge_notes_lib::commands::delete_author,

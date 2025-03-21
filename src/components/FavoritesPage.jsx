@@ -2,15 +2,15 @@ import NoteBox from "@components/NoteBox";
 
 function FavoritesPage(props) {
   // Group notes by book
-  const notesByBook = props.notes.reduce((acc, note) => {
-    if (!acc[note.book_id]) {
-      acc[note.book_id] = {
-        title: note.book_title,
+  const quotesByBook = props.quotes.reduce((acc, quote) => {
+    if (!acc[quote.book_id]) {
+      acc[quote.book_id] = {
+        title: quote.book_title,
         author: note.author_name,
         notes: []
       };
     }
-    acc[note.book_id].notes.push(note);
+    acc[quote.book_id].quotes.push(quote);
     return acc;
   }, {});
 
@@ -23,9 +23,9 @@ function FavoritesPage(props) {
           </h1>
         </div>
         
-        {Object.entries(notesByBook).length > 0 ? (
+        {Object.entries(quotesByBook).length > 0 ? (
           <div className="flex flex-col space-y-8">
-            {Object.entries(notesByBook).map(([bookId, bookData]) => (
+            {Object.entries(quotesByBook).map(([bookId, bookData]) => (
               <div key={bookId} className="flex flex-col gap-4">
                 <div className="flex items-baseline gap-3">
                   <button 
@@ -38,16 +38,16 @@ function FavoritesPage(props) {
                   <span className="text-sm text-slate-500">by {bookData.author}</span>
                 </div>
                 <div className="flex flex-col gap-4 pl-4 border-l border-slate-700/30">
-                  {bookData.notes.map((note) => (
+                  {bookData.quotes.map((quote) => (
                     <NoteBox
-                      key={note.id}
-                      note={note}
+                      key={quote.id}
+                      note={quote}
                       selected={false}
                       starred={true}
                       setSelected={() => {}}
-                      updateNote={props.updateNote}
-                      starNote={props.starNote}
-                      removeNote={props.removeNote}
+                      updateNote={props.updateQuote}
+                      starNote={props.starQuote}
+                      removeNote={props.removeQuote}
                     />
                   ))}
                 </div>

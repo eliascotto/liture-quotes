@@ -25,7 +25,7 @@ function App() {
   const [books, setBooks] = useState([]);
   const [authors, setAuthors] = useState([]);
   const [notes, setNotes] = useState([]);
-  const [starredNotes, setStarredNotes] = useState([]);
+  const [starredQuotes, setStarredQuotes] = useState([]);
 
   // Navbar selection
   const [selectedOption, setSelectedOption] = useState("Books");
@@ -132,25 +132,19 @@ function App() {
         currentState.type === pageState.type && 
         ((currentState.type === 'book' && currentState.data.id === pageState.data.id) ||
          (currentState.type === 'author' && currentState.data.id === pageState.data.id) ||
-         (currentState.type === 'search' && currentState.data.term === pageState.data.term))) {
+         (currentState.type === 'search' && currentState.data.term === pageState.data.term) ||
+         (currentState.type === 'starred' && currentState.type === pageState.type))) {
       return; // Don't add duplicate entries
     }
 
-    setHistory(prevHistory => {
-      // Remove any forward history if we're navigating from a point in history
-      const newHistory = currentHistoryIndex >= 0 
-        ? prevHistory.slice(0, currentHistoryIndex + 1) 
-        : prevHistory;
-      
-      const updatedHistory = [...newHistory, pageState];
-      
-      // Update the current index to point to the new entry
-      setTimeout(() => {
-        setCurrentHistoryIndex(updatedHistory.length - 1);
-      }, 0);
-      
-      return updatedHistory;
-    });
+    // Update both history and currentHistoryIndex atomically
+    const newHistory = currentHistoryIndex >= 0 
+      ? history.slice(0, currentHistoryIndex + 1) 
+      : history;
+    
+    const updatedHistory = [...newHistory, pageState];
+    setHistory(updatedHistory);
+    setCurrentHistoryIndex(updatedHistory.length - 1);
   }, [history, currentHistoryIndex]);
 
   // Navigation functions
@@ -186,9 +180,9 @@ function App() {
     initialLoadComplete.current = true;
   }
 
-  async function fetchBookNotes() {
+  async function fetchBookQuotes() {
     if (!selectedBook) return;
-    const data = await invoke("fetch_book_notes", { bookId: selectedBook.id });
+    const data = await invoke("get_all_quotes", { bookId: selectedBook.id });
     setNotes(data);
   }
 
@@ -198,12 +192,12 @@ function App() {
     setSelectedAuthorBooks(books);
   }
 
-  async function fetchStarredNotes() {
+  async function fetchStarredQuotes() {
     try {
       const notes = await invoke("get_starred_quotes");
-      setStarredNotes(notes);
+      setStarredQuotes(notes);
     } catch (error) {
-      console.error("Error fetching starred notes:", error);
+      console.error("Error fetching starred quotes:", error);
     }
   }
 
@@ -264,28 +258,29 @@ function App() {
   async function updateQuote(quote) {
     try {
       await invoke("update_quote", { quote: quote });
-      await fetchBookNotes();
+      await fetchBookQuotes();
     } catch {
-      console.error("Error updating note");
+      console.error("Error updating quote");
     }
   }
 
-  async function starNote(note) {
+  async function toggleFavouriteQuote(quote) {
+    console.log("Toggling favourite quote:", quote.id);
     try {
-      await invoke("star_note", { noteId: note.id });
-      await fetchBookNotes();
-      await fetchStarredNotes(); // Refresh starred notes
+      await invoke("toggle_quote_starred", { quoteId: quote.id });
+      await fetchBookQuotes();
+      await fetchStarredQuotes();
     } catch {
-      console.error("Error updating note");
+      console.error("Error updating quote");
     }
   }
 
-  async function removeNote(note) {
+  async function removeQuote(quote) {
     try {
-      await invoke("hide_note", { noteId: note.id });
-      await fetchBookNotes();
+      await invoke("delete_quote", { quoteId: quote.id });
+      await fetchBookQuotes();
     } catch {
-      console.error("Error removing note");
+      console.error("Error removing quote");
     }
   }
 
@@ -295,7 +290,7 @@ function App() {
         bookId: bookId,
         content: "New quote"
       });
-      await fetchBookNotes();
+      await fetchBookQuotes();
     } catch (error) {
       console.error("Error adding quote:", error);
       alert(`Error adding quote: ${error.message || 'Unknown error'}`);
@@ -452,13 +447,13 @@ function App() {
   // Initial data load
   useEffect(() => {
     fetchAll();
-    fetchStarredNotes();
+    fetchStarredQuotes();
   }, []);
 
   // Fetch book notes when book changes
   useEffect(() => {
     if (selectedBook) {
-      fetchBookNotes();
+      fetchBookQuotes();
       setSelectedBookAuthor(findAuthorById(authors, selectedBook.author_id));
     }
   }, [selectedBook, authors]);
@@ -488,10 +483,10 @@ function App() {
   if (showingStarred) {
     currentPage = (
       <FavoritesPage
-        notes={starredNotes}
-        updateNote={updateQuote}
-        starNote={starNote}
-        removeNote={removeNote}
+        quotes={starredQuotes}
+        updateQuote={updateQuote}
+        starQuote={toggleFavouriteQuote}
+        removeQuote={removeQuote}
         navigateToBook={(bookId) => {
           const book = books.find(b => b.id === bookId);
           if (book) {
@@ -516,8 +511,8 @@ function App() {
         search={search}
         searchResults={searchResults}
         updateNote={updateQuote}
-        starNote={starNote}
-        removeNote={removeNote}
+        starNote={toggleFavouriteQuote}
+        removeNote={removeQuote}
         navigateToBook={navigateToBook}
         navigateToAuthor={navigateToAuthor}
         books={books}
@@ -531,8 +526,8 @@ function App() {
         author={selectedBookAuthor}
         notes={notes}
         updateQuote={updateQuote}
-        starNote={starNote}
-        removeNote={removeNote}
+        toggleFavouriteQuote={toggleFavouriteQuote}
+        removeQuote={removeQuote}
         navigateToAuthor={navigateToAuthor}
         addNote={addQuote}
         onDeleteBook={deleteBook}

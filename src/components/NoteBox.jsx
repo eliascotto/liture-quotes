@@ -8,7 +8,7 @@ import TrashIcon from './icons/Trash';
 // Custom dropdown menu component
 function DropdownMenu({ isOpen, onClose, onEdit, onStar, onRemove, isStarred }) {
   const menuRef = useRef(null);
-  
+
   useEffect(() => {
     // Close dropdown when clicking outside
     function handleClickOutside(event) {
@@ -16,38 +16,38 @@ function DropdownMenu({ isOpen, onClose, onEdit, onStar, onRemove, isStarred }) 
         onClose();
       }
     }
-    
+
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
-    
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
-  
+
   return (
-    <div 
+    <div
       ref={menuRef}
       className="absolute right-0 top-0 mt-6 w-32 bg-slate-800 border border-slate-700/50 rounded-lg shadow-lg z-10 overflow-hidden backdrop-blur-sm"
     >
       <div className="py-0.5">
-        <button 
+        <button
           onClick={onEdit}
           className="w-full text-left px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors duration-150 flex items-center gap-2"
         >
           <EditIcon /> Edit
         </button>
-        <button 
+        <button
           onClick={onStar}
           className="w-full text-left px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors duration-150 flex items-center gap-2"
         >
           <StarMenuIcon filled={isStarred} /> Star
         </button>
         <div className="border-t border-slate-700/50 my-0.5"></div>
-        <button 
+        <button
           onClick={onRemove}
           className="w-full text-left px-3 py-1.5 text-sm text-red-400 hover:bg-slate-700/50 hover:text-red-300 transition-colors duration-150 flex items-center gap-2"
         >
@@ -58,8 +58,8 @@ function DropdownMenu({ isOpen, onClose, onEdit, onStar, onRemove, isStarred }) 
   );
 }
 
-function EditableBox(props) {
-  const [currentText, setCurrentText] = useState(props.content);
+function EditableBox({ quote, onSave, onCancel }) {
+  const [currentText, setCurrentText] = useState(quote.content);
   const textareaRef = useRef(null);
 
   useEffect(() => {
@@ -74,9 +74,9 @@ function EditableBox(props) {
 
   const handleKeyDown = (e) => {
     if (e.key === 'Escape') {
-      props.onCancel();
+      onCancel();
     } else if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-      props.onSave(currentText);
+      onSave(currentText);
     }
   };
 
@@ -92,13 +92,13 @@ function EditableBox(props) {
       />
       <div className="flex justify-end mt-2 border-t border-slate-700/30 pt-2">
         <button
-          onClick={props.onCancel}
+          onClick={onCancel}
           className="px-3 py-1.5 rounded-md text-slate-400 hover:text-white transition-colors duration-200"
         >
           Cancel
         </button>
         <button
-          onClick={() => props.onSave(currentText)}
+          onClick={() => onSave(currentText)}
           className="px-3 py-1.5 rounded-md text-cyan-500 hover:bg-slate-700/50 font-medium transition-colors duration-200"
           disabled={!currentText.trim()}
         >
@@ -109,7 +109,7 @@ function EditableBox(props) {
   );
 }
 
-function NoteBox(props) {
+function NoteBox({ quote, onStarClick, ...props }) {
   const [editable, setEditable] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const noteRef = useRef(null);
@@ -143,13 +143,6 @@ function NoteBox(props) {
     }
   }, [props.onEdit]);
 
-  const handleStarClick = useCallback((e) => {
-    e.stopPropagation();
-    if (props.onStarClick) {
-      props.onStarClick();
-    }
-  }, [props.onStarClick]);
-
   const handleMenuEdit = useCallback(() => {
     setMenuOpen(false);
     setEditable(true);
@@ -158,7 +151,7 @@ function NoteBox(props) {
   const handleMenuStar = useCallback(() => {
     setMenuOpen(false);
     if (props.onStarClick) {
-      props.onStarClick();
+      onStarClick(quote);
     }
   }, [props.onStarClick]);
 
@@ -169,52 +162,51 @@ function NoteBox(props) {
     }
   }, [props.onRemove]);
 
-  if (editable) {
-    return (
-      <EditableBox
-        content={props.quote.content}
-        onSave={handleQuoteEdit}
-        onCancel={() => setEditable(false)}
-      />
-    );
-  }
-
   return (
     <div className="relative my-2 group" ref={noteRef}>
-      <div 
+      <div
         className={clsx(
           "absolute top-[10px] -left-[22.5px] cursor-pointer",
           {
-            "text-yellow-500": props.starred,
-            "text-slate-400": !props.starred && props.selected,
-            "opacity-0 group-hover:opacity-100 text-slate-500": !props.starred && !props.selected
+            "text-yellow-500": !!quote.starred,
+            "text-slate-400": !quote.starred && props.selected,
+            "opacity-0 group-hover:opacity-100 text-slate-500": !quote.starred && !props.selected
           }
         )}
         title="Star Note"
-        onClick={handleStarClick}
+        onClick={() => onStarClick(quote)}
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
       >
-        <StarIcon fill={props.starred} />
+        <StarIcon fill={!!quote.starred} />
       </div>
-      <div className="relative">
-        <div
-          className={clsx(
-            props.selected ? selectedClass : classBase,
-            "hover:bg-slate-800/70"
-          )}
-          onClick={handleClick}
-          onContextMenu={handleContextMenu}
-        >{props.quote.content}</div>
-        
-        <DropdownMenu 
-          isOpen={menuOpen}
-          onClose={() => setMenuOpen(false)}
-          onEdit={handleMenuEdit}
-          onStar={handleMenuStar}
-          onRemove={handleMenuRemove}
-          isStarred={props.starred}
+      {editable ? (
+        <EditableBox
+          quote={quote}
+          onSave={handleQuoteEdit}
+          onCancel={() => setEditable(false)}
         />
-      </div>
+      ) : (
+        <div className="relative">
+          <div
+            className={clsx(
+              props.selected ? selectedClass : classBase,
+              "hover:bg-slate-800/70"
+            )}
+            onClick={handleClick}
+            onContextMenu={handleContextMenu}
+          >{quote.content}</div>
+
+          <DropdownMenu
+            isOpen={menuOpen}
+            onClose={() => setMenuOpen(false)}
+            onEdit={handleMenuEdit}
+            onStar={handleMenuStar}
+            onRemove={handleMenuRemove}
+            isStarred={!!quote.starred}
+          />
+        </div>
+      )}
+
     </div>
   );
 }

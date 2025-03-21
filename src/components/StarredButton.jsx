@@ -1,4 +1,4 @@
-import StarIcon from './icons/Star';
+import StarIcon from '@icons/Star';
 
 function StarredButton({ onClick, isActive }) {
   return (
