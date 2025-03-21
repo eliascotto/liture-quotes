@@ -1,8 +1,8 @@
-use sqlx::{SqlitePool, Transaction, Sqlite};
 use sqlx::sqlite::SqliteConnectOptions;
-use std::sync::OnceLock;
-use std::path::Path;
+use sqlx::{Sqlite, SqlitePool, Transaction};
 use std::fs;
+use std::path::Path;
+use std::sync::OnceLock;
 
 const DB_PATH: &str = "/Users/elia/dev/litforge/notes/database/notes.db";
 static DB_POOL: OnceLock<SqlitePool> = OnceLock::new();
@@ -14,7 +14,10 @@ pub async fn init_pool() -> Result<(), sqlx::Error> {
     println!("Database directory exists: {:?}", db_dir.exists());
 
     // Check if file exists or will be created
-    println!("Database file exists before connection: {:?}", Path::new(DB_PATH).exists());
+    println!(
+        "Database file exists before connection: {:?}",
+        Path::new(DB_PATH).exists()
+    );
 
     let options = SqliteConnectOptions::new()
         .filename(Path::new(DB_PATH))

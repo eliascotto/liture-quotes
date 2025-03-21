@@ -71,6 +71,11 @@ async fn main() {
 
     // In Tauri 2.0, we need to use the plugin system differently
     tauri::Builder::default()
+        .plugin(tauri_plugin_log::Builder::new()
+            .target(tauri_plugin_log::Target::new(
+            tauri_plugin_log::TargetKind::Webview,
+            ))
+            .build())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_shell::init())
         .setup(|app| {
@@ -83,7 +88,7 @@ async fn main() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            litforge_notes_lib::commands::fetch_all,
+            litforge_notes_lib::commands::fetch_books_authors,
             litforge_notes_lib::commands::get_all_quotes,
             litforge_notes_lib::commands::fetch_books_by_author,
             litforge_notes_lib::commands::create_author,
@@ -92,6 +97,7 @@ async fn main() {
             litforge_notes_lib::commands::delete_book,
             litforge_notes_lib::commands::create_quote,
             litforge_notes_lib::commands::update_quote,
+            litforge_notes_lib::commands::delete_quote,
             litforge_notes_lib::commands::toggle_quote_starred,
             litforge_notes_lib::commands::set_quote_starred,
             litforge_notes_lib::commands::search_notes,

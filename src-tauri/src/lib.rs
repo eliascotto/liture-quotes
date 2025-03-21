@@ -1,7 +1,7 @@
-pub mod queries;
 pub mod db;
-mod utils;
 mod models;
+pub mod queries;
+mod utils;
 
 use models::*;
 
@@ -24,7 +24,7 @@ pub mod commands {
     use super::*;
 
     #[tauri::command]
-    pub async fn fetch_all() -> Result<DataFields, String> {
+    pub async fn fetch_books_authors() -> Result<DataFields, String> {
         let books = queries::get_books()
             .await
             .map_err(|e| format!("Error fetching books {}", e))?;
@@ -138,13 +138,17 @@ pub mod commands {
             deleted_at: None,
         };
 
-        queries::insert_quote(&quote).await.map_err(|e| e.to_string())
+        queries::insert_quote(&quote)
+            .await
+            .map_err(|e| e.to_string())
     }
 
     #[tauri::command]
     pub async fn update_quote(quote: Quote) -> Result<Quote, String> {
         debug_print!("Updating quote {}", quote.id);
-        queries::update_quote(&quote).await.map_err(|e| e.to_string())
+        queries::update_quote_content(&quote.id, quote.content.as_deref().unwrap_or(""))
+            .await
+            .map_err(|e| e.to_string())
     }
 
     #[tauri::command]
@@ -155,13 +159,19 @@ pub mod commands {
             .map_err(|e| e.to_string())
     }
 
-
     #[tauri::command]
     pub async fn set_quote_starred(note_id: &str, starred: i64) -> Result<(), String> {
         let _ = queries::set_quote_starred(note_id, starred)
             .await
             .map_err(|e| e.to_string());
         Ok(())
+    }
+
+    #[tauri::command]
+    pub async fn delete_quote(quote_id: &str) -> Result<(), String> {
+        queries::delete_quote(quote_id)
+            .await
+            .map_err(|e| e.to_string())
     }
 
     #[tauri::command]
@@ -185,7 +195,9 @@ pub mod commands {
 
     #[tauri::command]
     pub async fn get_starred_quotes() -> Result<Vec<StarredQuote>, String> {
-        queries::get_starred_quotes().await.map_err(|e| e.to_string())
+        queries::get_starred_quotes()
+            .await
+            .map_err(|e| e.to_string())
     }
 }
 

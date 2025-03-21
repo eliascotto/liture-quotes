@@ -1,5 +1,5 @@
-use serde_json::Value;
 use chrono::NaiveDateTime;
+use serde_json::Value;
 use std::error;
 
 // SQLITE tables
@@ -71,18 +71,17 @@ pub struct QuoteFts {
 
 // Metaschema
 
-#[derive(Debug, serde::Serialize)]
+#[derive(Debug, serde::Serialize, Clone, sqlx::FromRow)]
 pub struct StarredQuote {
     pub id: String,
-    pub content: String,
-    pub book_id: String,
-    pub book_title: String,
-    pub author_id: String,
-    pub author_name: String,
+    pub book_id: Option<String>,
+    pub book_title: Option<String>,
+    pub author_id: Option<String>,
+    pub author_name: Option<String>,
+    pub content: Option<String>,
     pub starred: Option<i64>,
-    pub created_at: String,
-    pub updated_at: String,
-    pub deleted_at: Option<String>,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
 }
 
 // JSON data structures for parsing json files as input

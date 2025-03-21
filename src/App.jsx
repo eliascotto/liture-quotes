@@ -7,7 +7,7 @@ import Navbar from "@components/layouts/Navbar";
 import BookPage from "@components/BookPage";
 import AuthorPage from "@components/AuthorPage";
 import SearchPage from "@components/SearchPage";
-import FavoritesPage from "@components/FavoritesPage";
+import FavouritesPage from "@components/FavouritesPage";
 import Header from "@components/layouts/Header";
 import RandomQuote from "@components/RandomQuote";
 
@@ -24,7 +24,7 @@ function App() {
   // Fields from db
   const [books, setBooks] = useState([]);
   const [authors, setAuthors] = useState([]);
-  const [notes, setNotes] = useState([]);
+  const [quotes, setQuotes] = useState([]);
   const [starredQuotes, setStarredQuotes] = useState([]);
 
   // Navbar selection
@@ -34,7 +34,7 @@ function App() {
   // Search
   const [search, setSearch] = useState(null);
   const [searchResults, setSearchResults] = useState({
-    notes: [],
+    quotes: [],
     books: [],
     authors: []
   });
@@ -47,6 +47,11 @@ function App() {
   const [selectedAuthor, setSelectedAuthor] = useState(null);
   const [selectedAuthorBooks, setSelectedAuthorBooks] = useState([]);
 
+  // Current quote
+  const [newlyCreatedQuoteId, setNewlyCreatedQuoteId] = useState(null);
+  const [sortBy, setSortBy] = useState("date_modified");
+  const [sortOrder, setSortOrder] = useState("DESC");
+
   // Navigation history
   const [history, setHistory] = useState([]);
   const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
@@ -54,11 +59,11 @@ function App() {
   const initialLoadComplete = useRef(false);
 
   // Showing starred notes
-  const [showingStarred, setShowingStarred] = useState(false);
+  const [showingFavourites, setShowingFavourites] = useState(false);
 
   // Get current page state
   const getCurrentPageState = useCallback(() => {
-    if (showingStarred) {
+    if (showingFavourites) {
       return {
         type: 'starred',
         data: null
@@ -80,7 +85,7 @@ function App() {
       };
     }
     return null;
-  }, [search, searchResults, isBooksSelected, selectedBook, selectedAuthor, showingStarred]);
+  }, [search, searchResults, isBooksSelected, selectedBook, selectedAuthor, showingFavourites]);
 
   // Apply a page state from history
   const applyPageState = useCallback((pageState) => {
@@ -90,23 +95,23 @@ function App() {
 
     switch (pageState.type) {
       case 'starred':
-        setShowingStarred(true);
+        setShowingFavourites(true);
         setSearch(null);
         break;
       case 'book':
-        setShowingStarred(false);
+        setShowingFavourites(false);
         setSelectedOption("Books");
         setSelectedBook(pageState.data);
         setSearch(null);
         break;
       case 'author':
-        setShowingStarred(false);
+        setShowingFavourites(false);
         setSelectedOption("Authors");
         setSelectedAuthor(pageState.data);
         setSearch(null);
         break;
       case 'search':
-        setShowingStarred(false);
+        setShowingFavourites(false);
         setSearch(pageState.data.term);
         setSearchResults(pageState.data.results);
         break;
@@ -128,20 +133,20 @@ function App() {
 
     // Check if the new state is different from the current one in history
     const currentState = history[currentHistoryIndex];
-    if (currentState && 
-        currentState.type === pageState.type && 
-        ((currentState.type === 'book' && currentState.data.id === pageState.data.id) ||
-         (currentState.type === 'author' && currentState.data.id === pageState.data.id) ||
-         (currentState.type === 'search' && currentState.data.term === pageState.data.term) ||
-         (currentState.type === 'starred' && currentState.type === pageState.type))) {
+    if (currentState &&
+      currentState.type === pageState.type &&
+      ((currentState.type === 'book' && currentState.data.id === pageState.data.id) ||
+        (currentState.type === 'author' && currentState.data.id === pageState.data.id) ||
+        (currentState.type === 'search' && currentState.data.term === pageState.data.term) ||
+        (currentState.type === 'starred' && currentState.type === pageState.type))) {
       return; // Don't add duplicate entries
     }
 
     // Update both history and currentHistoryIndex atomically
-    const newHistory = currentHistoryIndex >= 0 
-      ? history.slice(0, currentHistoryIndex + 1) 
+    const newHistory = currentHistoryIndex >= 0
+      ? history.slice(0, currentHistoryIndex + 1)
       : history;
-    
+
     const updatedHistory = [...newHistory, pageState];
     setHistory(updatedHistory);
     setCurrentHistoryIndex(updatedHistory.length - 1);
@@ -153,10 +158,10 @@ function App() {
 
   const goBack = useCallback(() => {
     if (!canGoBack) return;
-    
+
     const newIndex = currentHistoryIndex - 1;
     const prevState = history[newIndex];
-    
+
     // Apply the previous state
     applyPageState(prevState);
     setCurrentHistoryIndex(newIndex);
@@ -164,26 +169,30 @@ function App() {
 
   const goForward = useCallback(() => {
     if (!canGoForward) return;
-    
+
     const newIndex = currentHistoryIndex + 1;
     const nextState = history[newIndex];
-    
+
     // Apply the next state
     applyPageState(nextState);
     setCurrentHistoryIndex(newIndex);
   }, [canGoForward, currentHistoryIndex, history, applyPageState]);
 
-  async function fetchAll() {
-    const data = await invoke("fetch_all");
+  async function fetchBooksAndAuthors() {
+    const data = await invoke("fetch_books_authors");
     setBooks(data.books);
     setAuthors(data.authors);
     initialLoadComplete.current = true;
   }
 
-  async function fetchBookQuotes() {
+  async function fetchQuotes() {
     if (!selectedBook) return;
-    const data = await invoke("get_all_quotes", { bookId: selectedBook.id });
-    setNotes(data);
+    const data = await invoke("get_all_quotes", {
+      bookId: selectedBook.id,
+      sortBy,
+      sortOrder
+    });
+    setQuotes(data);
   }
 
   async function fetchBooksByAuthor() {
@@ -204,7 +213,7 @@ function App() {
   async function addAuthor(authorName) {
     try {
       const newAuthor = await invoke("create_author", { name: authorName });
-      await fetchAll();
+      await fetchBooksAndAuthors();
       setSelectedOption("Authors");
       setSelectedAuthor(newAuthor);
       return true;
@@ -218,7 +227,7 @@ function App() {
   async function addBook(title, authorId) {
     try {
       const newBook = await invoke("new_book", { title, authorId });
-      await fetchAll();
+      await fetchBooksAndAuthors();
       setSelectedOption("Books");
       setSelectedBook(newBook);
       return true;
@@ -232,11 +241,11 @@ function App() {
   async function onAddButtonClick(type, data) {
     if (type === "author") {
       return await addAuthor(data.name);
-    } 
-    
+    }
+
     if (type === "book") {
       const { title, authorOption, authorId, newAuthorName } = data;
-      
+
       if (authorOption === 'existing') {
         // Use existing author
         return await addBook(title, parseInt(authorId));
@@ -256,9 +265,10 @@ function App() {
   }
 
   async function updateQuote(quote) {
+    console.log("Updating quote:", quote);
     try {
       await invoke("update_quote", { quote: quote });
-      await fetchBookQuotes();
+      await fetchQuotes();
     } catch {
       console.error("Error updating quote");
     }
@@ -268,29 +278,30 @@ function App() {
     console.log("Toggling favourite quote:", quote.id);
     try {
       await invoke("toggle_quote_starred", { quoteId: quote.id });
-      await fetchBookQuotes();
+      await fetchQuotes();
       await fetchStarredQuotes();
     } catch {
       console.error("Error updating quote");
     }
   }
 
-  async function removeQuote(quote) {
+  async function deleteQuote(quote) {
     try {
       await invoke("delete_quote", { quoteId: quote.id });
-      await fetchBookQuotes();
+      await fetchQuotes();
     } catch {
       console.error("Error removing quote");
     }
   }
 
-  async function addQuote(bookId) {
+  async function createNewQuote(bookId) {
     try {
-      await invoke("create_quote", { 
+      let newQuote = await invoke("create_quote", {
         bookId: bookId,
         content: "New quote"
       });
-      await fetchBookQuotes();
+      setNewlyCreatedQuoteId(newQuote.id);
+      await fetchQuotes();
     } catch (error) {
       console.error("Error adding quote:", error);
       alert(`Error adding quote: ${error.message || 'Unknown error'}`);
@@ -309,6 +320,25 @@ function App() {
       books: [],
       authors: []
     });
+  }
+
+  function clearNavigation() {
+    setShowingFavourites(false);
+    setNewlyCreatedQuoteId(null);
+  }
+
+  function onNavbarSelection(item) {
+    clearNavigation();
+    if (isBooksSelected) {
+      setSelectedBook(item);
+    } else {
+      setSelectedAuthor(item);
+    }
+  }
+
+  function onFavouritesButtonClick() {
+    setShowingFavourites(!showingFavourites);
+    setNewlyCreatedQuoteId(null);
   }
 
   function navigateToBook(bookId) {
@@ -333,15 +363,15 @@ function App() {
   const deleteBook = async (bookId) => {
     try {
       await invoke('set_book_deleted', { bookId });
-      
+
       // Refresh all data to ensure both books and authors lists are updated
-      await fetchAll();
-      
+      await fetchBooksAndAuthors();
+
       // If we're on the book page that was deleted, navigate back to the books list
       if (selectedBook && selectedBook.id === bookId) {
         setSelectedBook(null);
       }
-      
+
       // Clean up history by removing entries for the deleted book
       setHistory(prevHistory => {
         return prevHistory.filter(entry => {
@@ -352,17 +382,17 @@ function App() {
           return true;
         });
       });
-      
+
       // If we removed the current history entry, reset the index
-      if (history[currentHistoryIndex] && 
-          history[currentHistoryIndex].type === 'book' && 
-          history[currentHistoryIndex].data.id === bookId) {
+      if (history[currentHistoryIndex] &&
+        history[currentHistoryIndex].type === 'book' &&
+        history[currentHistoryIndex].data.id === bookId) {
         // Navigate to the first valid entry in history or reset if none
         const newHistory = history.filter(entry => {
           if (entry.type === 'book' && entry.data.id === bookId) return false;
           return true;
         });
-        
+
         if (newHistory.length > 0) {
           // Navigate to the first author or book in the list
           if (books.length > 0) {
@@ -386,20 +416,20 @@ function App() {
   const deleteAuthor = async (authorId) => {
     try {
       await invoke('set_author_deleted', { authorId });
-      
+
       // Refresh all data to ensure both authors and books lists are updated
-      await fetchAll();
-      
+      await fetchBooksAndAuthors();
+
       // If we're on the author page that was deleted, navigate back to the authors list
       if (selectedAuthor && selectedAuthor.id === authorId) {
         setSelectedAuthor(null);
       }
-      
+
       // If we're on a book page whose author was deleted, navigate back to the books list
       if (selectedBook && selectedBook.author_id === authorId) {
         setSelectedBook(null);
       }
-      
+
       // Clean up history by removing entries for the deleted author and its books
       setHistory(prevHistory => {
         return prevHistory.filter(entry => {
@@ -413,18 +443,18 @@ function App() {
           return true;
         });
       });
-      
+
       // If we removed the current history entry, reset the index
-      if (history[currentHistoryIndex] && 
-          ((history[currentHistoryIndex].type === 'author' && history[currentHistoryIndex].data.id === authorId) ||
-           (history[currentHistoryIndex].type === 'book' && history[currentHistoryIndex].data.author_id === authorId))) {
+      if (history[currentHistoryIndex] &&
+        ((history[currentHistoryIndex].type === 'author' && history[currentHistoryIndex].data.id === authorId) ||
+          (history[currentHistoryIndex].type === 'book' && history[currentHistoryIndex].data.author_id === authorId))) {
         // Navigate to the first valid entry in history or reset if none
         const newHistory = history.filter(entry => {
           if (entry.type === 'author' && entry.data.id === authorId) return false;
           if (entry.type === 'book' && entry.data.author_id === authorId) return false;
           return true;
         });
-        
+
         if (newHistory.length > 0) {
           // Navigate to the first author or book in the list
           if (authors.length > 0) {
@@ -446,14 +476,24 @@ function App() {
 
   // Initial data load
   useEffect(() => {
-    fetchAll();
+    fetchBooksAndAuthors();
     fetchStarredQuotes();
   }, []);
+
+  useEffect(() => {
+    fetchQuotes();
+  }, [sortBy, sortOrder]);
+
+  useEffect(() => {
+    if (showingFavourites) {
+      fetchStarredQuotes();
+    }
+  }, [showingFavourites]);
 
   // Fetch book notes when book changes
   useEffect(() => {
     if (selectedBook) {
-      fetchBookQuotes();
+      fetchQuotes();
       setSelectedBookAuthor(findAuthorById(authors, selectedBook.author_id));
     }
   }, [selectedBook, authors]);
@@ -480,25 +520,27 @@ function App() {
   }, [history, currentHistoryIndex]);
 
   let currentPage;
-  if (showingStarred) {
+  if (showingFavourites) {
     currentPage = (
-      <FavoritesPage
+      <FavouritesPage
         quotes={starredQuotes}
         updateQuote={updateQuote}
-        starQuote={toggleFavouriteQuote}
-        removeQuote={removeQuote}
+        onStarClick={toggleFavouriteQuote}
+        removeQuote={deleteQuote}
         navigateToBook={(bookId) => {
+          clearNavigation();
           const book = books.find(b => b.id === bookId);
           if (book) {
-            setShowingStarred(false);
+            setShowingFavourites(false);
             setSelectedOption("Books");
             setSelectedBook(book);
           }
         }}
         navigateToAuthor={(authorId) => {
+          clearNavigation();
           const author = authors.find(a => a.id === authorId);
           if (author) {
-            setShowingStarred(false);
+            setShowingFavourites(false);
             setSelectedOption("Authors");
             setSelectedAuthor(author);
           }
@@ -512,7 +554,7 @@ function App() {
         searchResults={searchResults}
         updateNote={updateQuote}
         starNote={toggleFavouriteQuote}
-        removeNote={removeQuote}
+        removeNote={deleteQuote}
         navigateToBook={navigateToBook}
         navigateToAuthor={navigateToAuthor}
         books={books}
@@ -524,13 +566,18 @@ function App() {
       <BookPage
         book={selectedBook}
         author={selectedBookAuthor}
-        notes={notes}
-        updateQuote={updateQuote}
-        toggleFavouriteQuote={toggleFavouriteQuote}
-        removeQuote={removeQuote}
+        quotes={quotes}
+        newlyCreatedQuoteId={newlyCreatedQuoteId}
         navigateToAuthor={navigateToAuthor}
-        addNote={addQuote}
+        createNewQuote={createNewQuote}
+        updateQuote={updateQuote}
+        deleteQuote={deleteQuote}
+        toggleFavouriteQuote={toggleFavouriteQuote}
         onDeleteBook={deleteBook}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        setSortBy={setSortBy}
+        setSortOrder={setSortOrder}
       />
     )
   } else if (!isBooksSelected && selectedAuthor) {
@@ -565,19 +612,17 @@ function App() {
         <Navbar
           list={isBooksSelected ? books : authors}
           property={isBooksSelected ? "title" : "name"}
-          onSelection={isBooksSelected ?
-            (book) => setSelectedBook(book) :
-            (author) => setSelectedAuthor(author)}
+          onSelection={onNavbarSelection}
           selected={isBooksSelected ? selectedBook : selectedAuthor}
-          onCategoryChange={(category) => setSelectedOption(category)} 
+          onCategoryChange={(category) => setSelectedOption(category)}
         />
-        
+
         {/* Main content area with header */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Header only for the right part */}
           <Header
-            showingStarred={showingStarred}
-            setShowingStarred={setShowingStarred}
+            showingStarred={showingFavourites}
+            setShowingStarred={onFavouritesButtonClick}
             selectedOption={selectedOption}
             onAddButtonClick={onAddButtonClick}
             authors={authors}
@@ -587,7 +632,7 @@ function App() {
             goBack={goBack}
             goForward={goForward}
           />
-          
+
           {/* Content area */}
           <div className="flex-1 overflow-hidden bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-sm">
             {currentPage}

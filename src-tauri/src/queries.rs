@@ -2,12 +2,12 @@ use crate::db::*;
 use crate::models::*;
 use chrono::NaiveDateTime;
 use serde_json::Value;
+use sqlx::sqlite::SqliteRow;
+use sqlx::Row;
 use std::fs::File;
 use std::io::{self, Read};
 use std::path::Path;
-use sqlx::Row;
 use uuid::Uuid;
-use sqlx::sqlite::SqliteRow;
 
 fn read_file(path: &str) -> io::Result<String> {
     let path = Path::new(path);
@@ -59,13 +59,13 @@ pub async fn insert_book(
     author_id: Option<String>,
 ) -> Result<Book, sqlx::Error> {
     let inserted = sqlx::query_as::<_, Book>(
-        "INSERT OR IGNORE INTO book (id, title, author_id) VALUES (?, ?, ?) RETURNING *"
-        )
-        .bind(Uuid::new_v4().to_string())
-        .bind(book_title)
-        .bind(author_id)
-        .fetch_one(get_pool())
-        .await?;
+        "INSERT OR IGNORE INTO book (id, title, author_id) VALUES (?, ?, ?) RETURNING *",
+    )
+    .bind(Uuid::new_v4().to_string())
+    .bind(book_title)
+    .bind(author_id)
+    .fetch_one(get_pool())
+    .await?;
 
     Ok(inserted)
 }
@@ -75,19 +75,19 @@ pub async fn insert_quote(quote: &Quote) -> Result<Quote, sqlx::Error> {
         "INSERT OR IGNORE INTO quote 
             (id, book_id, author_id, chapter, chapter_progress, content, starred) 
             VALUES (?, ?, ?, ?, ?, ?, ?)
-            RETURNING *"
-        )
-        .bind(quote.id.clone())
-        .bind(quote.book_id.clone())
-        .bind(quote.author_id.clone())
-        .bind(quote.chapter.clone())
-        .bind(quote.chapter_progress)
-        .bind(quote.content.clone())
-        .bind(quote.starred)
-        .fetch_one(get_pool())
-        .await?;
+            RETURNING *",
+    )
+    .bind(quote.id.clone())
+    .bind(quote.book_id.clone())
+    .bind(quote.author_id.clone())
+    .bind(quote.chapter.clone())
+    .bind(quote.chapter_progress)
+    .bind(quote.content.clone())
+    .bind(quote.starred)
+    .fetch_one(get_pool())
+    .await?;
 
-   Ok(inserted)
+    Ok(inserted)
 }
 
 /// Get all books
@@ -267,9 +267,7 @@ pub async fn get_quote_starred(quote_id: &str) -> Result<i64, sqlx::Error> {
 
 /// Set quote starred status
 pub async fn set_quote_starred(quote_id: &str, starred: i64) -> Result<Quote, sqlx::Error> {
-    let updated = sqlx::query_as::<_, Quote>(
-            "UPDATE quote SET starred = ?  RETURNING *"
-        )
+    let updated = sqlx::query_as::<_, Quote>("UPDATE quote SET starred = ?  RETURNING *")
         .bind(starred)
         .bind(quote_id)
         .fetch_one(get_pool())
@@ -298,14 +296,13 @@ pub async fn toggle_quote_starred(quote_id: &str) -> Result<Quote, sqlx::Error> 
 }
 
 /// Update note
-pub async fn update_quote(quote: &Quote) -> Result<Quote, sqlx::Error> {
-    let updated = sqlx::query_as::<_, Quote>(
-            "UPDATE quote SET content = ? WHERE id = ? RETURNING *"
-        )
-        .bind(quote.content.clone())
-        .bind(quote.id.clone())
-        .fetch_one(get_pool())
-        .await?;
+pub async fn update_quote_content(id: &str, content: &str) -> Result<Quote, sqlx::Error> {
+    let updated =
+        sqlx::query_as::<_, Quote>("UPDATE quote SET content = ? WHERE id = ? RETURNING *")
+            .bind(content)
+            .bind(id)
+            .fetch_one(get_pool())
+            .await?;
 
     Ok(updated)
 }
@@ -323,16 +320,12 @@ pub async fn get_random_quote() -> Result<Option<(String, String, String)>, sqlx
          AND b.deleted_at IS NULL
          AND a.deleted_at IS NULL
          ORDER BY RANDOM()
-         LIMIT 1"
+         LIMIT 1",
     )
     .fetch_optional(get_pool())
     .await?;
 
-    Ok(result.map(|row| (
-        row.get("content"), 
-        row.get("title"), 
-        row.get("name")
-    )))
+    Ok(result.map(|row| (row.get("content"), row.get("title"), row.get("name"))))
 }
 
 /// Import books from JSON
@@ -363,7 +356,7 @@ pub async fn import_books(path: &str) -> Result<String, String> {
             None => None,
         };
 
-        insert_book( book.title.clone(), author_id)
+        insert_book(book.title.clone(), author_id)
             .await
             .map_err(|e| format!("Error creating Book => {}", e))?;
     }
@@ -447,8 +440,8 @@ pub async fn import_quotes(path: &str) -> Result<String, String> {
 }
 
 pub async fn get_starred_quotes() -> Result<Vec<StarredQuote>, sqlx::Error> {
-    sqlx::query(
-            "SELECT 
+    sqlx::query_as::<_, StarredQuote>(
+        "SELECT 
                 q.id,
                 q.content,
                 q.book_id,
@@ -466,19 +459,7 @@ pub async fn get_starred_quotes() -> Result<Vec<StarredQuote>, sqlx::Error> {
             AND b.deleted_at IS NULL
             AND a.deleted_at IS NULL
             ORDER BY q.updated_at DESC",
-        )
-        .map(|row: SqliteRow| StarredQuote {
-            id: row.get(0),
-            content: row.get(1),
-            book_id: row.get(2),
-            book_title: row.get(3),
-            author_id: row.get(4),
-            author_name: row.get(5),
-            starred: row.get(6),
-            created_at: row.get(7),
-            updated_at: row.get(8),
-            deleted_at: row.get(9),
-        })
-        .fetch_all(get_pool())
-        .await
+    )
+    .fetch_all(get_pool())
+    .await
 }

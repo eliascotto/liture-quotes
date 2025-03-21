@@ -1,12 +1,28 @@
-export interface Note {
+export interface Quote {
   id: string;
-  title: string;
-  content: string;
-  createdAt: Date;
-  updatedAt: Date;
-  tags: string[];
-  isArchived: boolean;
-  isPinned: boolean;
+  content: string | null;
+  book_id: string | null;
+  book_title: string | null;
+  author_id: string | null;
+  author_name: string | null;
+  starred: number | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  chapter: string | null;
+  chapter_progress: number | null;
+}
+
+export interface StarredQuote {
+  id: string;
+  content: string | null;
+  book_id: string | null;
+  book_title: string | null;
+  author_id: string | null;
+  author_name: string | null;
+  starred: number | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Tag {
@@ -37,7 +53,7 @@ export interface SortOption {
 export type ViewMode = 'grid' | 'list';
 
 export interface AppState {
-  notes: Note[];
+  quotes: Quote[];
   tags: Tag[];
   currentUser: User | null;
   filters: NoteFilter;

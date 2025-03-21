@@ -1,5 +1,5 @@
 import { useState } from "react";
-import NoteBox from "./NoteBox";
+import NoteBox from "./NoteBox.tsx";
 
 function SearchPage(props) {
   const [selectedNote, setSelectedNote] = useState(null);
