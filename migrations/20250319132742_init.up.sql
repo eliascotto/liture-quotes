@@ -3,7 +3,8 @@ CREATE TABLE IF NOT EXISTS author (
     name TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    deleted_at TIMESTAMP
+    deleted_at TIMESTAMP,
+    original_id TEXT
 );
 
 CREATE TABLE IF NOT EXISTS book (
@@ -14,6 +15,7 @@ CREATE TABLE IF NOT EXISTS book (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     deleted_at TIMESTAMP,
+    original_id TEXT,
     FOREIGN KEY (author_id) REFERENCES author(id)
 );
 
@@ -28,6 +30,7 @@ CREATE TABLE IF NOT EXISTS quote (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     deleted_at TIMESTAMP,
+    original_id TEXT,
     FOREIGN KEY (book_id) REFERENCES book(id)
 );
 
@@ -38,6 +41,8 @@ CREATE TABLE IF NOT EXISTS chapter (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     deleted_at TIMESTAMP,
+    original_id TEXT,
+    volume_index INTEGER,
     FOREIGN KEY (book_id) REFERENCES book(id)
 );
 

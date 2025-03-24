@@ -11,13 +11,6 @@ pub async fn init_pool() -> Result<(), sqlx::Error> {
     // Ensure the parent directory exists
     let db_dir = Path::new(DB_PATH).parent().expect("No parent directory");
     fs::create_dir_all(db_dir).expect("Failed to create database directory");
-    println!("Database directory exists: {:?}", db_dir.exists());
-
-    // Check if file exists or will be created
-    println!(
-        "Database file exists before connection: {:?}",
-        Path::new(DB_PATH).exists()
-    );
 
     let options = SqliteConnectOptions::new()
         .filename(Path::new(DB_PATH))

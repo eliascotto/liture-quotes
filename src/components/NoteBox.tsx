@@ -96,7 +96,7 @@ function EditableBox(
   };
 
   return (
-    <div className="rounded-lg my-2 bg-slate-800/80 shadow-lg border border-slate-700/50 py-3 px-5 backdrop-blur-sm">
+    <div className="rounded-lg my-2 bg-slate-800/80 shadow-lg border border-slate-700/50 py-3 px-5 backdrop-blur-sm select-none">
       <textarea
         ref={textareaRef}
         className="outline-none bg-transparent w-full resize-none text-slate-200 focus:text-white transition-colors duration-200"
@@ -114,7 +114,7 @@ function EditableBox(
             Cancel
           </button>
         </Tooltip>
-        <Tooltip content="Save quote" shortcut="⌘+↵">
+        <Tooltip content="Save quote" shortcut="⌘ ⏎">
           <button
             onClick={() => onSave(currentText ?? "")}
             className="px-3 py-1.5 rounded-md text-cyan-500 hover:bg-slate-700/50 font-medium transition-colors duration-200"

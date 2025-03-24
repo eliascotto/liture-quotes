@@ -1,6 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use litforge_notes_lib::menu;
 use std::env;
 use tauri::{Manager, Runtime};
 
@@ -45,37 +46,17 @@ async fn main() {
         .await
         .expect("Failed to initialize database pool");
 
-    if args.len() > 1 {
-        let command = &args[1];
-
-        match command.as_str() {
-            "read-books" => {
-                let json_path = &args[2];
-                println!("Reading books json...");
-                match litforge_notes_lib::import_books(&json_path).await {
-                    Ok(_) => println!("Books imported correctly!"),
-                    Err(e) => println!("Error importing books: {e}"),
-                }
-            }
-            "read-notes" => {
-                let json_path = &args[2];
-                println!("Reading notes json...");
-                match litforge_notes_lib::import_notes(&json_path).await {
-                    Ok(_) => println!("Notes imported correctly!"),
-                    Err(e) => println!("Error importing notes: {e}"),
-                }
-            }
-            _ => println!("Invalid command {command}"),
-        }
-    }
-
     // In Tauri 2.0, we need to use the plugin system differently
     tauri::Builder::default()
-        .plugin(tauri_plugin_log::Builder::new()
-            .target(tauri_plugin_log::Target::new(
-            tauri_plugin_log::TargetKind::Webview,
-            ))
-            .build())
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(
+            tauri_plugin_log::Builder::new()
+                .level(log::LevelFilter::Debug)
+                .target(tauri_plugin_log::Target::new(
+                    tauri_plugin_log::TargetKind::Webview,
+                ))
+                .build(),
+        )
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_shell::init())
         .setup(|app| {
@@ -85,6 +66,9 @@ async fn main() {
                     let _ = window.set_win_effects();
                 }
             }
+
+            let _ = menu::setup_menu(app);
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

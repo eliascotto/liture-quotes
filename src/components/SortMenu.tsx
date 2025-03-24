@@ -1,15 +1,19 @@
 import { useRef, useState, useEffect } from 'react';
 import ChevronDown from './icons/ChevronDown';
 
-export default function SortMenu({ sortBy, sortOrder, onSortChange }) {
+export default function SortMenu(
+  { sortBy, sortOrder, sortByFields, onSortChange }: 
+  { sortBy: string, 
+    sortOrder: string, 
+    sortByFields: string[], 
+    onSortChange: (field: string, order: string) => void }
+) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
 
-  const sortByFields = ["date_modified", "date_created", "chapter_progress"];
-
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !(menuRef.current as HTMLElement).contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
@@ -18,15 +22,15 @@ export default function SortMenu({ sortBy, sortOrder, onSortChange }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const getSortLabel = (field) => {
-    return field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  const getSortLabel = (field: string) => {
+    return field.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
   };
 
   const getCurrentSortLabel = () => {
     return `${sortOrder === "ASC" ? "↑" : "↓"} ${getSortLabel(sortBy)}`;
   };
 
-  const handleSortChange = (field) => {
+  const handleSortChange = (field: string) => {
     if (field === sortBy) {
       onSortChange(field, sortOrder === "ASC" ? "DESC" : "ASC");
     } else {

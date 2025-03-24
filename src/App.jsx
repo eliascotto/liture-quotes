@@ -201,9 +201,9 @@ function App() {
     setSelectedAuthorBooks(books);
   }
 
-  async function fetchStarredQuotes() {
+  async function fetchStarredQuotes(sortBy, sortOrder) {
     try {
-      const notes = await invoke("get_starred_quotes");
+      const notes = await invoke("get_starred_quotes", { sortBy, sortOrder });
       setStarredQuotes(notes);
     } catch (error) {
       console.error("Error fetching starred quotes:", error);
@@ -526,6 +526,7 @@ function App() {
         quotes={starredQuotes}
         updateQuote={updateQuote}
         onStarClick={toggleFavouriteQuote}
+        reloadFavourites={fetchStarredQuotes}
         removeQuote={deleteQuote}
         navigateToBook={(bookId) => {
           clearNavigation();
@@ -598,7 +599,7 @@ function App() {
     <div
       className={clsx(
         // App level styles
-        "dark:bg-gradient-to-br from-slate-900 to-slate-800 flex flex-col m-0 items-center justify-center",
+        "bg-transparent flex flex-col m-0 items-center justify-center",
         "max-h-screen h-screen font-sans text-slate-100 rounded-lg overflow-hidden",
         currentPlatform === "macos" && [
           "has-blur-effects",

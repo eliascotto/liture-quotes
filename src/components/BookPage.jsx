@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import NoteBox from "@components/NoteBox.tsx";
 import ItemMenu from '@components/ItemMenu';
-import SortMenu from '@components/SortMenu';
+import SortMenu from '@components/SortMenu.tsx';
 import Tooltip from "@components/Tooltip.tsx";
 import PlusIcon from '@icons/Plus';
 
@@ -14,6 +14,7 @@ function BookPage({
   onDeleteBook, ...props
 }) {
   const [selectedQuote, setSelectedQuote] = useState(null);
+  const sortByFields = ["date_modified", "date_created", "chapter_progress"];
 
   const handleSortChange = (field, order) => {
     setSortBy(field);
@@ -72,6 +73,7 @@ function BookPage({
           <SortMenu
             sortBy={sortBy}
             sortOrder={sortOrder}
+            sortByFields={sortByFields}
             onSortChange={handleSortChange}
           />
         </div>

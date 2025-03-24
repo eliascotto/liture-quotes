@@ -1,30 +1,18 @@
 pub mod db;
+pub mod import;
+pub mod menu;
 mod models;
 pub mod queries;
 mod utils;
 
 use models::*;
 
-#[derive(Debug, serde::Serialize)]
-pub struct DataFields {
-    pub books: Vec<Book>,
-    pub authors: Vec<Author>,
-}
-
-pub async fn import_books(path: &str) -> Result<String, String> {
-    queries::import_books(path).await
-}
-
-pub async fn import_notes(path: &str) -> Result<String, String> {
-    queries::import_quotes(path).await
-}
-
 // Create a separate module for the Tauri commands
 pub mod commands {
     use super::*;
 
     #[tauri::command]
-    pub async fn fetch_books_authors() -> Result<DataFields, String> {
+    pub async fn fetch_books_authors() -> Result<Library, String> {
         let books = queries::get_books()
             .await
             .map_err(|e| format!("Error fetching books {}", e))?;
@@ -33,7 +21,7 @@ pub mod commands {
             .await
             .map_err(|e| format!("Error fetching authors {}", e))?;
 
-        Ok(DataFields { books, authors })
+        Ok(Library { books, authors })
     }
 
     #[tauri::command]
@@ -136,6 +124,7 @@ pub mod commands {
             created_at: now.clone(),
             updated_at: now,
             deleted_at: None,
+            original_id: None,
         };
 
         queries::insert_quote(&quote)
@@ -194,8 +183,11 @@ pub mod commands {
     }
 
     #[tauri::command]
-    pub async fn get_starred_quotes() -> Result<Vec<StarredQuote>, String> {
-        queries::get_starred_quotes()
+    pub async fn get_starred_quotes(
+        sort_by: Option<&str>,
+        sort_order: Option<&str>,
+    ) -> Result<Vec<StarredQuote>, String> {
+        queries::get_starred_quotes(sort_by, sort_order)
             .await
             .map_err(|e| e.to_string())
     }

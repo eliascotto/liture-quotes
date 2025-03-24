@@ -1,7 +1,7 @@
-import NavigationControls from "../NavigationControls";
-import StarredButton from "../StarredButton";
-import AddButton from "../AddButton";
-import SearchBox from "../SearchBox";
+import NavigationControls from "@components/NavigationControls";
+import StarredButton from "@components/StarredButton";
+import AddButton from "@components/AddButton";
+import SearchBox from "@components/SearchBox";
 
 function Header(props) {
   return (

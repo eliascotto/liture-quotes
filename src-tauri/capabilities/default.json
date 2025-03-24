@@ -11,6 +11,7 @@
     "core:window:default",
     "core:window:allow-start-dragging",
     "os:default",
-    "log:default"
+    "log:default",
+    "dialog:default"
   ]
 }

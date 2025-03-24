@@ -1,27 +1,27 @@
 use crate::db::*;
 use crate::models::*;
-use chrono::NaiveDateTime;
-use serde_json::Value;
-use sqlx::sqlite::SqliteRow;
 use sqlx::Row;
-use std::fs::File;
-use std::io::{self, Read};
-use std::path::Path;
 use uuid::Uuid;
 
-fn read_file(path: &str) -> io::Result<String> {
-    let path = Path::new(path);
-    let mut file = File::open(path)?;
-    let mut contents = String::new();
+/// Format the order and sort by clauses for db queries with sorting.
+/// Uses default values if not provided.
+fn extract_order_clauses(sort_by: Option<&str>, order: Option<&str>) -> (String, String) {
+    let order_clause = if order.unwrap_or("DESC").to_uppercase() == "DESC" {
+        "DESC"
+    } else {
+        "ASC"
+    };
 
-    file.read_to_string(&mut contents)?;
-    Ok(contents)
-}
+    let sort_by_clause = match sort_by {
+        Some("date_created") => "created_at",
+        Some("date_modified") => "updated_at",
+        Some("chapter") => "chapter",
+        Some("chapter_progress") => "chapter_progress",
+        Some("starred") => "starred",
+        _ => "updated_at",
+    };
 
-fn read_json(path: &str) -> io::Result<Value> {
-    let contents = read_file(path)?;
-    let json: Value = serde_json::from_str(&contents)?;
-    Ok(json)
+    (order_clause.to_string(), sort_by_clause.to_string())
 }
 
 /// Get author by name
@@ -90,6 +90,20 @@ pub async fn insert_quote(quote: &Quote) -> Result<Quote, sqlx::Error> {
     Ok(inserted)
 }
 
+pub async fn insert_chapter(chapter: &Chapter) -> Result<Chapter, sqlx::Error> {
+    let inserted = sqlx::query_as::<_, Chapter>(
+        "INSERT OR IGNORE INTO chapter (id, book_id, title, volume_index) VALUES (?, ?, ?, ?)",
+    )
+    .bind(chapter.id.clone())
+    .bind(chapter.book_id.clone())
+    .bind(chapter.title.clone())
+    .bind(chapter.volume_index)
+    .fetch_one(get_pool())
+    .await?;
+
+    Ok(inserted)
+}
+
 /// Get all books
 pub async fn get_books() -> Result<Vec<Book>, sqlx::Error> {
     sqlx::query_as::<_, Book>(
@@ -134,35 +148,12 @@ pub async fn get_all_quotes_by_book_id(
     sort_order: Option<&str>,
 ) -> Result<Vec<Quote>, sqlx::Error> {
     let order = sort_order.unwrap_or("ASC");
-    let order_clause = if order.to_uppercase() == "DESC" {
-        "DESC"
-    } else {
-        "ASC"
-    };
+    let (order_clause, sort_by_clause) = extract_order_clauses(sort_by, Some(order));
 
-    let sql = match sort_by {
-        Some("date_created") => format!(
-            "SELECT * FROM quote WHERE book_id = ? AND deleted_at IS NULL ORDER BY created_at {}",
-            order_clause
-        ),
-        Some("date_modified") => format!(
-            "SELECT * FROM quote WHERE book_id = ? AND deleted_at IS NULL ORDER BY updated_at {}",
-            order_clause
-        ),
-        Some("chapter") => format!(
-            "SELECT * FROM quote WHERE book_id = ? AND deleted_at IS NULL ORDER BY chapter {}",
-            order_clause
-        ),
-        Some("chapter_progress") => format!(
-            "SELECT * FROM quote WHERE book_id = ? AND deleted_at IS NULL ORDER BY chapter_progress {}",
-            order_clause
-        ),
-        Some("starred") => format!(
-            "SELECT * FROM quote WHERE book_id = ? AND deleted_at IS NULL ORDER BY starred {}",
-            order_clause
-        ),
-        _ => "SELECT * FROM quote WHERE book_id = ? AND deleted_at IS NULL ORDER BY updated_at DESC".to_string(),
-    };
+    let sql = format!(
+        "SELECT * FROM quote WHERE book_id = ? AND deleted_at IS NULL ORDER BY {} {}",
+        sort_by_clause, order_clause
+    );
 
     sqlx::query_as(&sql)
         .bind(book_id)
@@ -328,138 +319,33 @@ pub async fn get_random_quote() -> Result<Option<(String, String, String)>, sqlx
     Ok(result.map(|row| (row.get("content"), row.get("title"), row.get("name"))))
 }
 
-/// Import books from JSON
-pub async fn import_books(path: &str) -> Result<String, String> {
-    let books_values = read_json(path).map_err(|e| format!("Error reading JSON: {}", e))?;
-
-    let books_vec = books_values
-        .as_array()
-        .ok_or("JSON file doesn't contain a valid array")?;
-
-    let mut books = Vec::new();
-    for bk in books_vec.iter() {
-        let b = parse_book(bk).map_err(|e| format!("Failed to parse JSON => {}", e))?;
-        books.push(b);
-    }
-
-    let pool = get_pool();
-    let tx = pool.begin().await.map_err(|e| e.to_string())?;
-
-    for book in books.iter() {
-        let author_id = match &book.author {
-            Some(book_author) => {
-                let author = insert_author(book_author.clone())
-                    .await
-                    .map_err(|e| format!("Error creating Author => {}", e))?;
-                Some(author.id)
-            }
-            None => None,
-        };
-
-        insert_book(book.title.clone(), author_id)
-            .await
-            .map_err(|e| format!("Error creating Book => {}", e))?;
-    }
-
-    tx.commit().await.map_err(|e| e.to_string())?;
-    Ok("Books imported correctly".into())
-}
-
-/// Import quotes from JSON
-pub async fn import_quotes(path: &str) -> Result<String, String> {
-    let quotes_values = read_json(path).map_err(|e| format!("Error reading JSON: {}", e))?;
-
-    let quotes_vec = quotes_values
-        .as_array()
-        .ok_or("JSON file doesn't contain a valid array")?;
-
-    let mut quotes = Vec::new();
-    for note_value in quotes_vec.iter() {
-        let note = parse_quote(note_value).map_err(|e| format!("Failed to parse JSON => {}", e))?;
-        quotes.push(note);
-    }
-
-    let pool = get_pool();
-    let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
-
-    for quote in quotes.iter() {
-        let book = get_book_by_id(quote.book_id.clone().unwrap())
-            .await
-            .map_err(|e| {
-                format!(
-                    "Book not found with id \"{}\" => {}",
-                    quote.book_id.clone().unwrap(),
-                    e
-                )
-            })?;
-
-        let created_at =
-            NaiveDateTime::parse_from_str(quote.created_at.as_str(), "%Y-%m-%d %H:%M:%S").unwrap();
-        let updated_at =
-            NaiveDateTime::parse_from_str(quote.updated_at.as_str(), "%Y-%m-%d %H:%M:%S").unwrap();
-
-        let n = Quote {
-            id: quote.id.clone(),
-            book_id: Some(book.id),
-            author_id: book.author_id,
-            chapter: quote.chapter.clone(),
-            chapter_progress: quote.chapter_progress,
-            content: quote.text.clone(),
-            starred: Some(0),
-            created_at: created_at,
-            updated_at: updated_at,
-            deleted_at: None,
-        };
-
-        sqlx::query("INSERT OR IGNORE INTO quote 
-             (id, book_id, author_id, chapter, chapter_progress, content, starred, created_at, updated_at, deleted_at) 
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-            .bind(n.id.clone())
-            .bind(n.book_id.clone())
-            .bind(n.author_id.clone())
-            .bind(n.chapter.clone())
-            .bind(n.chapter_progress)
-            .bind(n.content.clone())
-            .bind(n.starred)
-            .bind(n.created_at)
-            .bind(n.updated_at)
-            .bind(n.deleted_at)
-            .execute(&mut *tx)
-            .await
-            .map_err(|e| format!("Error creating quote => {}\n{:#?}", e, quote))?;
-    }
-
-    // Optimize FTS after bulk notes insertion
-    sqlx::query("INSERT INTO quote_fts(quote_fts) VALUES('optimize')")
-        .execute(&mut *tx)
-        .await
-        .map_err(|e| format!("Error optimizing fts: {}", e))?;
-
-    tx.commit().await.map_err(|e| e.to_string())?;
-    Ok("Notes imported correctly".into())
-}
-
-pub async fn get_starred_quotes() -> Result<Vec<StarredQuote>, sqlx::Error> {
-    sqlx::query_as::<_, StarredQuote>(
+pub async fn get_starred_quotes(
+    sort_by: Option<&str>,
+    sort_order: Option<&str>,
+) -> Result<Vec<StarredQuote>, sqlx::Error> {
+    let (order_clause, sort_by_clause) = extract_order_clauses(sort_by, sort_order);
+    let sql = format!(
         "SELECT 
-                q.id,
-                q.content,
-                q.book_id,
-                b.title as book_title,
-                b.author_id,
-                a.name as author_name,
-                q.starred,
-                q.created_at,
-                q.updated_at
-            FROM quote q
-            JOIN book b ON q.book_id = b.id
-            JOIN author a ON b.author_id = a.id
-            WHERE q.starred = 1
-            AND q.deleted_at IS NULL
-            AND b.deleted_at IS NULL
-            AND a.deleted_at IS NULL
-            ORDER BY q.updated_at DESC",
-    )
-    .fetch_all(get_pool())
-    .await
+            q.id,
+            q.content,
+            q.book_id,
+            b.title as book_title,
+            b.author_id,
+            a.name as author_name,
+            q.starred,
+            q.created_at,
+            q.updated_at
+        FROM quote q
+        JOIN book b ON q.book_id = b.id
+        JOIN author a ON b.author_id = a.id
+        WHERE q.starred = 1
+        AND q.deleted_at IS NULL
+        AND b.deleted_at IS NULL
+        AND a.deleted_at IS NULL
+        ORDER BY q.{} {}",
+        sort_by_clause, order_clause
+    );
+    sqlx::query_as::<_, StarredQuote>(&sql)
+        .fetch_all(get_pool())
+        .await
 }

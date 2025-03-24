@@ -11,6 +11,7 @@ pub struct Author {
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
     pub deleted_at: Option<NaiveDateTime>,
+    pub original_id: Option<String>,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, Clone, sqlx::FromRow)]
@@ -22,6 +23,7 @@ pub struct Book {
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
     pub deleted_at: Option<NaiveDateTime>,
+    pub original_id: Option<String>,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, Clone, sqlx::FromRow)]
@@ -36,6 +38,7 @@ pub struct Quote {
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
     pub deleted_at: Option<NaiveDateTime>,
+    pub original_id: Option<String>,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, Clone, sqlx::FromRow)]
@@ -43,9 +46,11 @@ pub struct Chapter {
     pub id: String,
     pub book_id: Option<String>,
     pub title: String,
-    pub created_at: String,
-    pub updated_at: String,
-    pub deleted_at: Option<String>,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
+    pub deleted_at: Option<NaiveDateTime>,
+    pub original_id: Option<String>,
+    pub volume_index: i64,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, Clone, sqlx::FromRow)]
@@ -70,6 +75,12 @@ pub struct QuoteFts {
 }
 
 // Metaschema
+
+#[derive(Debug, serde::Serialize)]
+pub struct Library {
+    pub books: Vec<Book>,
+    pub authors: Vec<Author>,
+}
 
 #[derive(Debug, serde::Serialize, Clone, sqlx::FromRow)]
 pub struct StarredQuote {

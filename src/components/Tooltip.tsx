@@ -52,7 +52,7 @@ const Tooltip = React.memo((
     >
       {content}
       {shortcut && (
-        <span className="ml-1 bg-slate-600/50 px-1.5 py-0.5 rounded">
+        <span className="ml-1 bg-slate-600/50 px-1.5 py-0.5 rounded border border-slate-500/50">
           {shortcut}
         </span>
       )}
