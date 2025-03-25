@@ -97,6 +97,16 @@ function BookPage({
           ))}
         </div>
       </div>
+
+      {/* Footer */}
+      <div className="sticky bottom-0 flex flex-row w-full h-8 items-center justify-between px-6 shadow-md bg-slate-900/80 border-t border-slate-700/30 backdrop-blur-sm z-10">
+        <div className="text-xs text-slate-400">
+          {book && book.title}
+        </div>
+        <div className="text-xs text-slate-400">
+          Items: <span className="text-cyan-400 font-medium">{quotes.length}</span>
+        </div>
+      </div>
     </div>
   );
 }

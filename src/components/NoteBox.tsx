@@ -76,6 +76,21 @@ function EditableBox(
 ) {
   const [currentText, setCurrentText] = useState(quote.content);
   const textareaRef = useRef(null);
+  const editableBoxRef = useRef(null);
+
+  useEffect(() => {
+    // Handle click outside
+    function handleClickOutside(event: MouseEvent) {
+      if (editableBoxRef.current && !(editableBoxRef.current as HTMLElement).contains(event.target as Node)) {
+        onCancel();
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [onCancel]);
 
   useEffect(() => {
     // adjustTextareaHeight
@@ -96,7 +111,10 @@ function EditableBox(
   };
 
   return (
-    <div className="rounded-lg my-2 bg-slate-800/80 shadow-lg border border-slate-700/50 py-3 px-5 backdrop-blur-sm select-none">
+    <div 
+      ref={editableBoxRef}
+      className="rounded-lg my-2 bg-slate-800/80 shadow-lg border border-slate-700/50 py-3 px-5 backdrop-blur-sm select-none"
+    >
       <textarea
         ref={textareaRef}
         className="outline-none bg-transparent w-full resize-none text-slate-200 focus:text-white transition-colors duration-200"

@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { platform } from '@tauri-apps/plugin-os';
 import BookIcon from "@icons/BookIcon";
 import UsersIcon from "@icons/UsersIcon";
-import { TrafficLights } from "@components/TrafficLights";
 import clsx from "clsx";
 
 const MIN_WIDTH = 180;
@@ -11,9 +10,16 @@ const MAX_WIDTH = 400;
 function Navbar(props) {
   const [width, setWidth] = useState(240); // Default width
   const [isResizing, setIsResizing] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const navbarRef = useRef(null);
+  const scrollContainerRef = useRef(null);
 
   const currentPlatform = platform();
+
+  const handleScroll = (e) => {
+    const scrollTop = e.target.scrollTop;
+    setIsScrolled(scrollTop > 0);
+  };
 
   // Handle mouse down on the resize handle
   const startResizing = (e) => {
@@ -66,8 +72,14 @@ function Navbar(props) {
       <div className="h-full flex flex-col backdrop-blur-sm shadow-lg">
         {/* Sticky header with icons */}
         <div
-          className="sticky top-0 z-10 px-1.5 min-h-[55px] py-2.5 border-b border-slate-700/30 
-          flex items-center bg-slate-900/95 backdrop-blur-sm"
+          className={clsx(
+            "sticky top-0 z-10 px-1.5 min-h-[55px] py-2.5 border-b",
+            "flex items-center bg-slate-900/95 backdrop-blur-sm",
+            {
+              "border-slate-700/30": isScrolled,
+              "border-transparent": !isScrolled,
+            }
+          )}
           data-tauri-drag-region
         >
           <div className="flex w-full justify-end items-center" data-tauri-drag-region>
@@ -75,32 +87,42 @@ function Navbar(props) {
               {/* Books Icon */}
               <button
                 onClick={() => props.onCategoryChange("Books")}
-                className={`p-1.5 rounded-md transition-all duration-200 ${isBooks
-                    ? 'text-cyan-500 bg-slate-700/10'
-                    : 'text-slate-500 hover:text-cyan-300 hover:bg-slate-700/20'
-                  }`}
+                className={clsx(
+                  "px-1.5 py-1 rounded-md transition-all duration-200",
+                  {
+                    "text-cyan-500 bg-slate-700/10": isBooks,
+                    "text-slate-500 hover:text-cyan-300 hover:bg-slate-700/20": !isBooks,
+                  }
+                )}
                 title="Books"
               >
-                <BookIcon />
+                <BookIcon className="w-6 h-6" />
               </button>
 
               {/* Authors Icon */}
               <button
                 onClick={() => props.onCategoryChange("Authors")}
-                className={`p-1.5 rounded-md transition-all duration-200 ${!isBooks
-                    ? 'text-cyan-500 bg-slate-700/10'
-                    : 'text-slate-500 hover:text-cyan-300 hover:bg-slate-700/20'
-                  }`}
+                className={clsx(
+                  "px-1.5 py-1 rounded-md transition-all duration-200",
+                  {
+                    "text-cyan-500 bg-slate-700/10": !isBooks,
+                    "text-slate-500 hover:text-cyan-300 hover:bg-slate-700/20": isBooks,
+                  }
+                )}
                 title="Authors"
               >
-                <UsersIcon />
+                <UsersIcon className="w-6 h-6" />
               </button>
             </div>
           </div>
         </div>
 
         {/* Scrollable list */}
-        <div className="flex-1 overflow-y-auto overscroll-none p-1">
+        <div 
+          ref={scrollContainerRef}
+          className="flex-1 overflow-y-auto overscroll-none p-1"
+          onScroll={handleScroll}
+        >
           <ul className="px-2 py-0.5 space-y-1">
             {props.list.map((item) => {
               const isSelected = props.selected && props.selected.id === item.id;
@@ -108,8 +130,8 @@ function Navbar(props) {
                 <li
                   key={`navbar-item-${item.id}`}
                   className={`cursor-pointer py-1.5 px-1.5 text-sm font-medium truncate rounded transition-all duration-200 hover:bg-slate-700/20 select-none ${isSelected
-                      ? 'text-cyan-400 bg-slate-700/30'
-                      : 'text-slate-300 hover:text-white'
+                    ? 'text-cyan-400 bg-slate-700/30'
+                    : 'text-slate-300 hover:text-white'
                     }`}
                   title={item[props.property]}
                   onClick={() => props.onSelection(item)}>
@@ -124,8 +146,8 @@ function Navbar(props) {
       {/* Resize handle */}
       <div
         className={`absolute top-0 right-0 w-1 h-full cursor-col-resize z-10 transition-all duration-200 ${isResizing
-            ? 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.6)]'
-            : 'hover:bg-cyan-400/50 hover:shadow-[0_0_5px_rgba(34,211,238,0.4)]'
+          ? 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.6)]'
+          : 'hover:bg-cyan-400/50 hover:shadow-[0_0_5px_rgba(34,211,238,0.4)]'
           }`}
         onMouseDown={startResizing}
       />

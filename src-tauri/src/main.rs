@@ -4,29 +4,20 @@
 use litforge_notes_lib::menu;
 use objc::{msg_send, sel, sel_impl};
 use std::env;
-use tauri::{Manager, Runtime, Window};
+use tauri::{Manager, Runtime, WindowEvent};
 
-const WINDOW_CONTROL_PAD_X: f64 = 15.0;
-const WINDOW_CONTROL_PAD_Y: f64 = 23.0;
+const WINDOW_CONTROL_PAD_X: f64 = 18.0;
+const WINDOW_CONTROL_PAD_Y: f64 = 26.0;
 
 struct UnsafeWindowHandle(*mut std::ffi::c_void);
 unsafe impl Send for UnsafeWindowHandle {}
 unsafe impl Sync for UnsafeWindowHandle {}
-
-#[cfg(target_os = "macos")]
-unsafe fn set_transparent_titlebar(id: cocoa::base::id) {
-    use cocoa::appkit::NSWindow;
-
-    id.setTitlebarAppearsTransparent_(cocoa::base::YES);
-    id.setTitleVisibility_(cocoa::appkit::NSWindowTitleVisibility::NSWindowTitleHidden);
-}
 
 // This function is needed to configure window shadows on macOS
 #[cfg(target_os = "macos")]
 pub trait WindowExt {
     fn set_win_effects(&self) -> tauri::Result<()>;
     fn update_window_controls_pos(&self);
-    fn set_transparent_titlebar(&self);
 }
 
 #[cfg(target_os = "macos")]
@@ -47,7 +38,7 @@ impl<R: Runtime> WindowExt for tauri::Window<R> {
 
             // Set titlebar transparent
             ns_window.setTitlebarAppearsTransparent_(YES);
-            ns_window.setOpaque_(true);
+            ns_window.setTitleVisibility_(cocoa::appkit::NSWindowTitleVisibility::NSWindowTitleHidden);
 
             pool.drain();
         }
@@ -55,28 +46,16 @@ impl<R: Runtime> WindowExt for tauri::Window<R> {
     }
 
     fn update_window_controls_pos(&self) {
-        unsafe {
-            let window_handle = UnsafeWindowHandle(self.ns_window().unwrap());
-    
-            let _ = self.run_on_main_thread(move || {
-                let handle = window_handle;
-                set_window_controls_pos(
-                    handle.0 as cocoa::base::id,
-                    WINDOW_CONTROL_PAD_X,
-                    WINDOW_CONTROL_PAD_Y,
-                );
-            });
-        }
-    }
+        let window_handle = UnsafeWindowHandle(self.ns_window().unwrap());
 
-    fn set_transparent_titlebar(&self) {
-        unsafe {
-            let id = self.ns_window().unwrap() as cocoa::base::id;
-
-            set_transparent_titlebar(id);
-
-            set_window_controls_pos(id, WINDOW_CONTROL_PAD_X, WINDOW_CONTROL_PAD_Y);
-        }
+        let _ = self.run_on_main_thread(move || {
+            let handle = window_handle;
+            set_window_controls_pos(
+                handle.0 as cocoa::base::id,
+                WINDOW_CONTROL_PAD_X,
+                WINDOW_CONTROL_PAD_Y,
+            );
+        });
     }
 }
 
@@ -141,6 +120,7 @@ async fn main() {
             #[cfg(target_os = "macos")]
             {
                 if let Some(window) = app.get_window("main") {
+                    let _ = window.set_win_effects();
                     let _ = window.update_window_controls_pos();
 
                 }
@@ -149,6 +129,21 @@ async fn main() {
             let _ = menu::setup_menu(app);
 
             Ok(())
+        })
+        .on_window_event(move |window, event| match event {
+            #[cfg(target_os = "macos")]
+            WindowEvent::CloseRequested { api, .. } => {
+				window
+					.app_handle()
+					.hide()
+					.expect("Window should hide on macOS");
+				api.prevent_close();
+			}
+            #[cfg(target_os = "macos")]
+            WindowEvent::Resized(_) => {
+                window.update_window_controls_pos();
+            }
+            _ => {}
         })
         .invoke_handler(tauri::generate_handler![
             litforge_notes_lib::commands::fetch_books_authors,

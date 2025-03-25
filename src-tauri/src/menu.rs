@@ -54,14 +54,12 @@ fn setup_file_submenu(app: &mut tauri::App) -> tauri::Result<tauri::menu::Submen
             &SubmenuBuilder::new(app, "Import from")
                 .item(
                     &MenuItemBuilder::with_id(MenuEvent::ImportFromKobo, "Kobo Reader file")
-                        // .accelerator("") // TODO
                         .build(app)?,
                 )
-                // .item(
-                //     &MenuItemBuilder::with_id(MenuEvent::ImportFromKindle, "Kindle")
-                //         // .accelerator("") // TODO
-                //         .build(app)?,
-                // )
+                .item(
+                    &MenuItemBuilder::with_id(MenuEvent::ImportFromKindle, "Kindle Clippings")
+                        .build(app)?,
+                )
                 .build()?,
         )
         .build()
