@@ -51,8 +51,10 @@ CREATE TABLE IF NOT EXISTS note (
     book_id TEXT,
     author_id TEXT,
     quote_id TEXT,
-    type TEXT,
     content TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    deleted_at TIMESTAMP,
     FOREIGN KEY (book_id) REFERENCES book(id),
     FOREIGN KEY (author_id) REFERENCES author(id),
     FOREIGN KEY (quote_id) REFERENCES quote(id)

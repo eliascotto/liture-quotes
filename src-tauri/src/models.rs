@@ -59,11 +59,10 @@ pub struct Note {
     pub book_id: Option<String>,
     pub author_id: Option<String>,
     pub quote_id: Option<String>,
-    pub note_type: String,
     pub content: Option<String>,
-    pub created_at: String,
-    pub updated_at: String,
-    pub deleted_at: Option<String>,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
+    pub deleted_at: Option<NaiveDateTime>,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, Clone, sqlx::FromRow)]

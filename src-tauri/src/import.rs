@@ -15,6 +15,7 @@ use serde::{Serialize, Deserialize};
 use anyhow::Result;
 use sqlx::FromRow;
 use chrono::Utc;
+use uuid::Uuid;
 
 pub async fn import_dialog(app: &AppHandle) -> Result<String, String> {
     // Create a future that resolves when the file dialog completes
@@ -55,12 +56,27 @@ fn read_json(path: &str) -> io::Result<Value> {
     Ok(json)
 }
 
+fn parse_datetime(s: &str) -> Result<NaiveDateTime, chrono::format::ParseError> {
+    let formats = [
+        "%Y-%m-%dT%H:%M:%S%.3f",    // For "2020-11-22T10:11:42.000"
+        "%Y-%m-%dT%H:%M:%SZ",       // For "2020-11-22T10:11:42Z"
+        "%Y-%m-%d %H:%M:%S",        // For "2020-11-22 10:11:42"
+    ];
+    
+    for &fmt in &formats {
+        if let Ok(dt) = NaiveDateTime::parse_from_str(s, fmt) {
+            return Ok(dt);
+        }
+    }
+    
+    NaiveDateTime::parse_from_str(s, formats[0])
+}
+
 #[derive(Debug, Serialize, Deserialize, FromRow)]
 pub struct Book {
     volume_id: String,
     title: String,
     author: Option<String>,
-    items_count: i64,
 }
 
 #[derive(Debug, Serialize, Deserialize, FromRow)]
@@ -78,12 +94,12 @@ pub struct BookItem {
     text: Option<String>,
     annotation: Option<String>,
     date_created: String,
-    date_modified: String,
+    date_modified: Option<String>,
     chapter_progress: f64,
     book_title: String,
     chapter: String,
-    author: Option<String>,
     bookmark_id: String,
+    item_type: String,
 }
 
 const QUERY_BOOKS_AUTHORS: &str = r#"
@@ -122,8 +138,8 @@ const QUERY_ITEMS_V175: &str = r#"
         b.ChapterProgress as chapter_progress,
         c.BookTitle as book_title, 
         c.Title as chapter, 
-        c.Attribution as author, 
-        b.BookmarkID as bookmark_id
+        b.BookmarkID as bookmark_id,
+        b.Type as item_type
     FROM Bookmark b INNER JOIN content c
     ON b.VolumeID = c.BookID 
     GROUP BY b.DateCreated 
@@ -141,8 +157,8 @@ const QUERY_ITEMS_V174: &str = r#"
         b.ChapterProgress as chapter_progress, 
         c.BookTitle as book_title, 
         c.Title as chapter, 
-        c.Attribution as author, 
-        b.BookmarkID as bookmark_id
+        b.BookmarkID as bookmark_id,
+        b.Type as item_type
     FROM Bookmark b LEFT JOIN content c
     ON b.ContentID = c.ContentID 
     GROUP BY b.DateCreated 
@@ -201,36 +217,64 @@ pub async fn import_kobo(path: &str) -> Result<String, String> {
     db_conn.close().await;
 
     let pool = db::get_pool();
-    let tx = pool.begin().await.map_err(|e| e.to_string())?;
+    let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
 
     let mut chapters_id_map = HashMap::new();
     let mut books_id_map = HashMap::new();
+    let mut authors_id_map = HashMap::new();
+    let mut imported_books = 0;
+    let mut imported_quotes = 0;
 
     for book in books.iter() {
+        // Skip if book already exists
+        if let Ok(existing_book) = queries::get_book_by_original_id(book.volume_id.clone(), &mut *tx).await {
+            books_id_map.insert(book.volume_id.clone(), existing_book.id.clone());
+            continue;
+        }
+
         // Author
         let author_id = match book.author.clone() {
             Some(book_author) => {
-                let author = queries::insert_author(book_author.clone())
-                    .await
-                    .map_err(|e| format!("Error creating Author => {}", e))?;
+                let author = match queries::get_author_by_name(book_author.clone(), &mut *tx).await {
+                    Ok(existing_author) => existing_author,
+                    Err(_) => {
+                        queries::insert_author(book_author.clone(), &mut *tx)
+                            .await
+                            .map_err(|e| format!("Error creating Author => {}", e))?
+                    }
+                };
                 Some(author.id)
             },
             None => None,
         };
 
-        // Book
-        let db_book = queries::insert_book(book.title.clone(), author_id)
-            .await
-            .map_err(|e| format!("Error creating Book => {}", e))?;
+        authors_id_map.insert(book.volume_id.clone(), author_id.clone());
 
+        // Book
+        let db_book = queries::insert_book(
+            book.title.clone(),
+            author_id.clone(),
+            Some(book.volume_id.clone()),
+            &mut *tx,
+        )
+        .await
+        .map_err(|e| format!("Error creating Book => {}", e))?;
+
+        imported_books += 1;
         books_id_map.insert(db_book.original_id.clone().unwrap(), db_book.id.clone());
 
         // Chapters
         let book_chapters = chapters.get(&book.volume_id).unwrap();
         let now = Utc::now().naive_utc();
         for chapter in book_chapters.iter() {
+            // Skip if chapter already exists
+            if let Ok(existing_chapter) = queries::get_chapter_by_original_id(chapter.content_id.clone(), &mut *tx).await {
+                chapters_id_map.insert(chapter.content_id.clone(), existing_chapter.id.clone());
+                continue;
+            }
+
             let chapter = models::Chapter {
-                id: chapter.content_id.clone(),
+                id: Uuid::new_v4().to_string(),
                 book_id: Some(db_book.id.clone()),
                 title: chapter.title.clone(),
                 volume_index: chapter.volume_index,
@@ -240,7 +284,7 @@ pub async fn import_kobo(path: &str) -> Result<String, String> {
                 deleted_at: None,
             };
             
-            let chapter = queries::insert_chapter(&chapter)
+            let chapter = queries::insert_chapter(&chapter, &mut *tx)
                 .await
                 .map_err(|e| format!("Error creating Chapter => {}", e))?;
             chapters_id_map.insert(chapter.original_id.clone().unwrap(), chapter.id.clone());
@@ -248,35 +292,66 @@ pub async fn import_kobo(path: &str) -> Result<String, String> {
     }
 
     for item in items.iter() {
-        let book_id = books_id_map.get(&item.volume_id).unwrap();
-        let chapter_id = chapters_id_map.get(&item.chapter).unwrap();
-        let created_at =
-            NaiveDateTime::parse_from_str(item.date_created.as_str(), "%Y-%m-%d %H:%M:%S").unwrap();
-        let updated_at =
-            NaiveDateTime::parse_from_str(item.date_modified.as_str(), "%Y-%m-%d %H:%M:%S").unwrap();
+        // Skip if quote already exists
+        if let Ok(_) = queries::get_quote_by_original_id(item.bookmark_id.clone(), &mut *tx).await {
+            continue;
+        }
+
+        let book_id = books_id_map.get(&item.volume_id)
+            .cloned()
+            .unwrap_or_else(|| item.volume_id.clone());
+        let author_id = authors_id_map.get(&item.volume_id).unwrap().clone();
+
+        let created_at = parse_datetime(&item.date_created).map_err(|e| format!("Error parsing datetime => {}", e))?;
+        let updated_at = match item.date_modified.clone() {
+            Some(date_modified) => parse_datetime(&date_modified).map_err(|e| format!("Error parsing datetime => {}", e))?,
+            None => created_at,
+        };
 
         let quote = models::Quote {
             id: item.bookmark_id.clone(),
             book_id: Some(book_id.clone()),
-            author_id: None,
-            chapter: Some(chapter_id.clone()),
+            author_id: author_id.clone(),
+            chapter: Some(chapters_id_map.get(&item.chapter)
+                .cloned()
+                .unwrap_or_else(|| item.chapter.clone())),
             chapter_progress: Some(item.chapter_progress),
             content: item.text.clone(),
             starred: Some(0),
-            created_at: created_at,
-            updated_at: updated_at,
+            created_at,
+            updated_at,
             deleted_at: None,
             original_id: Some(item.bookmark_id.clone()),
         };
 
-        queries::insert_quote(&quote)
+        let db_quote = queries::insert_quote(&quote, &mut *tx)
             .await
             .map_err(|e| format!("Error creating Quote => {}", e))?;
+
+        imported_quotes += 1;
+
+        if item.item_type == "highlight" && item.text.is_some() {
+            // Note
+            let note = models::Note {
+                id: Uuid::new_v4().to_string(),
+                book_id: Some(book_id.clone()),
+                author_id: author_id,
+                quote_id: Some(db_quote.id.clone()),
+                content: item.text.clone(),
+                created_at,
+                updated_at,
+                deleted_at: None,
+            };
+
+            queries::insert_note(&note, &mut *tx)
+                .await
+                .map_err(|e| format!("Error creating Note => {}", e))?;
+        }
     }
 
     tx.commit().await.map_err(|e| e.to_string())?;
 
-    Ok(format!("Imported successfully {} books and {} quotes", books.len(), items.len()))
+    Ok(format!("Imported successfully {} new books and {} new quotes", imported_books, imported_quotes))
 }
 
 /// Import books from JSON
@@ -294,12 +369,12 @@ pub async fn import_books(path: &str) -> Result<String, String> {
     }
 
     let pool = db::get_pool();
-    let tx = pool.begin().await.map_err(|e| e.to_string())?;
+    let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
 
     for book in books.iter() {
         let author_id = match &book.author {
             Some(book_author) => {
-                let author = queries::insert_author(book_author.clone())
+                let author = queries::insert_author(book_author.clone(), &mut *tx)
                     .await
                     .map_err(|e| format!("Error creating Author => {}", e))?;
                 Some(author.id)
@@ -307,7 +382,7 @@ pub async fn import_books(path: &str) -> Result<String, String> {
             None => None,
         };
 
-        queries::insert_book(book.title.clone(), author_id)
+        queries::insert_book(book.title.clone(), author_id, None, &mut *tx)
             .await
             .map_err(|e| format!("Error creating Book => {}", e))?;
     }
@@ -334,7 +409,7 @@ pub async fn import_quotes(path: &str) -> Result<String, String> {
     let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
 
     for quote in quotes.iter() {
-        let book = queries::get_book_by_id(quote.book_id.clone().unwrap())
+        let book = queries::get_book_by_id(quote.book_id.clone().unwrap(), &mut *tx)
             .await
             .map_err(|e| {
                 format!(

@@ -2,13 +2,31 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use litforge_notes_lib::menu;
+use objc::{msg_send, sel, sel_impl};
 use std::env;
-use tauri::{Manager, Runtime};
+use tauri::{Manager, Runtime, Window};
+
+const WINDOW_CONTROL_PAD_X: f64 = 15.0;
+const WINDOW_CONTROL_PAD_Y: f64 = 23.0;
+
+struct UnsafeWindowHandle(*mut std::ffi::c_void);
+unsafe impl Send for UnsafeWindowHandle {}
+unsafe impl Sync for UnsafeWindowHandle {}
+
+#[cfg(target_os = "macos")]
+unsafe fn set_transparent_titlebar(id: cocoa::base::id) {
+    use cocoa::appkit::NSWindow;
+
+    id.setTitlebarAppearsTransparent_(cocoa::base::YES);
+    id.setTitleVisibility_(cocoa::appkit::NSWindowTitleVisibility::NSWindowTitleHidden);
+}
 
 // This function is needed to configure window shadows on macOS
 #[cfg(target_os = "macos")]
 pub trait WindowExt {
     fn set_win_effects(&self) -> tauri::Result<()>;
+    fn update_window_controls_pos(&self);
+    fn set_transparent_titlebar(&self);
 }
 
 #[cfg(target_os = "macos")]
@@ -29,10 +47,70 @@ impl<R: Runtime> WindowExt for tauri::Window<R> {
 
             // Set titlebar transparent
             ns_window.setTitlebarAppearsTransparent_(YES);
+            ns_window.setOpaque_(true);
 
             pool.drain();
         }
         Ok(())
+    }
+
+    fn update_window_controls_pos(&self) {
+        unsafe {
+            let window_handle = UnsafeWindowHandle(self.ns_window().unwrap());
+    
+            let _ = self.run_on_main_thread(move || {
+                let handle = window_handle;
+                set_window_controls_pos(
+                    handle.0 as cocoa::base::id,
+                    WINDOW_CONTROL_PAD_X,
+                    WINDOW_CONTROL_PAD_Y,
+                );
+            });
+        }
+    }
+
+    fn set_transparent_titlebar(&self) {
+        unsafe {
+            let id = self.ns_window().unwrap() as cocoa::base::id;
+
+            set_transparent_titlebar(id);
+
+            set_window_controls_pos(id, WINDOW_CONTROL_PAD_X, WINDOW_CONTROL_PAD_Y);
+        }
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn set_window_controls_pos(window: cocoa::base::id, x: f64, y: f64) {
+    use cocoa::{
+        appkit::{NSView, NSWindow, NSWindowButton},
+        foundation::NSRect,
+    };
+
+    unsafe {
+        let close = window.standardWindowButton_(NSWindowButton::NSWindowCloseButton);
+        let miniaturize = window.standardWindowButton_(NSWindowButton::NSWindowMiniaturizeButton);
+        let zoom = window.standardWindowButton_(NSWindowButton::NSWindowZoomButton);
+
+        let title_bar_container_view = close.superview().superview();
+
+        let close_rect: NSRect = msg_send![close, frame];
+        let button_height = close_rect.size.height;
+
+        let title_bar_frame_height = button_height + y;
+        let mut title_bar_rect = NSView::frame(title_bar_container_view);
+        title_bar_rect.size.height = title_bar_frame_height;
+        title_bar_rect.origin.y = NSView::frame(window).size.height - title_bar_frame_height;
+        let _: () = msg_send![title_bar_container_view, setFrame: title_bar_rect];
+
+        let window_buttons = vec![close, miniaturize, zoom];
+        let space_between = NSView::frame(miniaturize).origin.x - NSView::frame(close).origin.x;
+
+        for (i, button) in window_buttons.into_iter().enumerate() {
+            let mut rect: NSRect = NSView::frame(button);
+            rect.origin.x = x + (i as f64 * space_between);
+            button.setFrameOrigin(rect.origin);
+        }
     }
 }
 
@@ -63,7 +141,8 @@ async fn main() {
             #[cfg(target_os = "macos")]
             {
                 if let Some(window) = app.get_window("main") {
-                    let _ = window.set_win_effects();
+                    let _ = window.update_window_controls_pos();
+
                 }
             }
 

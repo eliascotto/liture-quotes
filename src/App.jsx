@@ -598,7 +598,6 @@ function App() {
   return (
     <div
       className={clsx(
-        // App level styles
         "bg-transparent flex flex-col m-0 items-center justify-center",
         "max-h-screen h-screen font-sans text-slate-100 rounded-lg overflow-hidden",
         currentPlatform === "macos" && [

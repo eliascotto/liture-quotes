@@ -51,17 +51,17 @@ fn setup_file_submenu(app: &mut tauri::App) -> tauri::Result<tauri::menu::Submen
     // Build a new File submenu with the existing items plus the new "Save" item
     SubmenuBuilder::new(app, "File")
         .item(
-            &SubmenuBuilder::new(app, "Import from...")
+            &SubmenuBuilder::new(app, "Import from")
                 .item(
                     &MenuItemBuilder::with_id(MenuEvent::ImportFromKobo, "Kobo Reader file")
                         // .accelerator("") // TODO
                         .build(app)?,
                 )
-                .item(
-                    &MenuItemBuilder::with_id(MenuEvent::ImportFromKindle, "Kindle")
-                        // .accelerator("") // TODO
-                        .build(app)?,
-                )
+                // .item(
+                //     &MenuItemBuilder::with_id(MenuEvent::ImportFromKindle, "Kindle")
+                //         // .accelerator("") // TODO
+                //         .build(app)?,
+                // )
                 .build()?,
         )
         .build()
@@ -169,10 +169,9 @@ async fn handle_menu_event(app: &AppHandle, event: MenuEvent) {
     match event {
         MenuEvent::ImportFromKobo => match import::import_dialog(app).await {
             Ok(path) => {
-                if let Ok(res) = import::import_kobo(&path).await {
-                    log::info!("Import result: {}", res);
-                } else {
-                    log::error!("Error importing from Kobo");
+                match import::import_kobo(&path).await {
+                    Ok(res) => log::info!("Import result: {}", res),
+                    Err(e) => log::error!("Error importing from Kobo: {}", e),
                 }
             }
             Err(e) => log::error!("Error importing from Kobo: {}", e),
