@@ -37,6 +37,7 @@ pub struct Quote {
     pub starred: Option<i64>,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
+    pub imported_at: Option<NaiveDateTime>,
     pub deleted_at: Option<NaiveDateTime>,
     pub original_id: Option<String>,
 }

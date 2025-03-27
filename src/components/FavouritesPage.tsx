@@ -107,7 +107,6 @@ function FavouritesPage(
                       key={quote.id}
                       quote={convertStarredQuoteToQuote(quote)}
                       selected={selectedQuote?.id === quote.id}
-                      editable={false}
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedQuote(quote);
@@ -123,8 +122,7 @@ function FavouritesPage(
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-            <div className="text-slate-500 text-lg mb-2">No starred quotes yet</div>
-            <div className="text-slate-400 text-sm">Star your favorite quotes to see them here</div>
+            <div className="text-slate-500 italic mb-2">No favourite quotes yet</div>
           </div>
         )}
       </div>

@@ -9,8 +9,30 @@ export interface Quote {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
+  imported_at: string | null;
   chapter: string | null;
   chapter_progress: number | null;
+  original_id: string | null;
+}
+
+export interface Book {
+  id: string;
+  author_id: string | null;
+  title: string;
+  publication_date: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  original_id: string | null;
+}
+
+export interface Author {
+  id: string;
+  name: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  original_id: string | null;
 }
 
 export interface StarredQuote {

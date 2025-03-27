@@ -1,5 +1,5 @@
 import React from 'react';
-import { useDialog } from '../context/DialogContext';
+import { useDialog } from '../context/DialogContext.tsx';
 
 const DeleteConfirmationDialog = ({ itemType, itemName, onConfirm }) => {
   const { closeDialog } = useDialog();
@@ -15,14 +15,14 @@ const DeleteConfirmationDialog = ({ itemType, itemName, onConfirm }) => {
       <div className="flex justify-end space-x-3">
         <button
           type="button"
-          className="px-4 py-2 bg-slate-700 text-white rounded hover:bg-slate-600 transition-colors"
+          className="px-3 py-1.5 bg-slate-700 text-sm text-white rounded hover:bg-slate-600 transition-colors"
           onClick={closeDialog}
         >
           Cancel
         </button>
         <button
           type="button"
-          className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+          className="px-3 py-1.5 bg-red-600 text-sm text-white rounded hover:bg-red-700 transition-colors"
           onClick={() => {
             onConfirm();
             closeDialog();

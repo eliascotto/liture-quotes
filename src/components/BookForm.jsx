@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useDialog } from '../context/DialogContext';
+import { useDialog } from '../context/DialogContext.tsx';
 
 function BookForm({ onSubmit, onCancel, authors, selectedAuthor }) {
   const [title, setTitle] = useState('');

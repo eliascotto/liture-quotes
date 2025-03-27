@@ -3,7 +3,7 @@ import PlusIcon from "./icons/Plus";
 import Popover from "./Popover";
 import AuthorForm from "./AuthorForm";
 import BookForm from "./BookForm";
-import { useDialog } from "../context/DialogContext";
+import { useDialog } from "../context/DialogContext.tsx";
 
 function AddButton({ onClick, selectedOption, authors, selectedAuthor }) {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);

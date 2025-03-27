@@ -43,7 +43,7 @@ export default function SortMenu(
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-3 py-1.5 rounded-md text-sm bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors"
+        className="flex items-center space-x-2 px-3 py-1.5 rounded-md text-sm text-slate-300 hover:bg-slate-700/90 transition-colors"
       >
         <span>{getCurrentSortLabel()}</span>
         <ChevronDown 

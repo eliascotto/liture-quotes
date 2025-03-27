@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useDialog } from '../context/DialogContext';
+import { useDialog } from '../context/DialogContext.tsx';
 
 function AuthorForm({ onSubmit, onCancel }) {
   const [name, setName] = useState('');

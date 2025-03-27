@@ -96,14 +96,9 @@ pub mod commands {
         let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
 
         // Insert the book
-        let book = queries::insert_book(
-            title.to_string(),
-            Some(author_id),
-            None,
-            &mut *tx,
-        )
-        .await
-        .map_err(|e| format!("Error creating book: {}", e))?;
+        let book = queries::insert_book(title.to_string(), Some(author_id), None, &mut *tx)
+            .await
+            .map_err(|e| format!("Error creating book: {}", e))?;
 
         tx.commit().await.map_err(|e| e.to_string())?;
         Ok(book)
@@ -117,7 +112,7 @@ pub mod commands {
 
         let pool = get_pool();
         let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
-        
+
         // Get the book to ensure it exists and to get the author_id
         let book = queries::get_book_by_id(book_id.to_string(), &mut *tx)
             .await
@@ -142,6 +137,7 @@ pub mod commands {
             starred: Some(0),
             created_at: now.clone(),
             updated_at: now,
+            imported_at: None,
             deleted_at: None,
             original_id: None,
         };
@@ -155,14 +151,32 @@ pub mod commands {
     }
 
     #[tauri::command]
+    pub async fn update_book(book: Book) -> Result<Book, String> {
+        debug_print!("Updating book {}", book.id);
+        let pool = get_pool();
+        let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
+
+        let result = queries::update_book(&book, &mut *tx)
+            .await
+            .map_err(|e| e.to_string())?;
+
+        tx.commit().await.map_err(|e| e.to_string())?;
+        Ok(result)
+    }
+
+    #[tauri::command]
     pub async fn update_quote(quote: Quote) -> Result<Quote, String> {
         debug_print!("Updating quote {}", quote.id);
         let pool = get_pool();
         let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
 
-        let result = queries::update_quote_content(&quote.id, quote.content.as_deref().unwrap_or(""), &mut *tx)
-            .await
-            .map_err(|e| e.to_string())?;
+        let result = queries::update_quote_content(
+            &quote.id,
+            quote.content.as_deref().unwrap_or(""),
+            &mut *tx,
+        )
+        .await
+        .map_err(|e| e.to_string())?;
 
         tx.commit().await.map_err(|e| e.to_string())?;
         Ok(result)
@@ -225,22 +239,24 @@ pub mod commands {
     pub async fn delete_author(author_id: String) -> Result<(), String> {
         let pool = get_pool();
         let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
-        
+
         queries::delete_author_books(author_id.clone(), &mut *tx)
             .await
             .map_err(|e| e.to_string())?;
-            
+
         queries::delete_author(author_id, &mut *tx)
             .await
             .map_err(|e| e.to_string())?;
-            
+
         tx.commit().await.map_err(|e| e.to_string())?;
         Ok(())
     }
 
     #[tauri::command]
     pub async fn get_random_quote() -> Result<Option<(String, String, String)>, String> {
-        queries::get_random_quote(get_pool()).await.map_err(|e| e.to_string())
+        queries::get_random_quote(get_pool())
+            .await
+            .map_err(|e| e.to_string())
     }
 
     #[tauri::command]

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import XIcon from '@icons/XIcon';
+import XIcon from '@components/icons/X';
 
 function Dialog({ isOpen, onClose, title, children }) {
   const dialogRef = useRef(null);
@@ -116,7 +116,7 @@ function Dialog({ isOpen, onClose, title, children }) {
     <>
       {/* Backdrop overlay with enhanced blur */}
       <div 
-        className={`fixed inset-0 bg-slate-900/70 backdrop-blur-lg z-[9999] transition-opacity duration-300 ${
+        className={`fixed inset-0 bg-slate-900/70 backdrop-blur-md z-[9999] transition-opacity duration-300 ${
           isExiting ? 'opacity-0' : 'opacity-100'
         }`}
         aria-hidden="true"

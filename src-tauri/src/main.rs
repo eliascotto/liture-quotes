@@ -38,7 +38,8 @@ impl<R: Runtime> WindowExt for tauri::Window<R> {
 
             // Set titlebar transparent
             ns_window.setTitlebarAppearsTransparent_(YES);
-            ns_window.setTitleVisibility_(cocoa::appkit::NSWindowTitleVisibility::NSWindowTitleHidden);
+            ns_window
+                .setTitleVisibility_(cocoa::appkit::NSWindowTitleVisibility::NSWindowTitleHidden);
 
             pool.drain();
         }
@@ -93,7 +94,6 @@ fn set_window_controls_pos(window: cocoa::base::id, x: f64, y: f64) {
     }
 }
 
-#[cfg(target_os = "macos")]
 #[tokio::main]
 async fn main() {
     let args: Vec<String> = env::args().collect();
@@ -105,6 +105,7 @@ async fn main() {
 
     // In Tauri 2.0, we need to use the plugin system differently
     tauri::Builder::default()
+        .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(
             tauri_plugin_log::Builder::new()
@@ -115,14 +116,12 @@ async fn main() {
                 .build(),
         )
         .plugin(tauri_plugin_os::init())
-        .plugin(tauri_plugin_shell::init())
         .setup(|app| {
             #[cfg(target_os = "macos")]
             {
                 if let Some(window) = app.get_window("main") {
                     let _ = window.set_win_effects();
                     let _ = window.update_window_controls_pos();
-
                 }
             }
 
@@ -133,14 +132,15 @@ async fn main() {
         .on_window_event(move |window, event| match event {
             #[cfg(target_os = "macos")]
             WindowEvent::CloseRequested { api, .. } => {
-				window
-					.app_handle()
-					.hide()
-					.expect("Window should hide on macOS");
-				api.prevent_close();
-			}
+                window
+                    .app_handle()
+                    .hide()
+                    .expect("Window should hide on macOS");
+                api.prevent_close();
+            }
             #[cfg(target_os = "macos")]
             WindowEvent::Resized(_) => {
+                // Redraw window controls on MacOS otherwise they are restored to default position
                 window.update_window_controls_pos();
             }
             _ => {}
@@ -152,6 +152,7 @@ async fn main() {
             litforge_notes_lib::commands::create_author,
             litforge_notes_lib::commands::delete_author,
             litforge_notes_lib::commands::create_book,
+            litforge_notes_lib::commands::update_book,
             litforge_notes_lib::commands::delete_book,
             litforge_notes_lib::commands::create_quote,
             litforge_notes_lib::commands::update_quote,

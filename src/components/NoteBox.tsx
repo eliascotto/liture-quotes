@@ -1,24 +1,28 @@
 import { useCallback, useRef, useState, useEffect, MouseEvent as ReactMouseEvent } from "react";
 import clsx from 'clsx';
-import StarIcon from './icons/Star';
-import EditIcon from './icons/Edit';
-import StarMenuIcon from './icons/StarMenu';
-import TrashIcon from './icons/Trash';
-import Tooltip from "./Tooltip";
+import { writeText } from "@tauri-apps/plugin-clipboard-manager";
+import StarIcon from "@icons/Star";
+import EditIcon from "@icons/Edit";
+import StarMenuIcon from "@icons/StarMenu";
+import TrashIcon from "@icons/Trash";
+import CopyIcon from "@icons/Copy";
+import Tooltip from "@components/Tooltip";
+import EditableNoteBox from "@components/EditableNoteBox.tsx";
 import { Quote } from "src/types/index";
 
 // Custom dropdown menu component
-function DropdownMenu(
-  { isOpen, onClose, onEdit, onStar, onRemove, isStarred }:
-    {
-      isOpen: boolean,
-      onClose: () => void,
-      onEdit: () => void,
-      onStar: () => void,
-      onRemove: () => void,
-      isStarred: boolean
-    }
-) {
+function DropdownMenu({
+  isOpen, onCopy, onClose, onEdit, onStar, onRemove, isStarred, withIcons = false
+}: {
+  isOpen: boolean,
+  onCopy: () => void,
+  onClose: () => void,
+  onEdit: () => void,
+  onStar: () => void,
+  onRemove: () => void,
+  isStarred: boolean,
+  withIcons?: boolean
+}) {
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -47,117 +51,47 @@ function DropdownMenu(
     >
       <div className="py-0.5">
         <button
+          onClick={onCopy}
+          className="w-full text-left px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors duration-150 flex items-center gap-2"
+        >
+          {withIcons && <CopyIcon />} Copy
+        </button>
+        <button
           onClick={onEdit}
           className="w-full text-left px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors duration-150 flex items-center gap-2"
         >
-          <EditIcon /> Edit
+          {withIcons && <EditIcon />} Edit
         </button>
         <button
           onClick={onStar}
           className="w-full text-left px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors duration-150 flex items-center gap-2"
         >
-          <StarMenuIcon filled={!isStarred} /> {isStarred ? "Unstar" : "Star"}
+          {withIcons && <StarMenuIcon filled={!isStarred} />} {isStarred ? "Unstar" : "Star"}
         </button>
         <div className="border-t border-slate-700/50 my-0.5"></div>
         <button
           onClick={onRemove}
           className="w-full text-left px-3 py-1.5 text-sm text-red-400 hover:bg-slate-700/50 hover:text-red-300 transition-colors duration-150 flex items-center gap-2"
         >
-          <TrashIcon /> Remove
+          {withIcons && <TrashIcon />} Remove
         </button>
       </div>
     </div>
   );
 }
 
-function EditableBox(
-  { quote, onSave, onCancel }:
-    { quote: Quote, onSave: (content: string) => void, onCancel: () => void }
-) {
-  const [currentText, setCurrentText] = useState(quote.content);
-  const textareaRef = useRef(null);
-  const editableBoxRef = useRef(null);
 
-  useEffect(() => {
-    // Handle click outside
-    function handleClickOutside(event: MouseEvent) {
-      if (editableBoxRef.current && !(editableBoxRef.current as HTMLElement).contains(event.target as Node)) {
-        onCancel();
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [onCancel]);
-
-  useEffect(() => {
-    // adjustTextareaHeight
-    const textarea = textareaRef.current;
-    if (textarea) {
-      (textarea as HTMLTextAreaElement).style.height = "auto";
-      const newHeight = (textarea as HTMLTextAreaElement).scrollHeight;
-      (textarea as HTMLTextAreaElement).style.height = `${newHeight}px`;
-    }
-  }, [currentText]);
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Escape') {
-      onCancel();
-    } else if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-      onSave(currentText ?? "");
-    }
-  };
-
-  return (
-    <div 
-      ref={editableBoxRef}
-      className="rounded-lg my-2 bg-slate-800/80 shadow-lg border border-slate-700/50 py-3 px-5 backdrop-blur-sm select-none"
-    >
-      <textarea
-        ref={textareaRef}
-        className="outline-none bg-transparent w-full resize-none text-slate-200 focus:text-white transition-colors duration-200"
-        autoFocus
-        value={currentText ?? ""}
-        onChange={(e) => setCurrentText(e.target.value)}
-        onKeyDown={handleKeyDown}
-      />
-      <div className="flex justify-end mt-2 border-t border-slate-700/30 pt-2">
-        <Tooltip content="Cancel quote" shortcut="Esc">
-          <button
-            onClick={onCancel}
-            className="px-3 py-1.5 rounded-md text-slate-400 hover:text-white transition-colors duration-200"
-          >
-            Cancel
-          </button>
-        </Tooltip>
-        <Tooltip content="Save quote" shortcut="⌘ ⏎">
-          <button
-            onClick={() => onSave(currentText ?? "")}
-            className="px-3 py-1.5 rounded-md text-cyan-500 hover:bg-slate-700/50 font-medium transition-colors duration-200"
-          >
-            Save
-          </button>
-        </Tooltip>
-      </div>
-    </div>
-  );
-}
-
-function NoteBox(
-  { quote, onStarClick, onClick, selected, onEdit, onRemove, editable: editableProp }:
-    {
-      quote: Quote,
-      selected: boolean,
-      editable: boolean,
-      onClick: (e: ReactMouseEvent) => void,
-      onStarClick: () => void,
-      onEdit: (content: string) => void,
-      onRemove: () => void,
-    }
-) {
-  const [editable, setEditable] = useState(editableProp);
+function NoteBox({
+  quote, onStarClick, onClick, selected, onEdit, onRemove,
+}: {
+  quote: Quote,
+  selected: boolean,
+  onClick: (e: ReactMouseEvent) => void,
+  onStarClick: () => void,
+  onEdit: (content: string) => void,
+  onRemove: () => void,
+}) {
+  const [editable, setEditable] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const quoteRef = useRef(null);
 
@@ -211,6 +145,11 @@ function NoteBox(
     }
   }, [onRemove]);
 
+  const handleMenuCopy = useCallback(() => {
+    setMenuOpen(false);
+    writeText(quote.content ?? "");
+  }, [quote.content]);
+
   return (
     <div className="relative my-2 group" ref={quoteRef}>
       <div
@@ -229,7 +168,7 @@ function NoteBox(
         </Tooltip>
       </div>
       {editable ? (
-        <EditableBox
+        <EditableNoteBox
           quote={quote}
           onSave={handleQuoteEdit}
           onCancel={() => setEditable(false)}
@@ -249,6 +188,7 @@ function NoteBox(
 
           <DropdownMenu
             isOpen={menuOpen}
+            onCopy={handleMenuCopy}
             onClose={() => setMenuOpen(false)}
             onEdit={handleMenuEdit}
             onStar={handleMenuStar}

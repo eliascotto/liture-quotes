@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { invoke } from "@tauri-apps/api/core"
 import SearchIcon from "./icons/Search"
 import XMarkIcon from "./icons/XMark"
+import clsx from "clsx"
 
 function SearchBox(props) {
   const [search, setSearch] = useState("")
@@ -59,7 +60,10 @@ function SearchBox(props) {
         <SearchIcon />
       </div>
       <input
-        className="bg-slate-800/70 border border-slate-700/50 text-slate-200 py-1.5 rounded-md pl-10 pr-8 text-sm w-64 focus:outline-none focus:ring-1 focus:ring-cyan-400/70 focus:border-cyan-400/70 transition-all duration-200 placeholder:text-slate-500"
+        className={clsx(
+          "bg-slate-800/70 border border-slate-700/50 text-slate-200 py-1.5 rounded-md pl-10 pr-8 text-sm w-64 focus:outline-none",
+          "focus:ring-1 focus:ring-cyan-400/70 focus:border-cyan-400/70 transition-all duration-200 placeholder:text-slate-500",
+          )}
         value={search}
         onChange={(e) => setSearch(e.currentTarget.value)}
         placeholder="Search..."

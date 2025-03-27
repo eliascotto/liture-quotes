@@ -1,6 +1,6 @@
 use crate::import;
 use std::str::FromStr;
-use tauri::{menu::Menu, AppHandle, Manager, Wry, Emitter};
+use tauri::{menu::Menu, AppHandle, Emitter, Manager, Wry};
 
 #[derive(Debug, Clone, Copy, serde::Deserialize)]
 pub enum MenuEvent {
@@ -21,7 +21,8 @@ impl FromStr for MenuEvent {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.to_lowercase().as_str() {  // Convert to lowercase for case-insensitive matching
+        match s.to_lowercase().as_str() {
+            // Convert to lowercase for case-insensitive matching
             "import_from_kobo" => Ok(MenuEvent::ImportFromKobo),
             "import_from_kindle" => Ok(MenuEvent::ImportFromKindle),
             _ => Err(ParseError::InvalidMenuEvent),
@@ -69,35 +70,56 @@ fn setup_app_submenu(app: &mut tauri::App) -> tauri::Result<tauri::menu::Submenu
     use tauri::menu::{AboutMetadataBuilder, SubmenuBuilder};
 
     let config = app.config();
-
-    // Settings menu item
-    // let settings = MenuItemBuilder::new("Settings...")
-    //     .id("settings")
-    //     .accelerator("CmdOrCtrl+,")
-    //     .build(app)?;
+    let app_name_default = String::from("Notes");
+    let app_name = config.product_name.as_ref().unwrap_or(&app_name_default);
 
     // Build the app submenu
-    SubmenuBuilder::new(
-        app,
-        config.product_name.as_ref().unwrap_or(&"Nous".to_string()),
-    )
-    .about(Some(
-        AboutMetadataBuilder::new()
-            .name(Some("Notes".to_string()))
-            .authors(Some(vec!["Elia Scotto".to_string()]))
-            .license(Some(env!("CARGO_PKG_VERSION")))
-            .version(Some(env!("CARGO_PKG_VERSION")))
-            .build(),
-    ))
-    .separator()
-    // .item(&settings)
-    .separator()
-    .services()
-    .separator()
-    .hide()
-    .hide_others()
-    .quit()
-    .build()
+    SubmenuBuilder::new(app, app_name)
+        .about(Some(
+            AboutMetadataBuilder::new()
+                .name(Some("Notes".to_string()))
+                .authors(Some(vec!["Elia Scotto".to_string()]))
+                .license(Some(env!("CARGO_PKG_VERSION")))
+                .version(Some(env!("CARGO_PKG_VERSION")))
+                .build(),
+        ))
+        .separator()
+        .services()
+        .separator()
+        .hide()
+        .hide_others()
+        .quit()
+        .build()
+}
+
+fn setup_edit_submenu(app: &mut tauri::App) -> tauri::Result<tauri::menu::Submenu<Wry>> {
+    use tauri::menu::SubmenuBuilder;
+
+    SubmenuBuilder::new(app, "Edit")
+        .undo()
+        .redo()
+        .separator()
+        .cut()
+        .copy()
+        .paste()
+        .select_all()
+        .build()
+}
+
+fn setup_view_submenu(app: &mut tauri::App) -> tauri::Result<tauri::menu::Submenu<Wry>> {
+    use tauri::menu::SubmenuBuilder;
+
+    SubmenuBuilder::new(app, "View")
+        .minimize()
+        .maximize()
+        .fullscreen()
+        .build()
+}
+
+fn setup_help_submenu(app: &mut tauri::App) -> tauri::Result<tauri::menu::Submenu<Wry>> {
+    use tauri::menu::SubmenuBuilder;
+
+    SubmenuBuilder::new(app, "Help").build()
 }
 
 pub fn setup_menu(app: &mut tauri::App) -> tauri::Result<Menu<Wry>> {
@@ -124,38 +146,47 @@ pub fn setup_menu(app: &mut tauri::App) -> tauri::Result<Menu<Wry>> {
 
         // Get the current menu
         let curr_menu = main_window.menu().expect("No default menu found");
-        let curr_menu_items = curr_menu.items()?;
 
         // Setup our custom submenus
-        let updated_file_submenu = setup_file_submenu(app)?;
+        let file_submenu = setup_file_submenu(app)?;
         let app_submenu = setup_app_submenu(app)?;
+        let edit_submenu = setup_edit_submenu(app)?;
+        let view_submenu = setup_view_submenu(app)?;
+        let help_submenu = setup_help_submenu(app)?;
 
         let mut new_menu = MenuBuilder::new(app);
 
         // Add the app submenu first
         new_menu = new_menu.item(&app_submenu);
-
-        // Rebuild the rest of the menu with the updated File submenu
-        // skip the first item as it's the app submenu
-        for item in curr_menu_items.iter().skip(1) {
-            if let Some(submenu) = item.as_submenu() {
-                if submenu.text().map_or(false, |text| text == "File") {
-                    new_menu = new_menu.item(&updated_file_submenu);
-                } else if submenu.text().map_or(false, |text| text == "Edit") {
-                    // Skip the Edit menu as it's handled by the app submenu
-                    continue;
-                } else {
-                    new_menu = new_menu.item(item);
-                }
-            } else {
-                new_menu = new_menu.item(item);
-            }
-        }
+        new_menu = new_menu.item(&file_submenu);
+        new_menu = new_menu.item(&edit_submenu);
+        new_menu = new_menu.item(&view_submenu);
+        new_menu = new_menu.item(&help_submenu);
 
         let updated_menu = new_menu.build()?;
         app.set_menu(updated_menu.clone())?;
 
-        Ok(updated_menu)
+        // Ok(updated_menu)
+        Menu::new(app)
+    }
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+struct Payload {
+    device: Option<String>,
+    message: Option<String>,
+    error: Option<String>,
+}
+
+fn create_payload(
+    device: Option<String>,
+    message: Option<String>,
+    error: Option<String>,
+) -> Payload {
+    Payload {
+        device,
+        message,
+        error,
     }
 }
 
@@ -165,15 +196,45 @@ async fn handle_menu_event(app: &AppHandle, event: MenuEvent) {
         .expect("unable to find window");
 
     match event {
-        MenuEvent::ImportFromKobo => match import::import_dialog(app).await {
+        MenuEvent::ImportFromKobo => match import::import_dialog(app, import::ImportType::Kobo).await {
             Ok(path) => {
+                webview
+                    .emit(
+                        "importing",
+                        create_payload(Some("kobo".to_string()), None, None),
+                    )
+                    .unwrap();
+
                 match import::import_kobo(&path).await {
-                    Ok(res) => log::info!("Import result: {}", res),
-                    Err(e) => log::error!("Error importing from Kobo: {}", e),
+                    Ok(res) => {
+                        log::info!("Import result: {}", res);
+                        webview
+                            .emit("import-success", create_payload(None, Some(res), None))
+                            .unwrap();
+                    }
+                    Err(e) => {
+                        log::error!("Error importing from Kobo: {}", e);
+                        webview
+                            .emit(
+                                "import-error",
+                                create_payload(None, None, Some(e.to_string())),
+                            )
+                            .unwrap();
+                    }
                 }
             }
             Err(e) => log::error!("Error importing from Kobo: {}", e),
         },
-        MenuEvent::ImportFromKindle => webview.emit("import-from-kindle", ()).unwrap(),
+        MenuEvent::ImportFromKindle => match import::import_dialog(app, import::ImportType::Clippings).await {
+            Ok(path) => {
+                webview.emit("importing", create_payload(Some("kindle".to_string()), None, None)).unwrap();
+
+                match import::import_clippings(&path).await {
+                    Ok(res) => webview.emit("import-success", create_payload(None, Some(res), None)).unwrap(),
+                    Err(e) => log::error!("Error importing from Kindle Clippings: {}", e),
+                }
+            }
+            Err(e) => log::error!("Error importing from Kindle Clippings: {}", e),
+        },
     }
 }

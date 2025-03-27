@@ -96,7 +96,7 @@ function Navbar(props) {
                 )}
                 title="Books"
               >
-                <BookIcon className="w-6 h-6" />
+                <BookIcon />
               </button>
 
               {/* Authors Icon */}
@@ -111,7 +111,7 @@ function Navbar(props) {
                 )}
                 title="Authors"
               >
-                <UsersIcon className="w-6 h-6" />
+                <UsersIcon />
               </button>
             </div>
           </div>

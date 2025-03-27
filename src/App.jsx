@@ -1,15 +1,17 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import clsx from 'clsx';
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { platform } from '@tauri-apps/plugin-os';
 
 import Navbar from "@components/layouts/Navbar";
 import BookPage from "@components/BookPage";
-import AuthorPage from "@components/AuthorPage";
+import AuthorPage from "@components/AuthorPage.tsx";
 import SearchPage from "@components/SearchPage";
 import FavouritesPage from "@components/FavouritesPage";
 import Header from "@components/layouts/Header";
 import RandomQuote from "@components/RandomQuote";
+import { useToast } from "./context/ToastContext.tsx";
 
 import { useWindowState } from "./hooks/useWindowState";
 
@@ -20,6 +22,8 @@ function findAuthorById(authors, id) {
 function App() {
   const currentPlatform = platform();
   const windowState = useWindowState();
+
+  const { addToast } = useToast();
 
   // Fields from db
   const [books, setBooks] = useState([]);
@@ -294,11 +298,11 @@ function App() {
     }
   }
 
-  async function createNewQuote(bookId) {
+  async function createNewQuote(bookId, content = "New quote") {
     try {
       let newQuote = await invoke("create_quote", {
-        bookId: bookId,
-        content: "New quote"
+        bookId,
+        content,
       });
       setNewlyCreatedQuoteId(newQuote.id);
       await fetchQuotes();
@@ -474,10 +478,40 @@ function App() {
     }
   };
 
+  async function updateBook(book) {
+    try {
+      await invoke("update_book", { book });
+      await fetchBooksAndAuthors();
+      setSelectedBook(book);
+    } catch (error) {
+      console.error("Error updating book:", error);
+    }
+  }
+
   // Initial data load
   useEffect(() => {
     fetchBooksAndAuthors();
     fetchStarredQuotes();
+
+    const importListener = listen("importing", (event) => {
+      addToast(`Importing data from ${event.payload.device}...`);
+    });
+
+    const importSuccessListener = listen("import-success", (event) => {
+      addToast(event.payload.message, "success");
+      fetchBooksAndAuthors();
+      fetchStarredQuotes();
+    });
+
+    const importErrorListener = listen("import-error", (event) => {
+      addToast(event.payload.error, "error");
+    });
+
+    return () => {
+      importListener.then((unlisten) => unlisten());
+      importSuccessListener.then((unlisten) => unlisten());
+      importErrorListener.then((unlisten) => unlisten());
+    };
   }, []);
 
   useEffect(() => {
@@ -575,6 +609,7 @@ function App() {
         deleteQuote={deleteQuote}
         toggleFavouriteQuote={toggleFavouriteQuote}
         onDeleteBook={deleteBook}
+        updateBook={updateBook}
         sortBy={sortBy}
         sortOrder={sortOrder}
         setSortBy={setSortBy}
@@ -634,7 +669,7 @@ function App() {
           />
 
           {/* Content area */}
-          <div className="flex-1 overflow-hidden bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-sm">
+          <div className="flex-1 overflow-hidden bg-gradient-to-b from-slate-800/90 to-slate-900/90 backdrop-blur-sm">
             {currentPage}
           </div>
         </div>

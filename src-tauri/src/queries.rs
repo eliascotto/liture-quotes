@@ -1,6 +1,6 @@
 use crate::db::*;
 use crate::models::*;
-use sqlx::{Row, Sqlite, Executor};
+use sqlx::{Executor, Row, Sqlite};
 use uuid::Uuid;
 
 /// Format the order and sort by clauses for db queries with sorting.
@@ -39,10 +39,7 @@ where
 }
 
 /// Get book by ID
-pub async fn get_book_by_id<'e, E>(
-    id: String,
-    executor: E,
-) -> Result<Book, sqlx::Error>
+pub async fn get_book_by_id<'e, E>(id: String, executor: E) -> Result<Book, sqlx::Error>
 where
     E: Executor<'e, Database = Sqlite>,
 {
@@ -53,18 +50,17 @@ where
 }
 
 /// Insert a new author
-pub async fn insert_author<'e, E>(
-    author_name: String,
-    executor: E,
-) -> Result<Author, sqlx::Error>
+pub async fn insert_author<'e, E>(author_name: String, executor: E) -> Result<Author, sqlx::Error>
 where
     E: Executor<'e, Database = Sqlite>,
 {
-    let author = sqlx::query_as::<_, Author>("INSERT OR IGNORE INTO author (id, name) VALUES (?, ?) RETURNING *")
-        .bind(Uuid::new_v4().to_string())
-        .bind(author_name.clone())
-        .fetch_one(executor)
-        .await?;
+    let author = sqlx::query_as::<_, Author>(
+        "INSERT OR IGNORE INTO author (id, name) VALUES (?, ?) RETURNING *",
+    )
+    .bind(Uuid::new_v4().to_string())
+    .bind(author_name.clone())
+    .fetch_one(executor)
+    .await?;
 
     Ok(author)
 }
@@ -90,10 +86,7 @@ where
     .await
 }
 
-pub async fn insert_quote<'e, E>(
-    quote: &Quote,
-    executor: E,
-) -> Result<Quote, sqlx::Error>
+pub async fn insert_quote<'e, E>(quote: &Quote, executor: E) -> Result<Quote, sqlx::Error>
 where
     E: Executor<'e, Database = Sqlite>,
 {
@@ -115,10 +108,7 @@ where
     .await
 }
 
-pub async fn insert_chapter<'e, E>(
-    chapter: &Chapter,
-    executor: E,
-) -> Result<Chapter, sqlx::Error>
+pub async fn insert_chapter<'e, E>(chapter: &Chapter, executor: E) -> Result<Chapter, sqlx::Error>
 where
     E: Executor<'e, Database = Sqlite>,
 {
@@ -137,10 +127,7 @@ where
     .await
 }
 
-pub async fn insert_note<'e, E>(
-    note: &Note,
-    executor: E,
-) -> Result<Note, sqlx::Error>
+pub async fn insert_note<'e, E>(note: &Note, executor: E) -> Result<Note, sqlx::Error>
 where
     E: Executor<'e, Database = Sqlite>,
 {
@@ -162,9 +149,7 @@ where
 }
 
 /// Get all books
-pub async fn get_books<'e, E>(
-    executor: E,
-) -> Result<Vec<Book>, sqlx::Error>
+pub async fn get_books<'e, E>(executor: E) -> Result<Vec<Book>, sqlx::Error>
 where
     E: Executor<'e, Database = Sqlite>,
 {
@@ -179,9 +164,7 @@ where
 }
 
 /// Get all authors
-pub async fn get_authors<'e, E>(
-    executor: E,
-) -> Result<Vec<Author>, sqlx::Error>
+pub async fn get_authors<'e, E>(executor: E) -> Result<Vec<Author>, sqlx::Error>
 where
     E: Executor<'e, Database = Sqlite>,
 {
@@ -236,10 +219,7 @@ where
 }
 
 /// Find notes using full-text search
-pub async fn find_quotes<'e, E>(
-    search: &str,
-    executor: E,
-) -> Result<Vec<QuoteFts>, sqlx::Error>
+pub async fn find_quotes<'e, E>(search: &str, executor: E) -> Result<Vec<QuoteFts>, sqlx::Error>
 where
     E: Executor<'e, Database = Sqlite>,
 {
@@ -256,10 +236,7 @@ where
 }
 
 /// Find books by title
-pub async fn find_books_by_title<'e, E>(
-    search: &str,
-    executor: E,
-) -> Result<Vec<Book>, sqlx::Error>
+pub async fn find_books_by_title<'e, E>(search: &str, executor: E) -> Result<Vec<Book>, sqlx::Error>
 where
     E: Executor<'e, Database = Sqlite>,
 {
@@ -296,10 +273,7 @@ where
 }
 
 /// Get note by ID
-pub async fn get_quote_by_id<'e, E>(
-    id: &str,
-    executor: E,
-) -> Result<Quote, sqlx::Error>
+pub async fn get_quote_by_id<'e, E>(id: &str, executor: E) -> Result<Quote, sqlx::Error>
 where
     E: Executor<'e, Database = Sqlite>,
 {
@@ -310,10 +284,7 @@ where
 }
 
 /// Set note as hidden
-pub async fn delete_quote<'e, E>(
-    note_id: &str,
-    executor: E,
-) -> Result<(), sqlx::Error>
+pub async fn delete_quote<'e, E>(note_id: &str, executor: E) -> Result<(), sqlx::Error>
 where
     E: Executor<'e, Database = Sqlite>,
 {
@@ -325,10 +296,7 @@ where
 }
 
 /// Set book as deleted
-pub async fn delete_book<'e, E>(
-    book_id: &str,
-    executor: E,
-) -> Result<(), sqlx::Error>
+pub async fn delete_book<'e, E>(book_id: &str, executor: E) -> Result<(), sqlx::Error>
 where
     E: Executor<'e, Database = Sqlite>,
 {
@@ -340,10 +308,7 @@ where
 }
 
 /// Set author as deleted
-pub async fn delete_author<'e, E>(
-    author_id: String,
-    executor: E,
-) -> Result<(), sqlx::Error>
+pub async fn delete_author<'e, E>(author_id: String, executor: E) -> Result<(), sqlx::Error>
 where
     E: Executor<'e, Database = Sqlite>,
 {
@@ -355,10 +320,7 @@ where
     Ok(())
 }
 
-pub async fn delete_author_books<'e, E>(
-    author_id: String,
-    executor: E,
-) -> Result<(), sqlx::Error>
+pub async fn delete_author_books<'e, E>(author_id: String, executor: E) -> Result<(), sqlx::Error>
 where
     E: Executor<'e, Database = Sqlite>,
 {
@@ -371,10 +333,7 @@ where
 }
 
 /// Get quote starred status
-pub async fn get_quote_starred<'e, E>(
-    quote_id: &str,
-    executor: E,
-) -> Result<i64, sqlx::Error>
+pub async fn get_quote_starred<'e, E>(quote_id: &str, executor: E) -> Result<i64, sqlx::Error>
 where
     E: Executor<'e, Database = Sqlite>,
 {
@@ -402,10 +361,7 @@ where
 }
 
 /// Toggle quote starred status
-pub async fn toggle_quote_starred<'e, E>(
-    quote_id: &str,
-    executor: E,
-) -> Result<Quote, sqlx::Error>
+pub async fn toggle_quote_starred<'e, E>(quote_id: &str, executor: E) -> Result<Quote, sqlx::Error>
 where
     E: Executor<'e, Database = Sqlite>,
 {
@@ -496,7 +452,9 @@ where
         sort_by_clause, order_clause
     );
 
-    sqlx::query_as::<_, StarredQuote>(&sql).fetch_all(executor).await
+    sqlx::query_as::<_, StarredQuote>(&sql)
+        .fetch_all(executor)
+        .await
 }
 
 /// Get book by original ID
@@ -539,4 +497,38 @@ where
         .bind(original_id)
         .fetch_one(executor)
         .await
+}
+
+pub async fn get_quote_by_book_and_content<'e, E>(
+    book_id: String,
+    content: String,
+    executor: E,
+) -> Result<Quote, sqlx::Error>
+where
+    E: Executor<'e, Database = Sqlite>,
+{
+    sqlx::query_as::<_, Quote>("SELECT * FROM quote WHERE book_id = ? AND content = ?")
+        .bind(book_id)
+        .bind(content)
+        .fetch_one(executor)
+        .await
+}
+
+/// Update book
+pub async fn update_book<'e, E>(book: &Book, executor: E) -> Result<Book, sqlx::Error>
+where
+    E: Executor<'e, Database = Sqlite>,
+{
+    sqlx::query_as::<_, Book>(
+        "UPDATE book 
+        SET title = ?, author_id = ?, publication_date = ?, created_at = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ? RETURNING *"
+    )
+    .bind(book.title.clone())
+    .bind(book.author_id.clone())
+    .bind(book.publication_date.clone())
+    .bind(book.created_at)
+    .bind(book.id.clone())
+    .fetch_one(executor)
+    .await
 }
