@@ -236,8 +236,8 @@ where
     sqlx::query_as::<_, QuoteFts>(
         r#"SELECT q.id, q.content, b.title as "book", a.name as "author"
            FROM quote_fts q
-           LEFT JOIN book b ON b.id = q.book
-           LEFT JOIN author a ON a.id = q.author
+           LEFT JOIN book b ON b.id = q.book_id
+           LEFT JOIN author a ON a.id = q.author_id
            WHERE q.content MATCH ?"#,
     )
     .bind(search)

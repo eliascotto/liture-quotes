@@ -9,7 +9,8 @@ const MAX_WIDTH = 400;
 
 type NavbarProps = {
   property: string,
-  list: any[],
+  items: any[],
+  itemType: string,
   selected: any,
   onCategoryChange: (category: string) => void,
   onSelection: (item: any) => void,
@@ -19,6 +20,7 @@ function Navbar(props: NavbarProps) {
   const [width, setWidth] = useState(240); // Default width
   const [isResizing, setIsResizing] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isEmpty, setIsEmpty] = useState(false);
   const navbarRef = useRef(null);
   const scrollContainerRef = useRef(null);
 
@@ -34,6 +36,10 @@ function Navbar(props: NavbarProps) {
     e.preventDefault();
     setIsResizing(true);
   };
+
+  useEffect(() => {
+    setIsEmpty(props.items.length === 0);
+  }, [props.items]);
 
   // Handle mouse move to resize
   useEffect(() => {
@@ -131,10 +137,16 @@ function Navbar(props: NavbarProps) {
           className="flex-1 overflow-y-auto overscroll-none p-1"
           onScroll={handleScroll}
         >
-          <ul className="px-2 py-0.5 space-y-1">
-            {props.list.map((item) => {
-              const isSelected = props.selected && props.selected.id === item.id;
-              return (
+          {isEmpty && (
+            <div className="flex-1 flex items-center justify-center h-full">
+              <div className="text-slate-500 italic text-sm">No {props.itemType}s to show</div>
+            </div>
+          )}
+          {!isEmpty && (
+            <ul className="px-2 py-0.5 space-y-1">
+              {props.items.map((item) => {
+                const isSelected = props.selected && props.selected.id === item.id;
+                return (
                 <li
                   key={`navbar-item-${item.id}`}
                   className={`cursor-pointer py-1.5 px-1.5 text-sm font-medium truncate rounded transition-all duration-200 hover:bg-slate-700/20 select-none ${isSelected
@@ -146,8 +158,9 @@ function Navbar(props: NavbarProps) {
                   {item[props.property]}
                 </li>
               );
-            })}
-          </ul>
+              })}
+            </ul>
+          )}
         </div>
       </div>
 

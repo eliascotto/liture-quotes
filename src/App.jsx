@@ -645,7 +645,8 @@ function App() {
       <div className="flex flex-row w-full h-full overflow-hidden">
         {/* Sidebar - Full height */}
         <Navbar
-          list={isBooksSelected ? books : authors}
+          items={isBooksSelected ? books : authors}
+          itemType={isBooksSelected ? "book" : "author"}
           property={isBooksSelected ? "title" : "name"}
           onSelection={onNavbarSelection}
           selected={isBooksSelected ? selectedBook : selectedAuthor}
