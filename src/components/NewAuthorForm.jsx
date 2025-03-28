@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useDialog } from '../context/DialogContext.tsx';
 
-function AuthorForm({ onSubmit, onCancel }) {
+function NewAuthorForm({ onSubmit, onCancel }) {
   const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -108,4 +108,4 @@ function AuthorForm({ onSubmit, onCancel }) {
   );
 }
 
-export default AuthorForm; 
+export default NewAuthorForm; 

@@ -1,9 +1,8 @@
 import { useState, useRef, useEffect } from "react";
-import PlusIcon from "./icons/Plus";
-import Popover from "./Popover";
-import AuthorForm from "./AuthorForm";
-import BookForm from "./BookForm";
-import { useDialog } from "../context/DialogContext.tsx";
+import PlusIcon from "@icons/Plus";
+import NewAuthorForm from "@components/NewAuthorForm.jsx";
+import NewBookForm from "@components/NewBookForm.jsx";
+import { useDialog } from "@context/DialogContext.tsx";
 
 function AddButton({ onClick, selectedOption, authors, selectedAuthor }) {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
@@ -37,7 +36,7 @@ function AddButton({ onClick, selectedOption, authors, selectedAuthor }) {
 
     openDialog(
       "Add New Author",
-      <AuthorForm
+      <NewAuthorForm
         onSubmit={async (authorName) => {
           try {
             return await onClick("author", { name: authorName });
@@ -56,7 +55,7 @@ function AddButton({ onClick, selectedOption, authors, selectedAuthor }) {
 
     openDialog(
       "Add New Book",
-      <BookForm
+      <NewBookForm
         onSubmit={async (bookData) => {
           try {
             return await onClick("book", bookData);

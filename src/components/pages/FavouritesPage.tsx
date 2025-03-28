@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import NoteBox from "@components/NoteBox";
 import DualSortMenu from "@components/DualSortMenu";
 import { Quote, StarredQuote } from "src/types/index";
-import { convertStarredQuoteToQuote } from "../types/convert";
+import { convertStarredQuoteToQuote } from "../../types/convert";
 
 function FavouritesPage(
   { quotes, navigateToBook, updateQuote, onStarClick, removeQuote, reloadFavourites }:

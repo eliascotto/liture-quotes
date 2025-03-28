@@ -159,7 +159,7 @@ async fn main() {
             litforge_notes_lib::commands::delete_quote,
             litforge_notes_lib::commands::toggle_quote_starred,
             litforge_notes_lib::commands::set_quote_starred,
-            litforge_notes_lib::commands::search_notes,
+            litforge_notes_lib::commands::search_quotes,
             litforge_notes_lib::commands::search_books_by_title,
             litforge_notes_lib::commands::search_authors_by_name,
             litforge_notes_lib::commands::get_random_quote,

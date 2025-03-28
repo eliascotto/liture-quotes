@@ -52,7 +52,7 @@ pub mod commands {
     }
 
     #[tauri::command]
-    pub async fn search_notes(search: &str) -> Result<Vec<QuoteFts>, String> {
+    pub async fn search_quotes(search: &str) -> Result<Vec<QuoteFts>, String> {
         queries::find_quotes(search, get_pool())
             .await
             .map_err(|e| format!("Error fetching notes {}", e))

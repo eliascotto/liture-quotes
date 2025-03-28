@@ -1,14 +1,38 @@
 import { useState, useEffect } from 'react';
-import { useDialog } from '../context/DialogContext.tsx';
+import { useDialog } from '@context/DialogContext.tsx';
+import Select from '@components/Select.tsx';
+import Input from '@components/Input.tsx';
 
-function BookForm({ onSubmit, onCancel, authors, selectedAuthor }) {
+function NewBookForm({ onSubmit, onCancel, authors, selectedAuthor }) {
   const [title, setTitle] = useState('');
+
   const [authorOption, setAuthorOption] = useState(selectedAuthor ? 'existing' : authors.length > 0 ? 'existing' : 'new');
   const [authorId, setAuthorId] = useState(selectedAuthor ? selectedAuthor.id : '');
   const [newAuthorName, setNewAuthorName] = useState('');
+
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { closeDialog } = useDialog();
+
+  const [selectedAuthorSize, setSelectedAuthorSize] = useState('md');
+
+  useEffect(() => {
+    const handleResize = () => {
+      let innerHeight = window.innerHeight;
+      if (innerHeight < 560) {
+        setSelectedAuthorSize('xs');
+      } else if (innerHeight < 780) {
+        setSelectedAuthorSize('sm');
+      } else if (innerHeight < 1024) {
+        setSelectedAuthorSize('md');
+      } else {
+        setSelectedAuthorSize('lg');
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Set the selected author if provided
   useEffect(() => {
@@ -89,27 +113,19 @@ function BookForm({ onSubmit, onCancel, authors, selectedAuthor }) {
       )}
       
       <div>
-        <label htmlFor="book-title" className="block text-sm font-medium text-slate-300 mb-1">
-          Book Title
-        </label>
-        <input
-          type="text"
+        <Input
           id="book-title"
+          label="Book Title"
           value={title}
           onChange={(e) => {
             setTitle(e.target.value);
             setErrors({ ...errors, title: '' });
           }}
-          className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-md 
-                    text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 
-                    focus:ring-cyan-500 focus:border-transparent transition-all duration-200"
           placeholder="Enter book title"
           autoFocus
           disabled={isSubmitting}
+          error={errors.title}
         />
-        {errors.title && (
-          <p className="mt-1 text-sm text-red-400">{errors.title}</p>
-        )}
       </div>
       
       <div className="pt-2">
@@ -129,7 +145,7 @@ function BookForm({ onSubmit, onCancel, authors, selectedAuthor }) {
                     setAuthorOption('existing');
                     setErrors({ ...errors, newAuthorName: '' });
                   }}
-                  className="h-4 w-4 text-cyan-500 focus:ring-cyan-400 bg-slate-700 border-slate-600"
+                  className="h-4 w-5 text-cyan-500 focus:ring-cyan-400 bg-slate-700 border-slate-600"
                   disabled={isSubmitting}
                 />
                 <label htmlFor="existing-author" className="ml-2 text-sm text-slate-300">
@@ -149,7 +165,7 @@ function BookForm({ onSubmit, onCancel, authors, selectedAuthor }) {
                   setAuthorOption('new');
                   setErrors({ ...errors, authorId: '' });
                 }}
-                className="h-4 w-4 text-cyan-500 focus:ring-cyan-400 bg-slate-700 border-slate-600"
+                className="h-4 w-5 text-cyan-500 focus:ring-cyan-400 bg-slate-700 border-slate-600"
                 disabled={isSubmitting}
               />
               <label htmlFor="new-author" className="ml-2 text-sm text-slate-300">
@@ -161,57 +177,41 @@ function BookForm({ onSubmit, onCancel, authors, selectedAuthor }) {
       </div>
       
       {authorOption === 'existing' && authors.length > 0 && (
-        <div className="ml-6 transition-all duration-200 animate-fadeIn">
-          <label htmlFor="author-select" className="block text-sm font-medium text-slate-300 mb-1">
-            Select Author
-          </label>
-          <select
+        <div className="transition-all duration-200 animate-fadeIn">
+          <Select
             id="author-select"
             value={authorId}
-            onChange={(e) => {
-              setAuthorId(e.target.value);
+            onChange={(value) => {
+              setAuthorId(value);
               setErrors({ ...errors, authorId: '' });
             }}
-            className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-md 
-                      text-slate-200 focus:outline-none focus:ring-2 
-                      focus:ring-cyan-500 focus:border-transparent transition-all duration-200"
+            options={authors.map(author => ({
+              id: author.id,
+              name: author.name
+            }))}
+            placeholder="Select an author"
             disabled={isSubmitting}
-          >
-            <option value="">Select an author</option>
-            {authors.map(author => (
-              <option key={author.id} value={author.id}>
-                {author.name}
-              </option>
-            ))}
-          </select>
-          {errors.authorId && (
-            <p className="mt-1 text-sm text-red-400">{errors.authorId}</p>
-          )}
+            error={errors.authorId}
+            label="Select Author"
+            size={selectedAuthorSize}
+          />
         </div>
       )}
       
       {authorOption === 'new' && (
-        <div className="ml-6 transition-all duration-200 animate-fadeIn">
-          <label htmlFor="new-author-name" className="block text-sm font-medium text-slate-300 mb-1">
-            New Author Name
-          </label>
-          <input
-            type="text"
+        <div className="transition-all duration-200 animate-fadeIn">
+          <Input
             id="new-author-name"
+            label="New Author Name"
             value={newAuthorName}
             onChange={(e) => {
               setNewAuthorName(e.target.value);
               setErrors({ ...errors, newAuthorName: '' });
             }}
-            className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-md 
-                      text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 
-                      focus:ring-cyan-500 focus:border-transparent transition-all duration-200"
             placeholder="Enter author name"
             disabled={isSubmitting}
+            error={errors.newAuthorName}
           />
-          {errors.newAuthorName && (
-            <p className="mt-1 text-sm text-red-400">{errors.newAuthorName}</p>
-          )}
         </div>
       )}
       
@@ -251,4 +251,4 @@ function BookForm({ onSubmit, onCancel, authors, selectedAuthor }) {
   );
 }
 
-export default BookForm; 
+export default NewBookForm; 

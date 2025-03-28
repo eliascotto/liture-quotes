@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, MouseEvent, UIEvent } from "react";
 import { platform } from '@tauri-apps/plugin-os';
 import BookIcon from "@icons/BookIcon";
 import UsersIcon from "@icons/UsersIcon";
@@ -7,7 +7,15 @@ import clsx from "clsx";
 const MIN_WIDTH = 180;
 const MAX_WIDTH = 400;
 
-function Navbar(props) {
+type NavbarProps = {
+  property: string,
+  list: any[],
+  selected: any,
+  onCategoryChange: (category: string) => void,
+  onSelection: (item: any) => void,
+}
+
+function Navbar(props: NavbarProps) {
   const [width, setWidth] = useState(240); // Default width
   const [isResizing, setIsResizing] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -16,20 +24,20 @@ function Navbar(props) {
 
   const currentPlatform = platform();
 
-  const handleScroll = (e) => {
-    const scrollTop = e.target.scrollTop;
+  const handleScroll = (e: UIEvent<HTMLDivElement>) => {
+    const scrollTop = (e.target as HTMLElement).scrollTop;
     setIsScrolled(scrollTop > 0);
   };
 
   // Handle mouse down on the resize handle
-  const startResizing = (e) => {
+  const startResizing = (e: MouseEvent) => {
     e.preventDefault();
     setIsResizing(true);
   };
 
   // Handle mouse move to resize
   useEffect(() => {
-    const handleMouseMove = (e) => {
+    const handleMouseMove: any = (e: MouseEvent) => {
       if (!isResizing) return;
 
       // Calculate new width based on mouse position

@@ -10,10 +10,7 @@ import Tooltip from "@components/Tooltip";
 import EditableNoteBox from "@components/EditableNoteBox.tsx";
 import { Quote } from "src/types/index";
 
-// Custom dropdown menu component
-function DropdownMenu({
-  isOpen, onCopy, onClose, onEdit, onStar, onRemove, isStarred, withIcons = false
-}: {
+type DropdownMenuProps = {
   isOpen: boolean,
   onCopy: () => void,
   onClose: () => void,
@@ -22,7 +19,12 @@ function DropdownMenu({
   onRemove: () => void,
   isStarred: boolean,
   withIcons?: boolean
-}) {
+}
+
+// Custom dropdown menu component
+function DropdownMenu({
+  isOpen, onCopy, onClose, onEdit, onStar, onRemove, isStarred, withIcons = false
+}: DropdownMenuProps) {
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -80,17 +82,18 @@ function DropdownMenu({
   );
 }
 
+type NoteBoxProps = {
+  quote: Quote,
+  onStarClick: () => void,
+  onClick: (e: ReactMouseEvent) => void,
+  selected: boolean,
+  onEdit: (content: string) => void,
+  onRemove: () => void,
+}
 
 function NoteBox({
   quote, onStarClick, onClick, selected, onEdit, onRemove,
-}: {
-  quote: Quote,
-  selected: boolean,
-  onClick: (e: ReactMouseEvent) => void,
-  onStarClick: () => void,
-  onEdit: (content: string) => void,
-  onRemove: () => void,
-}) {
+}: NoteBoxProps) {
   const [editable, setEditable] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const quoteRef = useRef(null);

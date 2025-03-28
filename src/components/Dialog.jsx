@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import XIcon from '@components/icons/X';
+import clsx from 'clsx';
 
 function Dialog({ isOpen, onClose, title, children }) {
   const dialogRef = useRef(null);
@@ -134,13 +135,14 @@ function Dialog({ isOpen, onClose, title, children }) {
       >
         <div 
           ref={dialogRef}
-          className={`bg-slate-800 border border-slate-700/50 rounded-lg shadow-2xl w-full max-w-md 
-                    overflow-hidden transition-all duration-300 transform ${
-                      isExiting ? 'scale-95 opacity-0' : 'scale-100 opacity-100'
-                    }`}
+          className={clsx(
+            "bg-slate-800 border border-slate-700/50 rounded-md shadow-2xl w-full max-w-md",
+            "transition-all duration-300 transform",
+            isExiting ? "scale-95 opacity-0" : "scale-100 opacity-100"
+          )}
         >
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700/50 bg-slate-800/90">
-            <h2 id="dialog-title" className="text-lg font-medium text-slate-200">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-700/50 bg-slate-800/90">
+            <h2 id="dialog-title" className="text-md font-medium text-slate-200">
               {title}
             </h2>
             <button
@@ -148,7 +150,7 @@ function Dialog({ isOpen, onClose, title, children }) {
               className="text-slate-400 hover:text-slate-200 transition-colors outline-none focus:outline-none rounded-full p-1"
               aria-label="Close"
             >
-              <XIcon />
+              <XIcon className="w-4 h-4" />
             </button>
           </div>
           <div className="px-6 py-4">

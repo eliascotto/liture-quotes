@@ -2,8 +2,26 @@ import NavigationControls from "@components/NavigationControls";
 import StarredButton from "@components/StarredButton";
 import AddButton from "@components/AddButton";
 import SearchBox from "@components/SearchBox";
+import { Author } from "../../types/index";
 
-function Header(props) {
+type HeaderProps = {
+  canGoBack: boolean,
+  canGoForward: boolean,
+  goBack: () => void,
+  goForward: () => void,
+  selectedOption: string,
+  onAddButtonClick: (type: string, data: any) => void,
+  authors: Author[],
+  isBooksSelected: boolean,
+  selectedAuthor: Author | null,
+  showingStarred: boolean,
+  setShowingStarred: (showing: boolean) => void,
+  setSearch: (search: string) => void,
+  setSearchResults: (results: any) => void,
+  onSearchExit: () => void,
+}
+
+function Header(props: HeaderProps) {
   return (
     <header
       className="z-20 border-b border-slate-700/50 bg-slate-900/90 min-h-12
@@ -19,7 +37,7 @@ function Header(props) {
         />
         <AddButton
           selectedOption={props.selectedOption}
-          onClick={(type, data) => props.onAddButtonClick(type, data)}
+          onClick={(type: string, data: any) => props.onAddButtonClick(type, data)}
           authors={props.authors}
           selectedAuthor={!props.isBooksSelected ? props.selectedAuthor : null}
         />
@@ -28,10 +46,9 @@ function Header(props) {
         <StarredButton
           onClick={() => props.setShowingStarred(!props.showingStarred)}
           isActive={props.showingStarred}
-          isHeader
         />
         <SearchBox
-          onSearch={(searchTerm, results) => {
+          onSearch={(searchTerm: string, results: any) => {
             props.setSearch(searchTerm);
             props.setSearchResults(results);
           }}

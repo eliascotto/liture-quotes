@@ -4,12 +4,12 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { platform } from '@tauri-apps/plugin-os';
 
-import Navbar from "@components/layouts/Navbar";
+import Navbar from "@components/layouts/Navbar.tsx";
+import Header from "@components/layouts/Header.tsx";
 import BookPage from "@components/BookPage";
-import AuthorPage from "@components/AuthorPage.tsx";
-import SearchPage from "@components/SearchPage";
-import FavouritesPage from "@components/FavouritesPage";
-import Header from "@components/layouts/Header";
+import AuthorPage from "@components/pages/AuthorPage.tsx";
+import SearchPage from "@components/pages/SearchPage.tsx";
+import FavouritesPage from "@components/pages/FavouritesPage.tsx";
 import RandomQuote from "@components/RandomQuote";
 import { useToast } from "./context/ToastContext.tsx";
 
@@ -191,7 +191,7 @@ function App() {
 
   async function fetchQuotes() {
     if (!selectedBook) return;
-    const data = await invoke("get_all_quotes", {
+    const data = await invoke("fetch_all_quotes", {
       bookId: selectedBook.id,
       sortBy,
       sortOrder
@@ -320,7 +320,7 @@ function App() {
   function onSearchExit() {
     setSearch(null);
     setSearchResults({
-      notes: [],
+      quotes: [],
       books: [],
       authors: []
     });
@@ -586,14 +586,14 @@ function App() {
     currentPage = (
       <SearchPage
         search={search}
-        searchResults={searchResults}
-        updateNote={updateQuote}
-        starNote={toggleFavouriteQuote}
-        removeNote={deleteQuote}
-        navigateToBook={navigateToBook}
-        navigateToAuthor={navigateToAuthor}
         books={books}
         authors={authors}
+        searchResults={searchResults}
+        updateQuote={updateQuote}
+        starQuote={toggleFavouriteQuote}
+        removeQuote={deleteQuote}
+        navigateToBook={navigateToBook}
+        navigateToAuthor={navigateToAuthor}
       />
     )
   } else if (isBooksSelected && selectedBook) {
@@ -661,11 +661,13 @@ function App() {
             selectedOption={selectedOption}
             onAddButtonClick={onAddButtonClick}
             authors={authors}
-            onSearchExit={onSearchExit}
             canGoBack={canGoBack}
             canGoForward={canGoForward}
             goBack={goBack}
             goForward={goForward}
+            onSearchExit={onSearchExit}
+            setSearch={setSearch}
+            setSearchResults={setSearchResults}
           />
 
           {/* Content area */}

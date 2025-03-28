@@ -377,8 +377,7 @@ pub async fn import_kobo(str_path: &str) -> Result<String, ImportError> {
 
         let book_id = books_id_map
             .get(&item.volume_id)
-            .cloned()
-            .unwrap_or_else(|| item.volume_id.clone());
+            .cloned();
         let author_id = authors_id_map.get(&item.volume_id).unwrap_or(&None).clone();
         let now = Utc::now().naive_utc();
 
@@ -392,7 +391,7 @@ pub async fn import_kobo(str_path: &str) -> Result<String, ImportError> {
 
         let quote = models::Quote {
             id: item.bookmark_id.clone(),
-            book_id: Some(book_id.clone()),
+            book_id: book_id.clone(),
             author_id: author_id.clone(),
             chapter: Some(
                 chapters_id_map
@@ -416,14 +415,14 @@ pub async fn import_kobo(str_path: &str) -> Result<String, ImportError> {
 
         imported_quotes += 1;
 
-        if item.item_type == "highlight" && item.text.is_some() {
+        if item.item_type == "note" && item.annotation.is_some() {
             // Note
             let note = models::Note {
                 id: Uuid::new_v4().to_string(),
-                book_id: Some(book_id.clone()),
+                book_id: book_id.clone(),
                 author_id: author_id,
                 quote_id: Some(db_quote.id.clone()),
-                content: item.text.clone(),
+                content: item.annotation.clone(),
                 created_at,
                 updated_at,
                 deleted_at: None,

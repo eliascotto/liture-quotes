@@ -23,7 +23,7 @@ function SearchBox(props) {
     const timeout = setTimeout(async () => {
       try {
         // Search notes
-        const notesResults = await invoke("search_notes", { search });
+        const quotesResults = await invoke("search_quotes", { search });
         
         // Search books by title
         const booksResults = await invoke("search_books_by_title", { search });
@@ -33,7 +33,7 @@ function SearchBox(props) {
         
         // Combine all results
         props.onSearch(search, {
-          notes: notesResults,
+          quotes: quotesResults,
           books: booksResults,
           authors: authorsResults
         });
@@ -61,9 +61,11 @@ function SearchBox(props) {
       </div>
       <input
         className={clsx(
-          "bg-slate-800/70 border border-slate-700/50 text-slate-200 py-1.5 rounded-md pl-10 pr-8 text-sm w-64 focus:outline-none",
-          "focus:ring-1 focus:ring-cyan-400/70 focus:border-cyan-400/70 transition-all duration-200 placeholder:text-slate-500",
-          )}
+          "bg-slate-800/70 border border-slate-700/50 text-slate-200 py-1.5 rounded-md",
+          "pl-10 pr-8 text-sm w-64 focus:outline-none",
+          "focus:ring-1 focus:ring-cyan-400/70 focus:border-cyan-400/70",
+          "transition-all duration-200 placeholder:text-slate-500"
+        )}
         value={search}
         onChange={(e) => setSearch(e.currentTarget.value)}
         placeholder="Search..."

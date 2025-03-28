@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS note (
 CREATE INDEX IF NOT EXISTS idx_book_author_id ON book(author_id);
 CREATE INDEX IF NOT EXISTS idx_quote_book_id ON quote(book_id);
 
-CREATE VIRTUAL TABLE quote_fts USING fts5(id, content, book, author);
+CREATE VIRTUAL TABLE quote_fts USING fts5(id, content, book_id, author_id);
 
 DROP TRIGGER IF EXISTS quote_fts_before_update;
 CREATE TRIGGER quote_fts_before_update BEFORE UPDATE ON quote BEGIN
@@ -78,20 +78,20 @@ END;
 
 DROP TRIGGER IF EXISTS quote_fts_after_update;
 CREATE TRIGGER quote_fts_after_update AFTER UPDATE ON quote BEGIN
-    INSERT INTO quote_fts(id, content, book, author)
+    INSERT INTO quote_fts(id, content, book_id, author_id)
     SELECT new.id, new.content, b.title, a.name
-    FROM quote n
-    JOIN book b ON n.book_id = b.id
-    JOIN author a ON b.author_id = a.id
-    WHERE n.id = new.id;
+    FROM quote q
+    JOIN book b ON q.book_id = b.id
+    JOIN author a ON q.author_id = a.id
+    WHERE q.id = new.id;
 END;
 
 DROP TRIGGER IF EXISTS quote_fts_after_insert;
 CREATE TRIGGER quote_fts_after_insert AFTER INSERT ON quote BEGIN
-    INSERT INTO quote_fts(id, content, book, author)
+    INSERT INTO quote_fts(id, content, book_id, author_id)
     SELECT new.id, new.content, b.title, a.name
-    FROM quote n
-    JOIN book b ON n.book_id = b.id
-    JOIN author a ON b.author_id = a.id
-    WHERE n.id = new.id;
+    FROM quote q
+    JOIN book b ON q.book_id = b.id
+    JOIN author a ON q.author_id = a.id
+    WHERE q.id = new.id;
 END;
