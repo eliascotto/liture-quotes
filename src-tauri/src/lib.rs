@@ -34,7 +34,7 @@ pub mod commands {
     }
 
     #[tauri::command]
-    pub async fn get_all_quotes(
+    pub async fn fetch_all_quotes(
         book_id: &str,
         sort_by: Option<&str>,
         sort_order: Option<&str>,
@@ -42,6 +42,13 @@ pub mod commands {
         queries::get_all_quotes_by_book_id(book_id, sort_by, sort_order, get_pool())
             .await
             .map_err(|e| format!("Error fetching notes {}", e))
+    }
+
+    #[tauri::command]
+    pub async fn fetch_book_chapters(book_id: &str) -> Result<Vec<Chapter>, String> {
+        queries::get_chapters_by_book(book_id, get_pool())
+            .await
+            .map_err(|e| format!("Error fetching book chapters {}", e))
     }
 
     #[tauri::command]

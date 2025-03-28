@@ -28,7 +28,7 @@ const DeleteConfirmationDialog = ({ itemType, itemName, onConfirm }) => {
             closeDialog();
           }}
         >
-          Delete
+          Delete {itemType}
         </button>
       </div>
     </div>

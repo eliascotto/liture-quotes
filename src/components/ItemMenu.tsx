@@ -58,37 +58,41 @@ const ItemMenu = (
         <DotsVertical />
       </button>
 
-      {isMenuOpen &&(<div className={clsx(
-        "absolute right-0 mt-0.5 py-0.5 w-32 rounded-md bg-slate-800 z-10",
-        "border border-slate-700/50 shadow-lg ring-1 ring-black ring-opacity-5",
-      )}>
-        {!!onEdit && (
-          <div className="py-0.5">
-            <button
-              onClick={handleEditClick}
-              className="w-full text-left px-3 py-1.5 text-sm hover:bg-slate-700 transition-colors"
-            >
-              Edit {itemType}
-            </button>
-          </div>
-        )}
-        {!!onDelete && (
-          <Fragment>
-            <div className={clsx(
-              "my-0.5",
-              !!onEdit && "border-t border-slate-700/50",
-            )}></div>
+      {isMenuOpen && (
+        <div 
+          className={clsx(
+            "absolute right-0 mt-0.5 py-0.5 w-32 rounded-md bg-slate-800 z-10",
+            "border border-slate-700/50 shadow-lg ring-1 ring-black ring-opacity-5",
+          )}
+        >
+          {!!onEdit && (
             <div className="py-0.5">
               <button
-                onClick={handleDeleteClick}
-                className="w-full text-left px-3 py-1.5 text-sm text-red-400 hover:bg-slate-700 transition-colors"
+                onClick={handleEditClick}
+                className="w-full text-left px-3 py-1.5 text-sm hover:bg-slate-700 transition-colors"
               >
-                Delete {itemType}
+                Edit {itemType}
               </button>
             </div>
-          </Fragment>
-        )}
-      </div>)}
+          )}
+          {!!onDelete && (
+            <Fragment>
+              <div className={clsx(
+                "my-0.5",
+                !!onEdit && "border-t border-slate-700/50",
+              )}></div>
+              <div className="py-0.5">
+                <button
+                  onClick={handleDeleteClick}
+                  className="w-full text-left px-3 py-1.5 text-sm text-red-400 hover:bg-slate-700 transition-colors"
+                >
+                  Delete {itemType}
+                </button>
+              </div>
+            </Fragment>
+          )}
+        </div>
+      )}
     </div>
   );
 };

@@ -62,7 +62,7 @@ function Navbar(props) {
     <div
       ref={navbarRef}
       className={clsx(
-        "relative h-full border-r border-slate-700/50 bg-gradient-to-b from-slate-900/90 to-slate-800/90 backdrop-blur-sm",
+        "relative h-full border-r border-slate-700/50 bg-slate-900/90",
         {
           "bg-opacity-[0.25]": currentPlatform === "macos"
         }
@@ -74,7 +74,7 @@ function Navbar(props) {
         <div
           className={clsx(
             "sticky top-0 z-10 px-1.5 min-h-[55px] py-2.5 border-b",
-            "flex items-center bg-slate-900/95 backdrop-blur-sm",
+            "flex items-center",
             {
               "border-slate-700/30": isScrolled,
               "border-transparent": !isScrolled,

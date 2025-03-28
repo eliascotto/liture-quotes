@@ -196,45 +196,58 @@ async fn handle_menu_event(app: &AppHandle, event: MenuEvent) {
         .expect("unable to find window");
 
     match event {
-        MenuEvent::ImportFromKobo => match import::import_dialog(app, import::ImportType::Kobo).await {
-            Ok(path) => {
-                webview
-                    .emit(
-                        "importing",
-                        create_payload(Some("kobo".to_string()), None, None),
-                    )
-                    .unwrap();
+        MenuEvent::ImportFromKobo => {
+            match import::import_dialog(app, import::ImportType::Kobo).await {
+                Ok(path) => {
+                    webview
+                        .emit(
+                            "importing",
+                            create_payload(Some("kobo".to_string()), None, None),
+                        )
+                        .unwrap();
 
-                match import::import_kobo(&path).await {
-                    Ok(res) => {
-                        log::info!("Import result: {}", res);
-                        webview
+                    match import::import_kobo(&path).await {
+                        Ok(res) => {
+                            log::info!("Import result: {}", res);
+                            webview
+                                .emit("import-success", create_payload(None, Some(res), None))
+                                .unwrap();
+                        }
+                        Err(e) => {
+                            log::error!("Error importing from Kobo: {}", e);
+                            webview
+                                .emit("import-error", create_payload(None, None, Some(e.to_string())))
+                                .unwrap();
+                        }
+                    }
+                }
+                Err(e) => log::error!("Error importing from Kobo: {}", e),
+            }
+        }
+        MenuEvent::ImportFromKindle => {
+            match import::import_dialog(app, import::ImportType::Clippings).await {
+                Ok(path) => {
+                    webview
+                        .emit(
+                            "importing",
+                            create_payload(Some("kindle".to_string()), None, None),
+                        )
+                        .unwrap();
+
+                    match import::import_clippings(&path).await {
+                        Ok(res) => webview
                             .emit("import-success", create_payload(None, Some(res), None))
-                            .unwrap();
-                    }
-                    Err(e) => {
-                        log::error!("Error importing from Kobo: {}", e);
-                        webview
-                            .emit(
-                                "import-error",
-                                create_payload(None, None, Some(e.to_string())),
-                            )
-                            .unwrap();
+                            .unwrap(),
+                        Err(e) => {
+                            log::error!("Error importing from Kindle Clippings: {}", e);
+                            webview
+                                .emit("import-error", create_payload(None, None, Some(e.to_string())))
+                                .unwrap();
+                        }
                     }
                 }
+                Err(e) => log::error!("Error importing from Kindle Clippings: {}", e),
             }
-            Err(e) => log::error!("Error importing from Kobo: {}", e),
-        },
-        MenuEvent::ImportFromKindle => match import::import_dialog(app, import::ImportType::Clippings).await {
-            Ok(path) => {
-                webview.emit("importing", create_payload(Some("kindle".to_string()), None, None)).unwrap();
-
-                match import::import_clippings(&path).await {
-                    Ok(res) => webview.emit("import-success", create_payload(None, Some(res), None)).unwrap(),
-                    Err(e) => log::error!("Error importing from Kindle Clippings: {}", e),
-                }
-            }
-            Err(e) => log::error!("Error importing from Kindle Clippings: {}", e),
-        },
+        }
     }
 }

@@ -2,7 +2,7 @@ use crate::db;
 use crate::models;
 use crate::queries;
 use anyhow::Result;
-use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono::{NaiveDateTime, Utc};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -95,11 +95,11 @@ fn parse_datetime(s: &str) -> Result<NaiveDateTime, chrono::format::ParseError> 
     NaiveDateTime::parse_from_str(s, formats[0])
 }
 
+#[derive(Debug)]
 pub enum ImportError {
     IoError(io::Error),
     DbError(sqlx::Error, String),
     InvalidFormat(String),
-    NoFileSelected,
 }
 
 impl From<io::Error> for ImportError {
@@ -116,7 +116,11 @@ impl From<sqlx::Error> for ImportError {
 
 impl std::fmt::Display for ImportError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.to_string())
+        match self {
+            ImportError::IoError(e) => write!(f, "{}", e),
+            ImportError::DbError(_e, msg) => write!(f, "{}", msg),
+            ImportError::InvalidFormat(msg) => write!(f, "{}", msg),
+        }
     }
 }
 
@@ -241,14 +245,14 @@ pub async fn import_kobo(str_path: &str) -> Result<String, ImportError> {
     let db_version: i32 = sqlx::query("SELECT version FROM DbVersion;")
         .fetch_one(&kobo_file_db_conn)
         .await
-        .expect("Failed to get database version")
+        .map_err(|e| ImportError::DbError(e, "Failed to get Kobo database version".to_string()))?
         .get(0);
 
     // Fetch all the books with their authors first.
     let books = sqlx::query_as::<_, Book>(QUERY_BOOKS_AUTHORS)
         .fetch_all(&kobo_file_db_conn)
         .await
-        .expect("Failed to fetch books");
+        .map_err(|e| ImportError::DbError(e, "Failed to fetch books".to_string()))?;
 
     // Map of book id to chapters.
     let mut chapters = HashMap::new();
@@ -259,7 +263,7 @@ pub async fn import_kobo(str_path: &str) -> Result<String, ImportError> {
             .bind(book.volume_id.clone())
             .fetch_all(&kobo_file_db_conn)
             .await
-            .expect("Failed to fetch chapters");
+            .map_err(|e| ImportError::DbError(e, "Failed to fetch chapters".to_string()))?;
         chapters.insert(book.volume_id.clone(), book_chapters);
     }
 
@@ -268,12 +272,12 @@ pub async fn import_kobo(str_path: &str) -> Result<String, ImportError> {
         sqlx::query_as::<_, BookItem>(QUERY_ITEMS_V175)
             .fetch_all(&kobo_file_db_conn)
             .await
-            .expect("Failed to fetch items")
+            .map_err(|e| ImportError::DbError(e, "Failed to fetch items".to_string()))?
     } else {
         sqlx::query_as::<_, BookItem>(QUERY_ITEMS_V174)
             .fetch_all(&kobo_file_db_conn)
             .await
-            .expect("Failed to fetch items")
+            .map_err(|e| ImportError::DbError(e, "Failed to fetch items".to_string()))?
     };
 
     kobo_file_db_conn.close().await;
@@ -449,14 +453,17 @@ struct Clipping {
     content: Option<String>, // Absent for bookmarks
 }
 
-fn read_clippings_file(path: &str) -> Result<Vec<Clipping>, String> {
+fn read_clippings_file(path: &str) -> Result<Vec<Clipping>, ImportError> {
     let path = Path::new(path);
     if !path.exists() || !path.is_file() {
-        return Err("File not found".to_string());
+        return Err(ImportError::IoError(io::Error::new(
+            io::ErrorKind::NotFound,
+            "File not found",
+        )));
     }
 
     // Open the file and wrap it in a BufReader for efficiency
-    let file = File::open(path).map_err(|e| format!("Error opening file: {}", e))?;
+    let file = File::open(path).map_err(|e| ImportError::IoError(e))?;
     let mut reader = BufReader::new(file);
 
     let mut clippings = Vec::new();
@@ -466,7 +473,7 @@ fn read_clippings_file(path: &str) -> Result<Vec<Clipping>, String> {
     // Check and skip UTF-8 BOM if present, but keep the first line
     reader
         .read_line(&mut buffer)
-        .map_err(|e| format!("Error reading line: {}", e))?;
+        .map_err(|e| ImportError::IoError(e))?;
     if buffer.starts_with("\u{feff}") {
         buffer = buffer.trim_start_matches("\u{feff}").to_string();
     }
@@ -477,11 +484,11 @@ fn read_clippings_file(path: &str) -> Result<Vec<Clipping>, String> {
 
     // Read the file line-by-line
     for line in reader.lines() {
-        let line = line.map_err(|e| format!("Error reading line: {}", e))?;
+        let line = line.map_err(|e| ImportError::IoError(e))?;
         if line.trim() == "==========" {
             // Process the accumulated lines into a Clipping
             let clipping =
-                parse_clipping(&lines).map_err(|e| format!("Error parsing clipping => {}", e))?;
+                parse_clipping(&lines).map_err(|e| ImportError::InvalidFormat(e))?;
             clippings.push(clipping);
             lines.clear();
         } else {
@@ -492,7 +499,7 @@ fn read_clippings_file(path: &str) -> Result<Vec<Clipping>, String> {
     // Handle any remaining lines (in case file ends without delimiter)
     if !lines.is_empty() {
         let clipping =
-            parse_clipping(&lines).map_err(|e| format!("Error parsing clipping => {}", e))?;
+            parse_clipping(&lines).map_err(|e| ImportError::InvalidFormat(e))?;
         clippings.push(clipping);
     }
 
@@ -535,13 +542,16 @@ fn parse_clipping(lines: &[String]) -> Result<Clipping, String> {
     })
 }
 
-pub async fn import_clippings(path: &str) -> Result<String, String> {
+pub async fn import_clippings(path: &str) -> Result<String, ImportError> {
     let clippings = read_clippings_file(path)
-        .map_err(|e| format!("Error reading clippings file {}: {}", path, e))?;
+        .map_err(|e| e)?;
 
     let mut books = HashMap::new();
     let mut authors = HashMap::new();
-    let mut tx = db::get_pool().begin().await.map_err(|e| e.to_string())?;
+    let mut tx = db::get_pool()
+        .begin()
+        .await
+        .map_err(|e| ImportError::DbError(e, "Failed to begin transaction".to_string()))?;
     let mut imported_books = 0;
     let mut imported_quotes = 0;
 
@@ -555,7 +565,7 @@ pub async fn import_clippings(path: &str) -> Result<String, String> {
                 Err(_) => {
                     let book = queries::insert_book(clipping.title.clone(), None, None, &mut *tx)
                         .await
-                        .map_err(|e| format!("Error creating Book => {}", e))?;
+                        .map_err(|e| ImportError::DbError(e, "Failed to insert book".to_string()))?;
                     books.insert(clipping.title.clone(), book.id.clone());
                     imported_books += 1;
                 }
@@ -572,7 +582,7 @@ pub async fn import_clippings(path: &str) -> Result<String, String> {
                     Err(_) => {
                         let author = queries::insert_author(author_name.clone(), &mut *tx)
                             .await
-                            .map_err(|e| format!("Error creating Author => {}", e))?;
+                            .map_err(|e| ImportError::DbError(e, "Failed to insert author".to_string()))?;
                         authors.insert(author_name.clone(), author.id.clone());
                     }
                 }
@@ -611,12 +621,12 @@ pub async fn import_clippings(path: &str) -> Result<String, String> {
 
             let _ = queries::insert_quote(&quote, &mut *tx)
                 .await
-                .map_err(|e| format!("Error creating Quote => {}", e))?;
+                .map_err(|e| ImportError::DbError(e, "Failed to insert quote".to_string()))?;
             imported_quotes += 1;
         }
     }
 
-    tx.commit().await.map_err(|e| e.to_string())?;
+    tx.commit().await.map_err(|e| ImportError::DbError(e, "Failed to commit transaction".to_string()))?;
     Ok(format!(
         "Imported successfully {} new books and {} new quotes",
         imported_books, imported_quotes

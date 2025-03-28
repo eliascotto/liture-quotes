@@ -147,7 +147,7 @@ async fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             litforge_notes_lib::commands::fetch_books_authors,
-            litforge_notes_lib::commands::get_all_quotes,
+            litforge_notes_lib::commands::fetch_all_quotes,
             litforge_notes_lib::commands::fetch_books_by_author,
             litforge_notes_lib::commands::create_author,
             litforge_notes_lib::commands::delete_author,

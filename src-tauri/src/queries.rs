@@ -127,6 +127,16 @@ where
     .await
 }
 
+pub async fn get_chapters_by_book<'e, E>(book_id: &str, executor: E) -> Result<Vec<Chapter>, sqlx::Error>
+where
+    E: Executor<'e, Database = Sqlite>,
+{
+    sqlx::query_as::<_, Chapter>("SELECT * FROM chapter WHERE book_id = ? AND deleted_at IS NULL")
+        .bind(book_id)
+        .fetch_all(executor)
+        .await
+}
+
 pub async fn insert_note<'e, E>(note: &Note, executor: E) -> Result<Note, sqlx::Error>
 where
     E: Executor<'e, Database = Sqlite>,
