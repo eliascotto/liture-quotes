@@ -47,6 +47,17 @@ export interface StarredQuote {
   updated_at: string;
 }
 
+export interface Note {
+  id: string;
+  book_id: string | null;
+  author_id: string | null;
+  quote_id: string | null;
+  content: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
+
 export interface Tag {
   id: string;
   name: string;
@@ -67,6 +78,23 @@ export interface NoteFilter {
   isPinned?: boolean;
 }
 
+export interface QuoteFts {
+  id: string;
+  content: string | null;
+  chapter: string | null;
+  chapter_progress: number | null;
+  starred: number | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  imported_at: string | null;
+  original_id: string | null;
+  book_id: string | null;
+  author_id: string | null;
+  book_title: string | null;
+  author_name: string | null;
+}
+
 export interface SortOption {
   field: 'title' | 'createdAt' | 'updatedAt';
   direction: 'asc' | 'desc';
@@ -74,16 +102,16 @@ export interface SortOption {
 
 export type ViewMode = 'grid' | 'list';
 
-export interface AppState {
-  quotes: Quote[];
-  tags: Tag[];
-  currentUser: User | null;
-  filters: NoteFilter;
-  sortOption: SortOption;
-  viewMode: ViewMode;
-  isLoading: boolean;
-  error: string | null;
-}
+// export interface AppState {
+//   quotes: Quote[];
+//   tags: Tag[];
+//   currentUser: User | null;
+//   filters: NoteFilter;
+//   sortOption: SortOption;
+//   viewMode: ViewMode;
+//   isLoading: boolean;
+//   error: string | null;
+// }
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 

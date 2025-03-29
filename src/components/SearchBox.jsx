@@ -64,7 +64,7 @@ function SearchBox(props) {
           "bg-slate-800/70 border border-slate-700/50 text-slate-200 py-1.5 rounded-md",
           "pl-10 pr-8 text-sm w-64 focus:outline-none",
           "focus:ring-1 focus:ring-cyan-400/70 focus:border-cyan-400/70",
-          "transition-all duration-200 placeholder:text-slate-500"
+          "transition-all duration-200 placeholder:text-slate-500 select-none"
         )}
         value={search}
         onChange={(e) => setSearch(e.currentTarget.value)}

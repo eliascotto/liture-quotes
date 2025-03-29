@@ -1,9 +1,10 @@
-import { useState } from 'react';
-import { useDialog } from '../context/DialogContext.tsx';
+import { useState } from "react";
+import { useDialog } from "../context/DialogContext.tsx";
+import Input from "@components/Input.tsx";
 
 function NewAuthorForm({ onSubmit, onCancel }) {
-  const [name, setName] = useState('');
-  const [error, setError] = useState('');
+  const [name, setName] = useState("");
+  const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { closeDialog } = useDialog();
 
@@ -12,12 +13,12 @@ function NewAuthorForm({ onSubmit, onCancel }) {
     
     // Validate
     if (!name.trim()) {
-      setError('Author name is required');
+      setError("Author name is required");
       return;
     }
     
     if (name.trim().length < 2) {
-      setError('Author name must be at least 2 characters');
+      setError("Author name must be at least 2 characters");
       return;
     }
     
@@ -35,8 +36,8 @@ function NewAuthorForm({ onSubmit, onCancel }) {
         setIsSubmitting(false);
       }
     } catch (error) {
-      console.error('Error submitting author:', error);
-      setError('An error occurred while creating the author');
+      console.error("Error submitting author:", error);
+      setError("An error occurred while creating the author");
       setIsSubmitting(false);
     }
   };
@@ -48,29 +49,22 @@ function NewAuthorForm({ onSubmit, onCancel }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label htmlFor="author-name" className="block text-sm font-medium text-slate-300 mb-1">
-          Author Name
-        </label>
-        <input
-          type="text"
-          id="author-name"
-          value={name}
-          onChange={(e) => {
-            setName(e.target.value);
-            setError('');
-          }}
-          className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-md 
-                    text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 
-                    focus:ring-cyan-500 focus:border-transparent transition-all duration-200"
-          placeholder="Enter author name"
-          autoFocus
-          disabled={isSubmitting}
-        />
-        {error && (
-          <p className="mt-1 text-sm text-red-400">{error}</p>
-        )}
-      </div>
+      <Input
+        type="text"
+        id="author-name"
+        label="Author Name"
+        value={name}
+        onChange={(e) => {
+          setName(e.target.value);
+          setError("");
+        }}
+        placeholder="Enter author name"
+        autoFocus
+        disabled={isSubmitting}
+      />
+      {error && (
+        <p className="mt-1 text-sm text-red-400">{error}</p>
+      )}
       
       <div className="flex justify-end space-x-3 pt-4 mt-4 border-t border-slate-700/30">
         <button
@@ -100,7 +94,7 @@ function NewAuthorForm({ onSubmit, onCancel }) {
               Creating...
             </>
           ) : (
-            'Add Author'
+            "Add Author"
           )}
         </button>
       </div>

@@ -70,8 +70,18 @@ pub struct Note {
 pub struct QuoteFts {
     pub id: String,
     pub content: Option<String>,
-    pub book: Option<String>,
-    pub author: Option<String>,
+    pub chapter: Option<String>,
+    pub chapter_progress: Option<f64>,
+    pub starred: Option<i64>,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
+    pub deleted_at: Option<NaiveDateTime>,
+    pub imported_at: Option<NaiveDateTime>,
+    pub original_id: Option<String>,
+    pub book_id: Option<String>,
+    pub author_id: Option<String>,
+    pub book_title: Option<String>,
+    pub author_name: Option<String>,
 }
 
 // Metaschema

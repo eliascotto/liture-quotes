@@ -5,12 +5,19 @@ mod models;
 pub mod queries;
 mod utils;
 
+use chrono::Utc;
 use models::*;
+use uuid::Uuid;
 
 // Create a separate module for the Tauri commands
 pub mod commands {
     use super::*;
     use crate::db::get_pool;
+
+    #[tauri::command]
+    fn get_env(name: &str) -> String {
+        std::env::var(String::from(name)).unwrap_or(String::from(""))
+    }
 
     #[tauri::command]
     pub async fn fetch_books_authors() -> Result<Library, String> {
@@ -52,8 +59,35 @@ pub mod commands {
     }
 
     #[tauri::command]
+    pub async fn fetch_book_notes(book_id: &str) -> Result<Vec<Note>, String> {
+        queries::fetch_notes_by_book(book_id, get_pool())
+            .await
+            .map_err(|e| format!("Error fetching book notes {}", e))
+    }
+
+    #[tauri::command]
     pub async fn search_quotes(search: &str) -> Result<Vec<QuoteFts>, String> {
         queries::find_quotes(search, get_pool())
+            .await
+            .map_err(|e| format!("Error fetching notes {}", e))
+    }
+
+    #[tauri::command]
+    pub async fn search_quotes_by_book_title(
+        search: &str,
+        book_title: &str,
+    ) -> Result<Vec<QuoteFts>, String> {
+        queries::find_quotes_by_book_title(search, book_title, get_pool())
+            .await
+            .map_err(|e| format!("Error fetching notes {}", e))
+    }
+
+    #[tauri::command]
+    pub async fn search_quotes_by_author_name(
+        search: &str,
+        author_name: &str,
+    ) -> Result<Vec<QuoteFts>, String> {
+        queries::find_quotes_by_author_name(search, author_name, get_pool())
             .await
             .map_err(|e| format!("Error fetching notes {}", e))
     }
@@ -126,11 +160,9 @@ pub mod commands {
             .map_err(|e| format!("Book not found: {}", e))?;
 
         // Generate a unique ID for the note
-        use uuid::Uuid;
         let note_id = Uuid::new_v4().to_string();
 
         // Get current timestamp
-        use chrono::Utc;
         let now = Utc::now().naive_utc();
 
         // Create the note
@@ -257,6 +289,31 @@ pub mod commands {
 
         tx.commit().await.map_err(|e| e.to_string())?;
         Ok(())
+    }
+
+    #[tauri::command]
+    pub async fn create_note(book_id: &str, content: &str) -> Result<Note, String> {
+        let now = Utc::now().naive_utc();
+        let new_note = Note {
+            id: Uuid::new_v4().to_string(),
+            book_id: Some(book_id.to_string()),
+            author_id: None,
+            quote_id: None,
+            content: Some(content.to_string()),
+            created_at: now.clone(),
+            updated_at: now,
+            deleted_at: None,
+        };
+        queries::insert_note(&new_note, get_pool())
+            .await
+            .map_err(|e| e.to_string())
+    }
+
+    #[tauri::command]
+    pub async fn update_note(note_id: &str, content: &str) -> Result<Note, String> {
+        queries::update_note(note_id, content, get_pool())
+            .await
+            .map_err(|e| format!("Error updating note {}: {}", note_id, e.to_string()))
     }
 
     #[tauri::command]

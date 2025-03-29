@@ -6,7 +6,7 @@ import { platform } from '@tauri-apps/plugin-os';
 
 import Navbar from "@components/layouts/Navbar.tsx";
 import Header from "@components/layouts/Header.tsx";
-import BookPage from "@components/BookPage";
+import BookPage from "@components/pages/BookPage.tsx";
 import AuthorPage from "@components/pages/AuthorPage.tsx";
 import SearchPage from "@components/pages/SearchPage.tsx";
 import FavouritesPage from "@components/pages/FavouritesPage.tsx";
@@ -24,6 +24,9 @@ function App() {
   const windowState = useWindowState();
 
   const { addToast } = useToast();
+
+  // Current ENV
+  const [isDebugEnv, setIsDebugEnv] = useState(false);
 
   // Fields from db
   const [books, setBooks] = useState([]);
@@ -55,6 +58,9 @@ function App() {
   const [newlyCreatedQuoteId, setNewlyCreatedQuoteId] = useState(null);
   const [sortBy, setSortBy] = useState("date_modified");
   const [sortOrder, setSortOrder] = useState("DESC");
+
+  // Current book's notes
+  const [bookNotes, setBookNotes] = useState([]);
 
   // Navigation history
   const [history, setHistory] = useState([]);
@@ -214,6 +220,11 @@ function App() {
     }
   }
 
+  async function fetchBookNotes(bookId) {
+    const notes = await invoke("fetch_book_notes", { bookId });
+    setBookNotes(notes);
+  }
+
   async function addAuthor(authorName) {
     try {
       const newAuthor = await invoke("create_author", { name: authorName });
@@ -278,6 +289,16 @@ function App() {
     }
   }
 
+  async function updateNote(noteId, content) {
+    console.log("Updating note:", noteId, content);
+    try {
+      await invoke("update_note", { noteId, content });
+      await fetchBookNotes(selectedBook.id);
+    } catch {
+      console.error("Error updating note");
+    }
+  }
+
   async function toggleFavouriteQuote(quote) {
     console.log("Toggling favourite quote:", quote.id);
     try {
@@ -310,6 +331,11 @@ function App() {
       console.error("Error adding quote:", error);
       alert(`Error adding quote: ${error.message || 'Unknown error'}`);
     }
+  }
+
+  async function getEnv(name) {
+    const env = await invoke("get_env", { name });
+    return env;
   }
 
   function onAuthorBookSelect(book) {
@@ -488,11 +514,8 @@ function App() {
     }
   }
 
-  // Initial data load
-  useEffect(() => {
-    fetchBooksAndAuthors();
-    fetchStarredQuotes();
-
+  // Setup backend event listeners and return cleanup function
+  const setupBackendListeners = () => {
     const importListener = listen("importing", (event) => {
       addToast(`Importing data from ${event.payload.device}...`);
     });
@@ -512,6 +535,19 @@ function App() {
       importSuccessListener.then((unlisten) => unlisten());
       importErrorListener.then((unlisten) => unlisten());
     };
+  };
+
+  // App startup loading
+  useEffect(async () => {
+    fetchBooksAndAuthors();
+    fetchStarredQuotes();
+
+    // Debug mode configured via ENV variable
+    const isDebug = await getEnv("TAURI_ENV_DEBUG");
+    setIsDebugEnv(isDebug === "true");
+
+    // Setup import listeners - has to return for cleanup
+    return setupBackendListeners();
   }, []);
 
   useEffect(() => {
@@ -524,10 +560,11 @@ function App() {
     }
   }, [showingFavourites]);
 
-  // Fetch book notes when book changes
+  // Fetch book quote, notes when book changes
   useEffect(() => {
     if (selectedBook) {
       fetchQuotes();
+      fetchBookNotes(selectedBook.id);
       setSelectedBookAuthor(findAuthorById(authors, selectedBook.author_id));
     }
   }, [selectedBook, authors]);
@@ -546,12 +583,6 @@ function App() {
       addToHistory(currentPageState);
     }
   }, [getCurrentPageState, addToHistory]);
-
-  // Debug logging for history
-  useEffect(() => {
-    console.log('History:', history);
-    console.log('Current index:', currentHistoryIndex);
-  }, [history, currentHistoryIndex]);
 
   let currentPage;
   if (showingFavourites) {
@@ -602,11 +633,13 @@ function App() {
         book={selectedBook}
         author={selectedBookAuthor}
         quotes={quotes}
+        notes={bookNotes}
         newlyCreatedQuoteId={newlyCreatedQuoteId}
         navigateToAuthor={navigateToAuthor}
         createNewQuote={createNewQuote}
         updateQuote={updateQuote}
         deleteQuote={deleteQuote}
+        updateNote={updateNote}
         toggleFavouriteQuote={toggleFavouriteQuote}
         onDeleteBook={deleteBook}
         updateBook={updateBook}

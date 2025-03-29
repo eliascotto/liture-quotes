@@ -137,6 +137,16 @@ where
         .await
 }
 
+pub async fn fetch_notes_by_book<'e, E>(book_id: &str, executor: E) -> Result<Vec<Note>, sqlx::Error>
+where
+    E: Executor<'e, Database = Sqlite>,
+{
+    sqlx::query_as::<_, Note>("SELECT * FROM note WHERE book_id = ? AND deleted_at IS NULL")
+        .bind(book_id)
+        .fetch_all(executor)
+        .await
+}
+
 pub async fn insert_note<'e, E>(note: &Note, executor: E) -> Result<Note, sqlx::Error>
 where
     E: Executor<'e, Database = Sqlite>,
@@ -154,6 +164,22 @@ where
     .bind(note.content.clone())
     .bind(note.created_at)
     .bind(note.updated_at)
+    .fetch_one(executor)
+    .await
+}
+
+pub async fn update_note<'e, E>(note_id: &str, content: &str, executor: E) -> Result<Note, sqlx::Error>
+where
+    E: Executor<'e, Database = Sqlite>,
+{
+    sqlx::query_as::<_, Note>(
+        "UPDATE note 
+        SET content = ?1, updated_at = CURRENT_TIMESTAMP 
+        WHERE id = ?2
+        RETURNING *"
+    )
+    .bind(content)
+    .bind(note_id)
     .fetch_one(executor)
     .await
 }
@@ -234,13 +260,86 @@ where
     E: Executor<'e, Database = Sqlite>,
 {
     sqlx::query_as::<_, QuoteFts>(
-        r#"SELECT q.id, q.content, b.title as "book", a.name as "author"
-           FROM quote_fts q
-           LEFT JOIN book b ON b.id = q.book_id
-           LEFT JOIN author a ON a.id = q.author_id
-           WHERE q.content MATCH ?"#,
+        r#"SELECT 
+                q.id, 
+                q.content,
+                q.chapter,
+                q.chapter_progress,
+                q.starred,
+                q.created_at,
+                q.updated_at,
+                q.deleted_at,
+                q.imported_at,
+                q.original_id,
+                q.book_id,
+                q.author_id,
+                fts.book_title,
+                fts.author_name
+            FROM quote_fts fts
+            JOIN quote q ON q.id = fts.id
+            WHERE fts.content MATCH ?;"#,
     )
     .bind(search)
+    .fetch_all(executor)
+    .await
+}
+
+pub async fn find_quotes_by_book_title<'e, E>(search: &str, book_title: &str, executor: E) -> Result<Vec<QuoteFts>, sqlx::Error>
+where
+    E: Executor<'e, Database = Sqlite>,
+{
+    sqlx::query_as::<_, QuoteFts>(
+        r#"SELECT 
+                q.id, 
+                q.content,
+                q.chapter,
+                q.chapter_progress,
+                q.starred,
+                q.created_at,
+                q.updated_at,
+                q.deleted_at,
+                q.imported_at,
+                q.original_id,
+                q.book_id,
+                q.author_id,
+                fts.book_title,
+                fts.author_name
+            FROM quote_fts fts
+            JOIN quote q ON q.id = fts.id
+            WHERE fts.content MATCH ? AND fts.book_title = ?;"#,
+    )
+    .bind(search)
+    .bind(book_title)
+    .fetch_all(executor)
+    .await
+}
+
+pub async fn find_quotes_by_author_name<'e, E>(search: &str, author_name: &str, executor: E) -> Result<Vec<QuoteFts>, sqlx::Error>
+where
+    E: Executor<'e, Database = Sqlite>,
+{
+    sqlx::query_as::<_, QuoteFts>(
+        r#"SELECT 
+                q.id, 
+                q.content,
+                q.chapter,
+                q.chapter_progress,
+                q.starred,
+                q.created_at,
+                q.updated_at,
+                q.deleted_at,
+                q.imported_at,
+                q.original_id,
+                q.book_id,
+                q.author_id,
+                fts.book_title, 
+                fts.author_name
+            FROM quote_fts fts
+            JOIN quote q ON q.id = fts.id
+            WHERE fts.content MATCH ? AND fts.author_name = ?;"#,
+    )
+    .bind(search)
+    .bind(author_name)
     .fetch_all(executor)
     .await
 }
@@ -282,7 +381,7 @@ where
     .await
 }
 
-/// Get note by ID
+/// Get quote by ID
 pub async fn get_quote_by_id<'e, E>(id: &str, executor: E) -> Result<Quote, sqlx::Error>
 where
     E: Executor<'e, Database = Sqlite>,
@@ -293,13 +392,13 @@ where
         .await
 }
 
-/// Set note as hidden
-pub async fn delete_quote<'e, E>(note_id: &str, executor: E) -> Result<(), sqlx::Error>
+/// Set quote as hidden
+pub async fn delete_quote<'e, E>(quote_id: &str, executor: E) -> Result<(), sqlx::Error>
 where
     E: Executor<'e, Database = Sqlite>,
 {
     sqlx::query("UPDATE quote SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
-        .bind(note_id)
+        .bind(quote_id)
         .execute(executor)
         .await?;
     Ok(())
@@ -390,7 +489,7 @@ where
     .await
 }
 
-/// Update note
+/// Update quote
 pub async fn update_quote_content<'e, E>(
     id: &str,
     content: &str,

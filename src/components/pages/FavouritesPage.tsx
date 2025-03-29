@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import NoteBox from "@components/NoteBox";
+import QuoteBox from "@components/QuoteBox";
 import DualSortMenu from "@components/DualSortMenu";
 import { Quote, StarredQuote } from "src/types/index";
 import { convertStarredQuoteToQuote } from "../../types/convert";
@@ -103,7 +103,7 @@ function FavouritesPage(
                 </div>
                 <div className="flex flex-col gap-4 pl-4 border-l border-slate-700/30">
                   {book.quotes.map((quote) => (
-                    <NoteBox
+                    <QuoteBox
                       key={quote.id}
                       quote={convertStarredQuoteToQuote(quote)}
                       selected={selectedQuote?.id === quote.id}

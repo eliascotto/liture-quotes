@@ -1,13 +1,13 @@
 import { useState } from "react";
-import NoteBox from "@components/NoteBox.tsx";
-import { Book, Author, Quote } from "../../types/index";
+import QuoteBox from "@components/QuoteBox";
+import { Book, Author, Quote, QuoteFts } from "../../types/index";
 
 type SearchPageProps = {
   books: Book[],
   authors: Author[],
   search: string,
   searchResults: {
-    quotes: Quote[],
+    quotes: QuoteFts[],
     books: Book[],
     authors: Author[]
   },
@@ -19,10 +19,10 @@ type SearchPageProps = {
 }
 
 function SearchPage(props: SearchPageProps) {
-  const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
+  const [selectedQuote, setSelectedQuote] = useState<QuoteFts | null>(null);
 
   // Find book and author for a note
-  const getBookAndAuthor = (quote: Quote) => {
+  const getBookAndAuthor = (quote: QuoteFts) => {
     const book = props.books.find(b => b.id === quote.book_id);
     const author = book ? props.authors.find(a => a.id === book.author_id) : null;
     return { book, author };
@@ -114,7 +114,7 @@ function SearchPage(props: SearchPageProps) {
           </div>
         )}
 
-        {/* Notes section */}
+        {/* Quotes section */}
         {searchQuotes.length > 0 && (
           <div className="mb-6">
             <h4 className="text-sm font-medium text-slate-300 mb-3 flex items-center">
@@ -124,43 +124,47 @@ function SearchPage(props: SearchPageProps) {
               Quotes ({searchQuotes.length})
             </h4>
             <div className="flex flex-col space-y-4 pb-4">
-              {searchQuotes.map((note) => {
-                const { book, author } = getBookAndAuthor(note);
+              {searchQuotes.map((quote) => {
+                const { book, author } = getBookAndAuthor(quote);
                 return (
-                  <div key={`search-result-${note.id}`} className="space-y-1">
-                    {book && author && (
+                  <div key={`search-result-${quote.id}`} className="space-y-1">
+                    {quote.book_title && quote.author_name && (
                       <div className="flex items-center text-xs text-slate-400 mb-1 ml-1">
                         <span
                           className="cursor-pointer hover:text-cyan-400 transition-colors duration-200"
                           onClick={(e) => {
                             e.stopPropagation();
-                            props.navigateToBook(book.id);
+                            if (quote.book_id) {
+                              props.navigateToBook(quote.book_id);
+                            }
                           }}
                         >
-                          {book.title}
+                          {quote.book_title}
                         </span>
                         <span className="mx-1">by</span>
                         <span
                           className="cursor-pointer hover:text-cyan-400 transition-colors duration-200"
                           onClick={(e) => {
                             e.stopPropagation();
-                            props.navigateToAuthor(author.id);
+                            if (quote.author_id) {
+                              props.navigateToAuthor(quote.author_id);
+                            }
                           }}
                         >
-                          {author.name}
+                          {quote.author_name}
                         </span>
                       </div>
                     )}
-                    <NoteBox
-                      quote={note}
-                      selected={!!selectedQuote && note.id === selectedQuote?.id}
+                    <QuoteBox
+                      quote={quote}
+                      selected={!!selectedQuote && quote.id === selectedQuote?.id}
                       onClick={(e) => {
                         e.stopPropagation();
-                        setSelectedQuote(note);
+                        setSelectedQuote(quote);
                       }}
-                      onStarClick={() => props.starQuote(note.id)}
-                      onEdit={(content) => props.updateQuote({ ...note, content })}
-                      onRemove={() => props.removeQuote(note.id)}
+                      onStarClick={() => props.starQuote(quote.id)}
+                      onEdit={(content) => props.updateQuote({ ...quote, content })}
+                      onRemove={() => props.removeQuote(quote.id)}
                     />
                   </div>
                 );

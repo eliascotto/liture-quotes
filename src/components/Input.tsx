@@ -30,7 +30,7 @@ export default function Input({
       {label && (
         <label 
           htmlFor={id} 
-          className="block text-sm font-medium text-slate-300 mb-1"
+          className="block text-sm font-medium text-slate-300 mb-2"
         >
           {label}
         </label>

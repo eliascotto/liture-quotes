@@ -76,14 +76,14 @@ function Navbar(props: NavbarProps) {
     <div
       ref={navbarRef}
       className={clsx(
-        "relative h-full border-r border-slate-700/50 bg-slate-900/90",
+        "relative h-full border-r border-slate-700/50 bg-slate-900/90 select-none",
         {
           "bg-opacity-[0.25]": currentPlatform === "macos"
         }
       )}
       style={{ width: `${width}px`, minWidth: `${MIN_WIDTH}px`, maxWidth: `${MAX_WIDTH}px` }}
     >
-      <div className="h-full flex flex-col backdrop-blur-sm shadow-lg">
+      <div className="h-full flex flex-col backdrop-blur-sm shadow-lg select-none">
         {/* Sticky header with icons */}
         <div
           className={clsx(
@@ -134,11 +134,11 @@ function Navbar(props: NavbarProps) {
         {/* Scrollable list */}
         <div 
           ref={scrollContainerRef}
-          className="flex-1 overflow-y-auto overscroll-none p-1"
+          className="flex-1 overflow-y-auto overscroll-none p-1 select-none"
           onScroll={handleScroll}
         >
           {isEmpty && (
-            <div className="flex-1 flex items-center justify-center h-full">
+            <div className="flex-1 flex items-center justify-center h-full select-auto">
               <div className="text-slate-500 italic text-sm">No {props.itemType}s to show</div>
             </div>
           )}

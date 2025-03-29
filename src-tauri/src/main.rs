@@ -146,9 +146,13 @@ async fn main() {
             _ => {}
         })
         .invoke_handler(tauri::generate_handler![
+            litforge_notes_lib::commands::get_env,
+            // Fetch
             litforge_notes_lib::commands::fetch_books_authors,
             litforge_notes_lib::commands::fetch_all_quotes,
             litforge_notes_lib::commands::fetch_books_by_author,
+            litforge_notes_lib::commands::fetch_book_notes,
+            // CRUD
             litforge_notes_lib::commands::create_author,
             litforge_notes_lib::commands::delete_author,
             litforge_notes_lib::commands::create_book,
@@ -157,13 +161,18 @@ async fn main() {
             litforge_notes_lib::commands::create_quote,
             litforge_notes_lib::commands::update_quote,
             litforge_notes_lib::commands::delete_quote,
+            litforge_notes_lib::commands::create_note,
+            litforge_notes_lib::commands::update_note,
             litforge_notes_lib::commands::toggle_quote_starred,
             litforge_notes_lib::commands::set_quote_starred,
+            litforge_notes_lib::commands::get_random_quote,
+            litforge_notes_lib::commands::get_starred_quotes,
+            // Search
             litforge_notes_lib::commands::search_quotes,
             litforge_notes_lib::commands::search_books_by_title,
             litforge_notes_lib::commands::search_authors_by_name,
-            litforge_notes_lib::commands::get_random_quote,
-            litforge_notes_lib::commands::get_starred_quotes,
+            litforge_notes_lib::commands::search_quotes_by_book_title,
+            litforge_notes_lib::commands::search_quotes_by_author_name,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
