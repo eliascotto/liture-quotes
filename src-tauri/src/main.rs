@@ -96,14 +96,6 @@ fn set_window_controls_pos(window: cocoa::base::id, x: f64, y: f64) {
 
 #[tokio::main]
 async fn main() {
-    let args: Vec<String> = env::args().collect();
-
-    // Initialize the database pool
-    litforge_notes_lib::db::init_pool()
-        .await
-        .expect("Failed to initialize database pool");
-
-    // In Tauri 2.0, we need to use the plugin system differently
     tauri::Builder::default()
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_dialog::init())
@@ -117,6 +109,15 @@ async fn main() {
         )
         .plugin(tauri_plugin_os::init())
         .setup(|app| {
+            let app_handle = app.handle().clone();
+
+            // Spawn a new task to initialize the database pool
+            tauri::async_runtime::spawn(async move {
+                litforge_notes_lib::db::init_pool(app_handle)
+                    .await
+                    .expect("Failed to initialize database pool");
+            });
+
             #[cfg(target_os = "macos")]
             {
                 if let Some(window) = app.get_window("main") {

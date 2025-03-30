@@ -1,22 +1,48 @@
-use sqlx::sqlite::SqliteConnectOptions;
+use sqlx::migrate::MigrateDatabase; // required for database_exists and create_database
+use sqlx::sqlite::SqlitePoolOptions;
 use sqlx::{Sqlite, SqlitePool, Transaction};
 use std::fs;
-use std::path::Path;
 use std::sync::OnceLock;
+use tauri::Manager; // required for tauri::AppHandle
 
-const DB_PATH: &str = "/Users/elia/dev/litforge/notes/database/notes.db";
+use crate::queries;
+
 static DB_POOL: OnceLock<SqlitePool> = OnceLock::new();
 
-pub async fn init_pool() -> Result<(), sqlx::Error> {
-    // Ensure the parent directory exists
-    let db_dir = Path::new(DB_PATH).parent().expect("No parent directory");
-    fs::create_dir_all(db_dir).expect("Failed to create database directory");
+pub async fn init_pool(app: tauri::AppHandle) -> Result<(), sqlx::Error> {
+    let mut initialized = false;
+    let app_dir = app
+        .path()
+        .app_data_dir()
+        .expect("Failed to get app data directory");
 
-    let options = SqliteConnectOptions::new()
-        .filename(Path::new(DB_PATH))
-        .create_if_missing(true);
+    log::info!("App data directory: {}", app_dir.display());
 
-    let pool = SqlitePool::connect_with(options).await?;
+    // Create the app config directory if it doesn't exist
+    if !app_dir.exists() {
+        fs::create_dir_all(&app_dir).expect("Failed to create database directory");
+    }
+
+    let db_path = app_dir.join("quotes.db");
+    let db_url = format!("sqlite:{}", db_path.display());
+
+    // Check if database exists, if not create it
+    if !sqlx::Sqlite::database_exists(&db_url).await? {
+        sqlx::Sqlite::create_database(&db_url).await?;
+        initialized = true;
+    }
+
+    // SQLite will create the database file if it doesn't exist
+    let pool = SqlitePoolOptions::new()
+        .max_connections(5)
+        .connect(&db_url)
+        .await?;
+
+    if initialized {
+        sqlx::migrate!("../migrations").run(&pool).await?;
+        queries::init_db(&pool).await?;
+    }
+
     DB_POOL.set(pool).expect("Failed to set database pool");
     Ok(())
 }

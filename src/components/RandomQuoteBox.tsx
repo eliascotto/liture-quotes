@@ -41,7 +41,7 @@ function RandomQuoteBox({
   if (!quote) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-slate-500 italic text-sm">Your highlights will appear here once you import a book.</div>
+        <div className="text-slate-400 text-sm">Import some content to get started.</div>
       </div>
     );
   }

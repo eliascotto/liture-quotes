@@ -1,6 +1,5 @@
-use crate::db::*;
 use crate::models::*;
-use sqlx::{Executor, Row, Sqlite};
+use sqlx::{Executor, Row, Sqlite, SqlitePool};
 use uuid::Uuid;
 
 /// Format the order and sort by clauses for db queries with sorting.
@@ -22,6 +21,88 @@ fn extract_order_clauses(sort_by: Option<&str>, order: Option<&str>) -> (String,
     };
 
     (order_clause.to_string(), sort_by_clause.to_string())
+}
+
+/// Initialize the database with some default data
+pub async fn init_db(pool: &SqlitePool) -> Result<(), sqlx::Error> {
+    let author = insert_author("George R.R. Martin".to_string(), pool).await?;
+    let book = insert_book(
+        "A Dance with Dragons".to_string(),
+        Some(author.id.clone()),
+        None,
+        pool,
+    )
+    .await?;
+
+    
+    let _ = insert_quote_lite(
+        "A reader lives a thousand lives before he dies... The man who never reads lives only one.".to_string(),
+        Some(book.id.clone()),
+        Some(author.id.clone()),
+        pool,
+    )
+    .await?;
+    let quote_with_comment = insert_quote_lite(
+        "These are just examples, add your own quotes to make it yours! You can edit a quote by double clicking on it.".to_string(),
+        Some(book.id.clone()),
+        Some(author.id.clone()),
+        pool,
+    )
+    .await?;
+    let _ = insert_note_lite(
+        "This is a comment. Double click to edit.".to_string(),
+        Some(quote_with_comment.id),
+        Some(book.id),
+        Some(author.id),
+        pool,
+    )
+    .await?;
+
+    Ok(())
+}
+
+pub async fn insert_quote_lite(content: String, book_id: Option<String>, author_id: Option<String>, pool: &SqlitePool) -> Result<Quote, sqlx::Error> {
+    let now = chrono::Local::now().naive_utc();
+    let quote = insert_quote(
+        &Quote {
+            id: Uuid::new_v4().to_string(),
+            content: Some(content),
+            book_id: book_id,
+            author_id: author_id,
+            chapter: None,
+            chapter_progress: None,
+            starred: Some(0),
+            created_at: now,
+            updated_at: now,
+            imported_at: None,
+            deleted_at: None,
+            original_id: None,
+        },
+        pool,
+    )
+    .await?;
+
+    Ok(quote)
+}
+
+pub async fn insert_note_lite(content: String, quote_id: Option<String>, book_id: Option<String>, author_id: Option<String>, pool: &SqlitePool) -> Result<Note, sqlx::Error> {
+    let now = chrono::Local::now().naive_utc();
+    let note = insert_note(
+        &Note {
+            id: Uuid::new_v4().to_string(),
+            content: Some(content),
+            quote_id: quote_id,
+            book_id: book_id,
+            author_id: author_id,
+            created_at: now,
+            updated_at: now,
+            deleted_at: None,
+        },
+        pool,
+    )
+    .await?;
+
+    Ok(note)
 }
 
 /// Get author by name
@@ -634,12 +715,12 @@ where
 {
     sqlx::query_as::<_, Book>(
         "UPDATE book 
-        SET title = ?, author_id = ?, publication_date = ?, created_at = ?, updated_at = CURRENT_TIMESTAMP
+        SET title = ?, author_id = ?, publication_year = ?, created_at = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ? RETURNING *"
     )
     .bind(book.title.clone())
     .bind(book.author_id.clone())
-    .bind(book.publication_date.clone())
+    .bind(book.publication_year.clone())
     .bind(book.created_at)
     .bind(book.id.clone())
     .fetch_one(executor)

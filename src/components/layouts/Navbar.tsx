@@ -3,6 +3,7 @@ import { platform } from '@tauri-apps/plugin-os';
 import BookIcon from "@icons/BookIcon";
 import UsersIcon from "@icons/UsersIcon";
 import clsx from "clsx";
+import Tooltip from "@components/Tooltip";
 
 const MIN_WIDTH = 180;
 const MAX_WIDTH = 400;
@@ -16,7 +17,9 @@ type NavbarProps = {
   onSelection: (item: any) => void,
 }
 
-function Navbar(props: NavbarProps) {
+function Navbar({
+  property, items, itemType, selected, onCategoryChange, onSelection
+}: NavbarProps) {
   const [width, setWidth] = useState(240); // Default width
   const [isResizing, setIsResizing] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -38,8 +41,8 @@ function Navbar(props: NavbarProps) {
   };
 
   useEffect(() => {
-    setIsEmpty(props.items.length === 0);
-  }, [props.items]);
+    setIsEmpty(items.length === 0);
+  }, [items]);
 
   // Handle mouse move to resize
   useEffect(() => {
@@ -70,7 +73,7 @@ function Navbar(props: NavbarProps) {
     };
   }, [isResizing]);
 
-  const isBooks = props.property === "title";
+  const isBooks = property === "title";
 
   return (
     <div
@@ -100,7 +103,7 @@ function Navbar(props: NavbarProps) {
             <div className="flex space-x-3 select-none">
               {/* Books Icon */}
               <button
-                onClick={() => props.onCategoryChange("Books")}
+                onClick={() => onCategoryChange("Books")}
                 className={clsx(
                   "px-1.5 py-1 rounded-md transition-all duration-200",
                   {
@@ -115,7 +118,7 @@ function Navbar(props: NavbarProps) {
 
               {/* Authors Icon */}
               <button
-                onClick={() => props.onCategoryChange("Authors")}
+                onClick={() => onCategoryChange("Authors")}
                 className={clsx(
                   "px-1.5 py-1 rounded-md transition-all duration-200",
                   {
@@ -132,32 +135,36 @@ function Navbar(props: NavbarProps) {
         </div>
 
         {/* Scrollable list */}
-        <div 
+        <div
           ref={scrollContainerRef}
           className="flex-1 overflow-y-auto overscroll-none p-1 select-none"
           onScroll={handleScroll}
         >
           {isEmpty && (
             <div className="flex-1 flex items-center justify-center h-full select-auto">
-              <div className="text-slate-500 italic text-sm">No {props.itemType}s to show</div>
+              <div className="text-slate-500 italic text-sm">No {itemType}s to show</div>
             </div>
           )}
           {!isEmpty && (
             <ul className="px-2 py-0.5 space-y-1">
-              {props.items.map((item) => {
-                const isSelected = props.selected && props.selected.id === item.id;
+              {items.map((item) => {
+                const isSelected = selected && selected.id === item.id;
                 return (
-                <li
-                  key={`navbar-item-${item.id}`}
-                  className={`cursor-pointer py-1.5 px-1.5 text-sm font-medium truncate rounded transition-all duration-200 hover:bg-slate-700/20 select-none ${isSelected
-                    ? 'text-cyan-400 bg-slate-700/30'
-                    : 'text-slate-300 hover:text-white'
-                    }`}
-                  title={item[props.property]}
-                  onClick={() => props.onSelection(item)}>
-                  {item[props.property]}
-                </li>
-              );
+                  <Tooltip
+                    content={item[property]}
+                    usePortal={true}
+                  >
+                    <li
+                      key={`navbar-item-${item.id}`}
+                      className={`cursor-pointer py-1.5 px-1.5 text-sm font-medium truncate rounded transition-all duration-200 hover:bg-slate-700/20 select-none ${isSelected
+                        ? 'text-cyan-400 bg-slate-700/30'
+                        : 'text-slate-300 hover:text-white'
+                        }`}
+                      onClick={() => onSelection(item)}>
+                      {item[property]}
+                    </li>
+                  </Tooltip>
+                );
               })}
             </ul>
           )}

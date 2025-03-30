@@ -19,7 +19,7 @@ export interface Book {
   id: string;
   author_id: string | null;
   title: string;
-  publication_date: string | null;
+  publication_year: string | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;

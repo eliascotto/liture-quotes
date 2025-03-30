@@ -1,7 +1,7 @@
 {
-  "productName": "Notes",
+  "productName": "Liture Notes",
   "version": "0.0.0",
-  "identifier": "com.tauri.dev",
+  "identifier": "com.liture.notes",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1424",
@@ -13,7 +13,7 @@
 		"macOSPrivateApi": true,
     "windows": [
       {
-        "title": "LitForge Notes",
+        "title": "Liture Notes",
         "hiddenTitle": true,
         "width": 1200,
         "height": 800,

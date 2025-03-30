@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS book (
     id TEXT PRIMARY KEY NOT NULL,
     author_id TEXT,
     title TEXT NOT NULL,
-    publication_date TEXT,
+    publication_year TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     deleted_at TIMESTAMP,

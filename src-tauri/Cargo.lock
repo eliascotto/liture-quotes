@@ -2329,7 +2329,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "23fb14cb19457329c82206317a5663005a4d404783dc74f4252769b0d5f42856"
 
 [[package]]
-name = "litforge-notes"
+name = "liture-notes"
 version = "0.1.0"
 dependencies = [
  "anyhow",

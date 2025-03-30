@@ -42,7 +42,7 @@ function EditableTitle({
   };
 
   return (
-    <div ref={editableTitleRef} className="items-center w-full rounded-lg bg-slate-800/80 shadow-lg border border-slate-700/50 pt-3 pb-2 px-5 backdrop-blur-sm">
+    <div ref={editableTitleRef} className="items-center w-full bg-slate-800/80 shadow-lg border border-slate-700/50 pt-3 pb-2 px-5 backdrop-blur-sm">
       <textarea
         ref={inputRef}
         className={clsx(
@@ -170,7 +170,7 @@ function BookPage({
   }, [notes]);
 
   const bookHeader = (
-    <div className="px-2 mb-4 pb-4 border-b border-slate-700/30">
+    <div className="px-2 mb-3 pb-3 border-b border-slate-700/30">
       {isEditingTitle ? (
         <EditableTitle
           title={book.title}
@@ -181,7 +181,7 @@ function BookPage({
         <Fragment>
           <div className="flex items-center justify-between">
             <h1
-              className="text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent"
+              className="text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text truncate text-ellipsis"
               onClick={handleTitleClick}
             >
               {book.title}
@@ -214,8 +214,9 @@ function BookPage({
       <div className="flex-1 flex flex-col overflow-y-auto overscroll-none w-full max-w-6xl px-10 lg:px-14 xl:px-20 py-6 min-h-0">
         {bookHeader}
 
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center space-x-2">
+        <div className="flex justify-between items-center mb-3">
+          {/* Header left */}
+          <div className="flex items-center space-x-1">
             <Tooltip content="Add new quote">
               <button
                 onClick={handleCreateQuote}
@@ -235,6 +236,7 @@ function BookPage({
               </Tooltip>
             )}
           </div>
+          {/* Sort menu */}
           <SortMenu
             sortBy={sortBy}
             sortOrder={sortOrder}

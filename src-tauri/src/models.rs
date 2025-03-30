@@ -19,7 +19,7 @@ pub struct Book {
     pub id: String,
     pub author_id: Option<String>,
     pub title: String,
-    pub publication_date: Option<String>,
+    pub publication_year: Option<String>,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
     pub deleted_at: Option<NaiveDateTime>,
