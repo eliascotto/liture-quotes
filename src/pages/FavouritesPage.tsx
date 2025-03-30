@@ -93,6 +93,7 @@ function FavouritesPage({
           <div className="flex flex-col space-y-8">
             {sortedBooks.map((book) => (
               <div key={book.title} className="flex flex-col gap-4">
+                {/* Book title and author */}
                 <div className="flex items-baseline gap-3">
                   <button
                     onClick={() => navigateToBook(book.title)}
@@ -103,7 +104,9 @@ function FavouritesPage({
                   </button>
                   <span className="text-sm text-slate-500">by {book.author}</span>
                 </div>
-                <div className="flex flex-col gap-4 pl-4 border-l border-slate-700/30">
+                
+                {/* Quotes */}
+                <div className="flex flex-col gap-4 pl-4 border-slate-700/30">
                   {book.quotes.map((quote) => (
                     <QuoteBox
                       key={quote.id}

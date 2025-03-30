@@ -15,8 +15,8 @@
       {
         "title": "LitForge Notes",
         "hiddenTitle": true,
-        "width": 1040,
-        "height": 690,
+        "width": 1200,
+        "height": 800,
         "minWidth": 768,
 				"minHeight": 500,
         "resizable": true,

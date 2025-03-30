@@ -54,10 +54,12 @@ function RandomQuoteBox({
             {quote.content}
           </p>
           <footer className="text-right">
-            <p className="text-slate-500" onClick={() => quote.book_id && navigateToBook(quote.book_id)}>
+            <p className="text-slate-500 cursor-pointer hover:text-cyan-400"
+              onClick={() => quote.book_id && navigateToBook(quote.book_id)}>
               <span className="font-semibold">{quote.book_title}</span>
             </p>
-            <p className="text-slate-600" onClick={() => quote.author_id && navigateToAuthor(quote.author_id)}>— {quote.author_name}</p>
+            <p className="text-slate-600 cursor-pointer hover:text-cyan-400"
+              onClick={() => quote.author_id && navigateToAuthor(quote.author_id)}>{quote.author_name}</p>
           </footer>
         </blockquote>
       </div>

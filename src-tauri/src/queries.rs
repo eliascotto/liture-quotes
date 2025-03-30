@@ -277,9 +277,9 @@ where
                 fts.author_name
             FROM quote_fts fts
             JOIN quote q ON q.id = fts.id
-            WHERE fts.content MATCH ?;"#,
+            WHERE fts.content LIKE ?;"#,
     )
-    .bind(search)
+    .bind(format!("%{}%", search))
     .fetch_all(executor)
     .await
 }
@@ -515,9 +515,9 @@ where
     sqlx::query_as::<_, RandomQuote>(
         "SELECT 
             q.content, 
-            b.title,
+            b.title as book_title,
             b.id as book_id,
-            a.name,
+            a.name as author_name,
             a.id as author_id
          FROM quote q
          JOIN book b ON q.book_id = b.id

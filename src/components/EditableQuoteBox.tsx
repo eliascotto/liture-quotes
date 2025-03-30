@@ -6,13 +6,13 @@ type EditableQuoteBoxProps = {
   item: Quote | Note,
   onSave: (content: string) => void,
   onCancel: () => void,
-  placeholder?: string
+  placeholder?: string,
+  info?: string
 }
 
 export default function EditableQuoteBox({
-  item: quote, onSave, onCancel, placeholder = "New quote"
-}: EditableQuoteBoxProps)
-{
+  item: quote, onSave, onCancel, placeholder = "New quote", info
+}: EditableQuoteBoxProps) {
   const [currentText, setCurrentText] = useState(quote.content);
   const textareaRef = useRef(null);
   const editableBoxRef = useRef(null);
@@ -53,7 +53,7 @@ export default function EditableQuoteBox({
     <div
       ref={editableBoxRef}
       id={quote.id}
-      className="rounded-lg my-2 bg-slate-800/80 shadow-lg border border-slate-700/50 pt-3 pb-2 px-5 backdrop-blur-sm select-none"
+      className="my-2 bg-slate-800/80 shadow-lg border border-slate-700/50 pt-3 pb-2 px-5 backdrop-blur-sm select-none"
     >
       <textarea
         ref={textareaRef}
@@ -64,23 +64,28 @@ export default function EditableQuoteBox({
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
       />
-      <div className="flex justify-end mt-0 border-t border-slate-700/30 pt-2">
-        <Tooltip content="Cancel quote" shortcut="Esc">
-          <button
-            onClick={onCancel}
-            className="px-3 py-1.5 text-sm rounded-md text-slate-400 hover:text-white transition-colors duration-200"
-          >
-            Cancel
-          </button>
-        </Tooltip>
-        <Tooltip content="Save quote" shortcut="⌘ ⏎">
-          <button
-            onClick={() => onSave(currentText ?? "")}
-            className="px-3 py-1.5 text-sm rounded-md text-cyan-500 hover:bg-slate-700/50 font-medium transition-colors duration-200"
-          >
-            Save
-          </button>
-        </Tooltip>
+      <div className="flex justify-between items-center mt-0 border-t border-slate-700/30 pt-2">
+        <div className="text-xs italic text-slate-500">
+          {info || ""}
+        </div>
+        <div className="flex justify-end">
+          <Tooltip content="Cancel quote" shortcut="Esc">
+            <button
+              onClick={onCancel}
+              className="px-3 py-1.5 text-sm rounded-md text-slate-400 hover:text-white transition-colors duration-200"
+            >
+              Cancel
+            </button>
+          </Tooltip>
+          <Tooltip content="Save quote" shortcut="⌘ ⏎">
+            <button
+              onClick={() => onSave(currentText ?? "")}
+              className="px-3 py-1.5 text-sm rounded-md text-cyan-500 hover:bg-slate-700/50 font-medium transition-colors duration-200"
+            >
+              Save
+            </button>
+          </Tooltip>
+        </div>
       </div>
     </div>
   );

@@ -25,9 +25,6 @@ function App() {
 
   const { addToast } = useToast();
 
-  // Current ENV
-  const [isDebugEnv, setIsDebugEnv] = useState(false);
-
   // Fields from db
   const [books, setBooks] = useState([]);
   const [authors, setAuthors] = useState([]);
@@ -334,11 +331,6 @@ function App() {
     }
   }
 
-  async function isDebug() {
-    const isDebug = await invoke("is_debug");
-    return isDebug || false;
-  }
-
   function onAuthorBookSelect(book) {
     setSelectedOption("Books");
     setSelectedBook(book);
@@ -517,20 +509,16 @@ function App() {
 
   function handleAppReload() {
     console.log("Reloading app");
+    setSelectedBook(null);
+    setSelectedAuthor(null);
     fetchBooksAndAuthors();
     fetchStarredQuotes();
   }
 
   // App startup loading
   useEffect(() => {
-    const fetchDebugEnv = async () => {
-      const isDebug = await isDebug();
-      setIsDebugEnv(isDebug);
-    };
-    
     fetchBooksAndAuthors();
     fetchStarredQuotes();
-    fetchDebugEnv();
   }, []);
 
   useEffect(() => {
@@ -713,7 +701,6 @@ function App() {
             onSearchExit={onSearchExit}
             setSearch={setSearch}
             setSearchResults={setSearchResults}
-            isDebugEnv={isDebugEnv}
             onReloadButtonClick={handleAppReload}
           />
 
