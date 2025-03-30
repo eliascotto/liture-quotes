@@ -9,14 +9,15 @@ use chrono::Utc;
 use models::*;
 use uuid::Uuid;
 
+
 // Create a separate module for the Tauri commands
 pub mod commands {
     use super::*;
     use crate::db::get_pool;
 
     #[tauri::command]
-    fn get_env(name: &str) -> String {
-        std::env::var(String::from(name)).unwrap_or(String::from(""))
+    pub fn is_debug() -> bool {
+        *utils::IS_DEBUG
     }
 
     #[tauri::command]
@@ -317,7 +318,7 @@ pub mod commands {
     }
 
     #[tauri::command]
-    pub async fn get_random_quote() -> Result<Option<(String, String, String)>, String> {
+    pub async fn get_random_quote() -> Result<Option<RandomQuote>, String> {
         queries::get_random_quote(get_pool())
             .await
             .map_err(|e| e.to_string())

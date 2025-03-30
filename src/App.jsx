@@ -6,11 +6,11 @@ import { platform } from '@tauri-apps/plugin-os';
 
 import Navbar from "@components/layouts/Navbar.tsx";
 import Header from "@components/layouts/Header.tsx";
-import BookPage from "@components/pages/BookPage.tsx";
-import AuthorPage from "@components/pages/AuthorPage.tsx";
-import SearchPage from "@components/pages/SearchPage.tsx";
-import FavouritesPage from "@components/pages/FavouritesPage.tsx";
-import RandomQuote from "@components/RandomQuote";
+import BookPage from "@pages/BookPage.tsx";
+import AuthorPage from "@pages/AuthorPage.tsx";
+import SearchPage from "@pages/SearchPage.tsx";
+import FavouritesPage from "@pages/FavouritesPage.tsx";
+import RandomQuoteBox from "@components/RandomQuoteBox.tsx";
 import { useToast } from "./context/ToastContext.tsx";
 
 import { useWindowState } from "./hooks/useWindowState";
@@ -284,6 +284,7 @@ function App() {
     try {
       await invoke("update_quote", { quote: quote });
       await fetchQuotes();
+      await fetchStarredQuotes();
     } catch {
       console.error("Error updating quote");
     }
@@ -333,9 +334,9 @@ function App() {
     }
   }
 
-  async function getEnv(name) {
-    const env = await invoke("get_env", { name });
-    return env;
+  async function isDebug() {
+    const isDebug = await invoke("is_debug");
+    return isDebug || false;
   }
 
   function onAuthorBookSelect(book) {
@@ -514,8 +515,26 @@ function App() {
     }
   }
 
-  // Setup backend event listeners and return cleanup function
-  const setupBackendListeners = () => {
+  function handleAppReload() {
+    console.log("Reloading app");
+    fetchBooksAndAuthors();
+    fetchStarredQuotes();
+  }
+
+  // App startup loading
+  useEffect(() => {
+    const fetchDebugEnv = async () => {
+      const isDebug = await isDebug();
+      setIsDebugEnv(isDebug);
+    };
+    
+    fetchBooksAndAuthors();
+    fetchStarredQuotes();
+    fetchDebugEnv();
+  }, []);
+
+  useEffect(() => {
+    // Setup import listeners - has to return for cleanup
     const importListener = listen("importing", (event) => {
       addToast(`Importing data from ${event.payload.device}...`);
     });
@@ -535,19 +554,6 @@ function App() {
       importSuccessListener.then((unlisten) => unlisten());
       importErrorListener.then((unlisten) => unlisten());
     };
-  };
-
-  // App startup loading
-  useEffect(async () => {
-    fetchBooksAndAuthors();
-    fetchStarredQuotes();
-
-    // Debug mode configured via ENV variable
-    const isDebug = await getEnv("TAURI_ENV_DEBUG");
-    setIsDebugEnv(isDebug === "true");
-
-    // Setup import listeners - has to return for cleanup
-    return setupBackendListeners();
   }, []);
 
   useEffect(() => {
@@ -660,7 +666,12 @@ function App() {
     )
   } else {
     // Display a random quote when nothing is selected
-    currentPage = <RandomQuote />;
+    currentPage = (
+      <RandomQuoteBox
+        navigateToBook={navigateToBook}
+        navigateToAuthor={navigateToAuthor}
+      />
+    );
   }
 
   return (
@@ -702,6 +713,8 @@ function App() {
             onSearchExit={onSearchExit}
             setSearch={setSearch}
             setSearchResults={setSearchResults}
+            isDebugEnv={isDebugEnv}
+            onReloadButtonClick={handleAppReload}
           />
 
           {/* Content area */}

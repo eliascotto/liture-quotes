@@ -508,12 +508,17 @@ where
 /// Get random quote
 pub async fn get_random_quote<'e, E>(
     executor: E,
-) -> Result<Option<(String, String, String)>, sqlx::Error>
+) -> Result<Option<RandomQuote>, sqlx::Error>
 where
     E: Executor<'e, Database = Sqlite>,
 {
-    sqlx::query(
-        "SELECT q.content, b.title, a.name 
+    sqlx::query_as::<_, RandomQuote>(
+        "SELECT 
+            q.content, 
+            b.title,
+            b.id as book_id,
+            a.name,
+            a.id as author_id
          FROM quote q
          JOIN book b ON q.book_id = b.id
          JOIN author a ON b.author_id = a.id
@@ -527,7 +532,6 @@ where
     )
     .fetch_optional(executor)
     .await
-    .map(|row| row.map(|row| (row.get("content"), row.get("title"), row.get("name"))))
 }
 
 pub async fn get_starred_quotes<'e, E>(

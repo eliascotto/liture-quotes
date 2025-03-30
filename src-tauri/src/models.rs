@@ -105,6 +105,15 @@ pub struct StarredQuote {
     pub updated_at: NaiveDateTime,
 }
 
+#[derive(Debug, serde::Serialize, serde::Deserialize, Clone, sqlx::FromRow)]
+pub struct RandomQuote {
+    pub book_id: Option<String>,
+    pub book_title: Option<String>,
+    pub author_id: Option<String>,
+    pub author_name: Option<String>,
+    pub content: Option<String>,
+}
+
 // JSON data structures for parsing json files as input
 
 #[derive(Debug)]

@@ -47,6 +47,14 @@ export interface StarredQuote {
   updated_at: string;
 }
 
+export interface RandomQuote {
+  book_id: string | null;
+  book_title: string | null;
+  author_id: string | null;
+  author_name: string | null;
+  content: string | null;
+}
+
 export interface Note {
   id: string;
   book_id: string | null;
