@@ -10,7 +10,7 @@ function HeaderButton({ onClick, isActive = false, children }: HeaderButtonProps
       onClick={onClick}
       className={`p-1.5 rounded-md transition-colors duration-200 ${
         isActive
-          ? 'text-cyan-400 bg-slate-700/10'
+          ? 'text-cyan-400'
           : 'text-slate-300 hover:text-cyan-400 hover:bg-slate-700/50'
       }`}
     >

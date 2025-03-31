@@ -245,7 +245,7 @@ function BookPage({
           />
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 select-none">
           {/* Create new quote form, don't create quote until save is clicked */}
           {newQuote && (
             <EditableNoteBox

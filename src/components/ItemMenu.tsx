@@ -52,7 +52,11 @@ const ItemMenu = (
     <div className="relative" ref={menuRef}>
       <button
         onClick={toggleMenu}
-        className="p-1 rounded-md hover:bg-slate-700/90 transition-colors"
+        className={clsx(
+          "p-1 rounded-md",
+          "hover:bg-slate-700/90 transition-colors",
+          isMenuOpen ? "bg-slate-700/90" : "bg-transparent"
+        )}
         aria-label="Menu"
       >
         <DotsVertical />
@@ -62,7 +66,7 @@ const ItemMenu = (
         <div 
           className={clsx(
             "absolute right-0 mt-0.5 py-0.5 w-32 rounded-md bg-slate-800 z-10",
-            "border border-slate-700/50 shadow-lg ring-1 ring-black ring-opacity-5",
+            "border border-slate-700/50 shadow-lg ring-1 ring-black/5",
           )}
         >
           {!!onEdit && (

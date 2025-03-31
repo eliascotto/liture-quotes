@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
-import ChevronDown from './icons/ChevronDown';
+import clsx from 'clsx';
+import ChevronDown from '@icons/ChevronDown';
 
 export default function DualSortMenu({ 
   primarySort, 
@@ -59,7 +60,11 @@ export default function DualSortMenu({
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-3 py-1.5 rounded-md text-sm bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors"
+        className={clsx(
+          "flex items-center space-x-2 px-3 py-1.5 rounded-md text-sm text-slate-300",
+          "hover:bg-slate-700/90 transition-colors",
+          isOpen ? "bg-slate-700/90" : "bg-transparent"
+        )}
       >
         <span>{getCurrentSortLabel()}</span>
         <ChevronDown 
@@ -68,7 +73,10 @@ export default function DualSortMenu({
       </button>
 
       {isOpen && (
-        <div className="absolute top-full right-0 mt-1 w-48 rounded-md shadow-lg bg-slate-800 ring-1 ring-black ring-opacity-5 z-50">
+        <div className={clsx(
+          "absolute top-full right-0 mt-1 w-48 rounded-md shadow-lg bg-slate-800 ring-1 ring-black/5 z-50",
+          "border border-slate-700/50 border border-slate-700/50"
+        )}>
           <div className="py-1">
             <div className="px-3 py-2 text-xs font-medium text-slate-400 uppercase tracking-wider">
               {sortLabels?.primary ? sortLabels.primary : "Primary Sort"}

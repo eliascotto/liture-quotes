@@ -129,3 +129,28 @@ export interface AppSettings {
   autoSave: boolean;
   defaultViewMode: ViewMode;
 } 
+
+export interface SearchResults {
+  quotes: Quote[];
+  books: Book[];
+  authors: Author[];
+}
+
+export interface PageState {
+  type: 'book' | 'author' | 'search' | 'starred';
+  data: Book | Author | { term: string, results: SearchResults } | string | null;
+}
+
+// Used to receive books and authors from the backend
+export interface BooksAuthors {
+  books: Book[];
+  authors: Author[];
+}
+
+// Used to move new book data
+export interface NewBookData {
+  title: string;
+  authorOption: 'existing' | 'new';
+  authorId: string | null;
+  newAuthorName: string | null;
+}

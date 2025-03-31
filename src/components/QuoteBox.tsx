@@ -164,7 +164,7 @@ function QuoteBox({
   }, [onNoteEdit]);
 
   return (
-    <div className="relative my-2 group" ref={quoteRef}>
+    <div className="relative my-2 group select-none" ref={quoteRef}>
       <div
         className="absolute top-[10px] -left-[22.5px] cursor-pointer"
         onClick={() => onStarClick()}
@@ -180,60 +180,62 @@ function QuoteBox({
           </div>
         </Tooltip>
       </div>
-      {editable ? (
-        <EditableNoteBox
-          item={quote}
-          onSave={handleQuoteEdit}
-          onCancel={() => setEditable(false)}
-        />
-      ) : (
-        <div className="relative">
-          {/* Quote */}
+
+      <div className="select-none">
+        {/* Quote */}
+        {editable ? (
+          <EditableNoteBox
+            item={quote}
+            onSave={handleQuoteEdit}
+            onCancel={() => setEditable(false)}
+          />
+        ) : (
           <div
             className={clsx(
-              "min-h-[48px]",
+              "min-h-[48px]  select-none",
               selected ? selectedClass : classBase,
-              empty && "text-opacity-30 select-none cursor-default",
+              empty && "text-opacity-30 cursor-default",
               "hover:bg-slate-800/70"
             )}
             onClick={(e: ReactMouseEvent) => handleClick(e)}
             onContextMenu={(e: ReactMouseEvent) => handleContextMenu(e)}
-          >{empty ? "Empty" : quote.content}</div>
+          >
+            <span className="select-auto">{empty ? "Empty" : quote.content}</span>
+          </div>
+        )}
 
-          {/* Note */}
-          {!!note && (
-            <>
-              {noteEditable ? (
-                <EditableNoteBox
-                  item={note}
-                  onSave={(content) => handleNoteEdit(note.id, content)}
-                  onCancel={() => setNoteEditable(false)}
-                  info="Comment"
-                />
-              ) : (
-                <div 
-                  id={note.id}
-                  className="ml-8 text-sm leading-6 italic mb-2 text-slate-300/85 p-4 border-slate-700/50 group/note hover:bg-slate-700/50"
-                  onDoubleClick={() => onNoteEdit && setNoteEditable(true)}
-                >
-                  {note.content}
-                </div>
-              )}
-            </>
-          )}
+        {/* Note */}
+        {!!note && (
+          <>
+            {noteEditable ? (
+              <EditableNoteBox
+                item={note}
+                onSave={(content) => handleNoteEdit(note.id, content)}
+                onCancel={() => setNoteEditable(false)}
+                info="Comment"
+              />
+            ) : (
+              <div
+                id={note.id}
+                className="ml-8 text-sm leading-6 italic mb-2 text-slate-300/85 p-4 border-slate-700/50 group/note hover:bg-slate-700/50 select-none"
+                onDoubleClick={() => onNoteEdit && setNoteEditable(true)}
+              >
+                <span className="select-auto">{note.content}</span>
+              </div>
+            )}
+          </>
+        )}
 
-          <DropdownMenu
-            isOpen={menuOpen}
-            onCopy={handleMenuCopy}
-            onClose={() => setMenuOpen(false)}
-            onEdit={handleMenuEdit}
-            onStar={handleMenuStar}
-            onRemove={handleMenuRemove}
-            isStarred={!!quote.starred}
-          />
-        </div>
-      )}
-
+        <DropdownMenu
+          isOpen={menuOpen}
+          onCopy={handleMenuCopy}
+          onClose={() => setMenuOpen(false)}
+          onEdit={handleMenuEdit}
+          onStar={handleMenuStar}
+          onRemove={handleMenuRemove}
+          isStarred={!!quote.starred}
+        />
+      </div>
     </div>
   );
 }

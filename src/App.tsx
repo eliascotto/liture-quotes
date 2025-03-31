@@ -11,11 +11,16 @@ import AuthorPage from "@pages/AuthorPage.tsx";
 import SearchPage from "@pages/SearchPage.tsx";
 import FavouritesPage from "@pages/FavouritesPage.tsx";
 import RandomQuoteBox from "@components/RandomQuoteBox.tsx";
-import { useToast } from "./context/ToastContext.tsx";
+import { useToast } from "@context/ToastContext.tsx";
 
-import { useWindowState } from "./hooks/useWindowState";
+import { useWindowState } from "@hooks/useWindowState.js";
+import Logger from "@utils/logger";
+import { errorToString } from "@utils/index";
+import { NewBookData, Author, Book, BooksAuthors, Note, Quote, PageState, StarredQuote, SearchResults } from "@customTypes/index.ts";
 
-function findAuthorById(authors, id) {
+const logger = Logger.getInstance();
+
+function findAuthorById(authors: Author[], id: string) {
   return authors.filter(a => a.id === id)[0];
 }
 
@@ -26,50 +31,52 @@ function App() {
   const { addToast } = useToast();
 
   // Fields from db
-  const [books, setBooks] = useState([]);
-  const [authors, setAuthors] = useState([]);
-  const [quotes, setQuotes] = useState([]);
-  const [starredQuotes, setStarredQuotes] = useState([]);
+  const [books, setBooks] = useState<Book[]>([]);
+  const [authors, setAuthors] = useState<Author[]>([]);
+  const [quotes, setQuotes] = useState<Quote[]>([]);
+  const [starredQuotes, setStarredQuotes] = useState<Quote[]>([]);
 
   // Navbar selection
   const [selectedOption, setSelectedOption] = useState("Books");
   const isBooksSelected = selectedOption === "Books";
 
   // Search
-  const [search, setSearch] = useState(null);
-  const [searchResults, setSearchResults] = useState({
+  const [search, setSearch] = useState<string | null>(null);
+  const [searchResults, setSearchResults] = useState<SearchResults>({
     quotes: [],
     books: [],
     authors: []
   });
 
   // Current book
-  const [selectedBook, setSelectedBook] = useState(null);
-  const [selectedBookAuthor, setSelectedBookAuthor] = useState(null);
+  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+  const [selectedBookAuthor, setSelectedBookAuthor] = useState<Author | null>(null);
 
   // Current author
-  const [selectedAuthor, setSelectedAuthor] = useState(null);
-  const [selectedAuthorBooks, setSelectedAuthorBooks] = useState([]);
+  const [selectedAuthor, setSelectedAuthor] = useState<Author | null>(null);
+  const [selectedAuthorBooks, setSelectedAuthorBooks] = useState<Book[]>([]);
 
   // Current quote
-  const [newlyCreatedQuoteId, setNewlyCreatedQuoteId] = useState(null);
+  const [newlyCreatedQuoteId, setNewlyCreatedQuoteId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("date_modified");
   const [sortOrder, setSortOrder] = useState("DESC");
 
   // Current book's notes
-  const [bookNotes, setBookNotes] = useState([]);
+  const [bookNotes, setBookNotes] = useState<Note[]>([]);
 
   // Navigation history
-  const [history, setHistory] = useState([]);
+  const [history, setHistory] = useState<PageState[]>([]);
   const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
   const isNavigating = useRef(false);
   const initialLoadComplete = useRef(false);
 
-  // Showing starred notes
+  // Favourites page
   const [showingFavourites, setShowingFavourites] = useState(false);
+  const [sortByFavouriteItems, setSortByFavouriteItems] = useState<string>("date_modified");
+  const [sortOrderFavouriteItems, setSortOrderFavouriteItems] = useState<"ASC" | "DESC">("DESC");
 
   // Get current page state
-  const getCurrentPageState = useCallback(() => {
+  const getCurrentPageState = useCallback((): PageState | null => {
     if (showingFavourites) {
       return {
         type: 'starred',
@@ -95,7 +102,7 @@ function App() {
   }, [search, searchResults, isBooksSelected, selectedBook, selectedAuthor, showingFavourites]);
 
   // Apply a page state from history
-  const applyPageState = useCallback((pageState) => {
+  const applyPageState = useCallback((pageState: PageState) => {
     if (!pageState) return;
 
     isNavigating.current = true;
@@ -108,21 +115,26 @@ function App() {
       case 'book':
         setShowingFavourites(false);
         setSelectedOption("Books");
-        setSelectedBook(pageState.data);
+        if (pageState.data && typeof pageState.data !== 'string') {
+          setSelectedBook(pageState.data as Book);
+        }
         setSearch(null);
         break;
       case 'author':
         setShowingFavourites(false);
         setSelectedOption("Authors");
-        setSelectedAuthor(pageState.data);
+        if (pageState.data && typeof pageState.data !== 'string') {
+          setSelectedAuthor(pageState.data as Author);
+        }
         setSearch(null);
         break;
       case 'search':
         setShowingFavourites(false);
-        setSearch(pageState.data.term);
-        setSearchResults(pageState.data.results);
-        break;
-      default:
+        if (pageState.data && typeof pageState.data === 'object' && 'term' in pageState.data) {
+          const searchData = pageState.data as { term: string, results: SearchResults };
+          setSearch(searchData.term);
+          setSearchResults(searchData.results);
+        }
         break;
     }
 
@@ -133,20 +145,43 @@ function App() {
   }, []);
 
   // Add current state to history when it changes
-  const addToHistory = useCallback((pageState) => {
+  const addToHistory = useCallback((pageState: PageState) => {
     if (!pageState || isNavigating.current || !initialLoadComplete.current) {
       return;
     }
 
     // Check if the new state is different from the current one in history
     const currentState = history[currentHistoryIndex];
-    if (currentState &&
-      currentState.type === pageState.type &&
-      ((currentState.type === 'book' && currentState.data.id === pageState.data.id) ||
-        (currentState.type === 'author' && currentState.data.id === pageState.data.id) ||
-        (currentState.type === 'search' && currentState.data.term === pageState.data.term) ||
-        (currentState.type === 'starred' && currentState.type === pageState.type))) {
-      return; // Don't add duplicate entries
+    if (currentState && currentState.type === pageState.type) {
+      // Type guard for each case
+      switch (currentState.type) {
+        case 'book':
+          if (currentState.data && pageState.data &&
+              typeof currentState.data !== 'string' && typeof pageState.data !== 'string' &&
+              'id' in currentState.data && 'id' in pageState.data &&
+              currentState.data.id === (pageState.data as Book).id) {
+            return;
+          }
+          break;
+        case 'author':
+          if (currentState.data && pageState.data &&
+              typeof currentState.data !== 'string' && typeof pageState.data !== 'string' &&
+              'id' in currentState.data && 'id' in pageState.data &&
+              currentState.data.id === (pageState.data as Author).id) {
+            return;
+          }
+          break;
+        case 'search':
+          if (currentState.data && pageState.data &&
+              typeof currentState.data === 'object' && typeof pageState.data === 'object' &&
+              'term' in currentState.data && 'term' in pageState.data &&
+              currentState.data.term === (pageState.data as { term: string }).term) {
+            return;
+          }
+          break;
+        case 'starred':
+          return; // For starred pages, just check the type which we already did
+      }
     }
 
     // Update both history and currentHistoryIndex atomically
@@ -186,7 +221,7 @@ function App() {
   }, [canGoForward, currentHistoryIndex, history, applyPageState]);
 
   async function fetchBooksAndAuthors() {
-    const data = await invoke("fetch_books_authors");
+    const data: BooksAuthors = await invoke("fetch_books_authors");
     setBooks(data.books);
     setAuthors(data.authors);
     initialLoadComplete.current = true;
@@ -199,73 +234,78 @@ function App() {
       sortBy,
       sortOrder
     });
-    setQuotes(data);
+    setQuotes(data as Quote[]);
   }
 
   async function fetchBooksByAuthor() {
     if (!selectedAuthor) return;
     const books = await invoke("fetch_books_by_author", { authorId: selectedAuthor.id });
-    setSelectedAuthorBooks(books);
+    setSelectedAuthorBooks(books as Book[]);
   }
 
-  async function fetchStarredQuotes(sortBy, sortOrder) {
+  async function fetchStarredQuotes(sortBy?: string, sortOrder?: string) {
     try {
-      const notes = await invoke("get_starred_quotes", { sortBy, sortOrder });
-      setStarredQuotes(notes);
+      const notes = await invoke("get_starred_quotes", {
+        sortBy: sortBy || sortByFavouriteItems,
+        sortOrder: sortOrder || sortOrderFavouriteItems
+      });
+      setStarredQuotes(notes as Quote[]);
     } catch (error) {
       console.error("Error fetching starred quotes:", error);
     }
   }
 
-  async function fetchBookNotes(bookId) {
+  async function fetchBookNotes(bookId: string) {
     const notes = await invoke("fetch_book_notes", { bookId });
-    setBookNotes(notes);
+    setBookNotes(notes as Note[]);
   }
 
-  async function addAuthor(authorName) {
+  async function addAuthor(authorName: string) {
     try {
       const newAuthor = await invoke("create_author", { name: authorName });
       await fetchBooksAndAuthors();
       setSelectedOption("Authors");
-      setSelectedAuthor(newAuthor);
+      setSelectedAuthor(newAuthor as Author);
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error creating author:", error);
-      alert(`Error creating author: ${error.message || 'Unknown error'}`);
+      alert(`Error creating author: ${errorToString(error)}`);
       return false;
     }
   }
 
-  async function addBook(title, authorId) {
+  async function addBook(title: string, authorId: string) {
     try {
-      const newBook = await invoke("new_book", { title, authorId });
+      console.log("Adding book:", title, authorId);
+      const newBook = await invoke("create_book", { title, authorId });
       await fetchBooksAndAuthors();
       setSelectedOption("Books");
-      setSelectedBook(newBook);
+      setSelectedBook(newBook as Book);
       return true;
     } catch (error) {
       console.error("Error creating book:", error);
-      alert(`Error creating book: ${error.message || 'Unknown error'}`);
+      alert(`Error creating book: ${errorToString(error)}`);
       return false;
     }
   }
 
-  async function onAddButtonClick(type, data) {
-    if (type === "author") {
-      return await addAuthor(data.name);
+  async function onAddButtonClick(type: string, data: NewBookData) {
+    const { title, authorOption, authorId, newAuthorName } = data;
+
+    if (type === "author" && newAuthorName) {
+      return await addAuthor(newAuthorName);
     }
 
     if (type === "book") {
-      const { title, authorOption, authorId, newAuthorName } = data;
 
-      if (authorOption === 'existing') {
+      if (authorOption === 'existing' && authorId) {
         // Use existing author
-        return await addBook(title, parseInt(authorId));
+        return await addBook(title, authorId);
       }
 
       // Create new author first, then create book
       try {
-        const newAuthor = await invoke("create_author", { name: newAuthorName });
+        const newAuthor: Author = await invoke("create_author", { name: newAuthorName });
         return await addBook(title, newAuthor.id);
       } catch (error) {
         console.error("Error creating author for book:", error);
@@ -276,7 +316,7 @@ function App() {
     return false;
   }
 
-  async function updateQuote(quote) {
+  async function updateQuote(quote: Quote) {
     console.log("Updating quote:", quote);
     try {
       await invoke("update_quote", { quote: quote });
@@ -287,17 +327,19 @@ function App() {
     }
   }
 
-  async function updateNote(noteId, content) {
+  async function updateNote(noteId: string, content: string) {
     console.log("Updating note:", noteId, content);
     try {
       await invoke("update_note", { noteId, content });
-      await fetchBookNotes(selectedBook.id);
+      if (selectedBook) {
+        await fetchBookNotes(selectedBook.id);
+      }
     } catch {
       console.error("Error updating note");
     }
   }
 
-  async function toggleFavouriteQuote(quote) {
+  async function toggleFavouriteQuote(quote: StarredQuote | Quote) {
     console.log("Toggling favourite quote:", quote.id);
     try {
       await invoke("toggle_quote_starred", { quoteId: quote.id });
@@ -308,7 +350,7 @@ function App() {
     }
   }
 
-  async function deleteQuote(quote) {
+  async function deleteQuote(quote: Quote) {
     try {
       await invoke("delete_quote", { quoteId: quote.id });
       await fetchQuotes();
@@ -317,9 +359,9 @@ function App() {
     }
   }
 
-  async function createNewQuote(bookId, content = "New quote") {
+  async function createNewQuote(bookId: string, content = "New quote") {
     try {
-      let newQuote = await invoke("create_quote", {
+      let newQuote: Quote = await invoke("create_quote", {
         bookId,
         content,
       });
@@ -327,11 +369,11 @@ function App() {
       await fetchQuotes();
     } catch (error) {
       console.error("Error adding quote:", error);
-      alert(`Error adding quote: ${error.message || 'Unknown error'}`);
+      alert(`Error adding quote: ${errorToString(error)}`);
     }
   }
 
-  function onAuthorBookSelect(book) {
+  function onAuthorBookSelect(book: Book) {
     setSelectedOption("Books");
     setSelectedBook(book);
   }
@@ -350,12 +392,12 @@ function App() {
     setNewlyCreatedQuoteId(null);
   }
 
-  function onNavbarSelection(item) {
+  function onNavbarSelection(item: Book | Author) {
     clearNavigation();
     if (isBooksSelected) {
-      setSelectedBook(item);
+      setSelectedBook(item as Book);
     } else {
-      setSelectedAuthor(item);
+      setSelectedAuthor(item as Author);
     }
   }
 
@@ -364,7 +406,7 @@ function App() {
     setNewlyCreatedQuoteId(null);
   }
 
-  function navigateToBook(bookId) {
+  function navigateToBook(bookId: string) {
     const book = books.find(b => b.id === bookId);
     if (book) {
       setSelectedOption("Books");
@@ -373,7 +415,7 @@ function App() {
     }
   }
 
-  function navigateToAuthor(authorId) {
+  function navigateToAuthor(authorId: string) {
     const author = authors.find(a => a.id === authorId);
     if (author) {
       setSelectedOption("Authors");
@@ -383,7 +425,7 @@ function App() {
   }
 
   // Function to delete a book
-  const deleteBook = async (bookId) => {
+  const deleteBook = async (bookId: string) => {
     try {
       await invoke('set_book_deleted', { bookId });
 
@@ -399,8 +441,8 @@ function App() {
       setHistory(prevHistory => {
         return prevHistory.filter(entry => {
           // Keep entries that aren't related to the deleted book
-          if (entry.type === 'book' && entry.data.id === bookId) {
-            return false; // Remove book entries
+          if (entry.type === 'book' && entry.data && typeof entry.data !== 'string' && 'id' in entry.data) {
+            return entry.data.id !== bookId; // Remove book entries
           }
           return true;
         });
@@ -408,11 +450,16 @@ function App() {
 
       // If we removed the current history entry, reset the index
       if (history[currentHistoryIndex] &&
-        history[currentHistoryIndex].type === 'book' &&
-        history[currentHistoryIndex].data.id === bookId) {
+          history[currentHistoryIndex].type === 'book' &&
+          history[currentHistoryIndex].data &&
+          typeof history[currentHistoryIndex].data !== 'string' &&
+          'id' in history[currentHistoryIndex].data &&
+          history[currentHistoryIndex].data.id === bookId) {
         // Navigate to the first valid entry in history or reset if none
         const newHistory = history.filter(entry => {
-          if (entry.type === 'book' && entry.data.id === bookId) return false;
+          if (entry.type === 'book' && entry.data && typeof entry.data !== 'string' && 'id' in entry.data) {
+            return entry.data.id !== bookId;
+          }
           return true;
         });
 
@@ -436,7 +483,7 @@ function App() {
   };
 
   // Function to delete an author
-  const deleteAuthor = async (authorId) => {
+  const deleteAuthor = async (authorId: string) => {
     try {
       await invoke('set_author_deleted', { authorId });
 
@@ -457,11 +504,11 @@ function App() {
       setHistory(prevHistory => {
         return prevHistory.filter(entry => {
           // Keep entries that aren't related to the deleted author or its books
-          if (entry.type === 'author' && entry.data.id === authorId) {
-            return false; // Remove author entries
+          if (entry.type === 'author' && entry.data && typeof entry.data !== 'string' && 'id' in entry.data) {
+            return entry.data.id !== authorId; // Remove author entries
           }
-          if (entry.type === 'book' && entry.data.author_id === authorId) {
-            return false; // Remove book entries for this author
+          if (entry.type === 'book' && entry.data && typeof entry.data !== 'string' && 'author_id' in entry.data) {
+            return entry.data.author_id !== authorId; // Remove book entries for this author
           }
           return true;
         });
@@ -469,12 +516,24 @@ function App() {
 
       // If we removed the current history entry, reset the index
       if (history[currentHistoryIndex] &&
-        ((history[currentHistoryIndex].type === 'author' && history[currentHistoryIndex].data.id === authorId) ||
-          (history[currentHistoryIndex].type === 'book' && history[currentHistoryIndex].data.author_id === authorId))) {
+          ((history[currentHistoryIndex].type === 'author' &&
+            history[currentHistoryIndex].data &&
+            typeof history[currentHistoryIndex].data !== 'string' &&
+            'id' in history[currentHistoryIndex].data &&
+            history[currentHistoryIndex].data.id === authorId) ||
+           (history[currentHistoryIndex].type === 'book' &&
+            history[currentHistoryIndex].data &&
+            typeof history[currentHistoryIndex].data !== 'string' &&
+            'author_id' in history[currentHistoryIndex].data &&
+            history[currentHistoryIndex].data.author_id === authorId))) {
         // Navigate to the first valid entry in history or reset if none
         const newHistory = history.filter(entry => {
-          if (entry.type === 'author' && entry.data.id === authorId) return false;
-          if (entry.type === 'book' && entry.data.author_id === authorId) return false;
+          if (entry.type === 'author' && entry.data && typeof entry.data !== 'string' && 'id' in entry.data) {
+            return entry.data.id !== authorId;
+          }
+          if (entry.type === 'book' && entry.data && typeof entry.data !== 'string' && 'author_id' in entry.data) {
+            return entry.data.author_id !== authorId;
+          }
           return true;
         });
 
@@ -497,7 +556,7 @@ function App() {
     }
   };
 
-  async function updateBook(book) {
+  async function updateBook(book: Book) {
     try {
       await invoke("update_book", { book });
       await fetchBooksAndAuthors();
@@ -523,17 +582,17 @@ function App() {
 
   useEffect(() => {
     // Setup import listeners - has to return for cleanup
-    const importListener = listen("importing", (event) => {
+    const importListener = listen("importing", (event: { payload: { device: string } }) => {
       addToast(`Importing data from ${event.payload.device}...`);
     });
 
-    const importSuccessListener = listen("import-success", (event) => {
+    const importSuccessListener = listen("import-success", (event: { payload: { message: string } }) => {
       addToast(event.payload.message, "success");
       fetchBooksAndAuthors();
       fetchStarredQuotes();
     });
 
-    const importErrorListener = listen("import-error", (event) => {
+    const importErrorListener = listen("import-error", (event: { payload: { error: string } }) => {
       addToast(event.payload.error, "error");
     });
 
@@ -543,10 +602,6 @@ function App() {
       importErrorListener.then((unlisten) => unlisten());
     };
   }, []);
-
-  useEffect(() => {
-    fetchQuotes();
-  }, [sortBy, sortOrder]);
 
   useEffect(() => {
     if (showingFavourites) {
@@ -559,7 +614,9 @@ function App() {
     if (selectedBook) {
       fetchQuotes();
       fetchBookNotes(selectedBook.id);
-      setSelectedBookAuthor(findAuthorById(authors, selectedBook.author_id));
+      if (selectedBook.author_id) {
+        setSelectedBookAuthor(findAuthorById(authors, selectedBook.author_id));
+      }
     }
   }, [selectedBook, authors]);
 
@@ -583,6 +640,10 @@ function App() {
     currentPage = (
       <FavouritesPage
         quotes={starredQuotes}
+        sortByItems={sortByFavouriteItems}
+        setSortByItems={setSortByFavouriteItems}
+        sortOrderItems={sortOrderFavouriteItems}
+        setSortOrderItems={setSortOrderFavouriteItems}
         updateQuote={updateQuote}
         onStarClick={toggleFavouriteQuote}
         reloadFavourites={fetchStarredQuotes}
@@ -594,15 +655,6 @@ function App() {
             setShowingFavourites(false);
             setSelectedOption("Books");
             setSelectedBook(book);
-          }
-        }}
-        navigateToAuthor={(authorId) => {
-          clearNavigation();
-          const author = authors.find(a => a.id === authorId);
-          if (author) {
-            setShowingFavourites(false);
-            setSelectedOption("Authors");
-            setSelectedAuthor(author);
           }
         }}
       />
@@ -628,7 +680,6 @@ function App() {
         author={selectedBookAuthor}
         quotes={quotes}
         notes={bookNotes}
-        newlyCreatedQuoteId={newlyCreatedQuoteId}
         navigateToAuthor={navigateToAuthor}
         createNewQuote={createNewQuote}
         updateQuote={updateQuote}
@@ -690,8 +741,9 @@ function App() {
           {/* Header only for the right part */}
           <Header
             showingStarred={showingFavourites}
+            isBooksSelected={isBooksSelected}
+            selectedAuthor={selectedAuthor}
             setShowingStarred={onFavouritesButtonClick}
-            selectedOption={selectedOption}
             onAddButtonClick={onAddButtonClick}
             authors={authors}
             canGoBack={canGoBack}

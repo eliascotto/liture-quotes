@@ -151,11 +151,11 @@ function Navbar({
                 const isSelected = selected && selected.id === item.id;
                 return (
                   <Tooltip
+                    key={`navbar-item-${item.id}`}
                     content={item[property]}
                     usePortal={true}
                   >
                     <li
-                      key={`navbar-item-${item.id}`}
                       className={`cursor-pointer py-1.5 px-1.5 text-sm font-medium truncate rounded transition-all duration-200 hover:bg-slate-700/20 select-none ${isSelected
                         ? 'text-cyan-400 bg-slate-700/30'
                         : 'text-slate-300 hover:text-white'

@@ -1,18 +1,29 @@
 import { useState, useRef, useEffect } from "react";
+import clsx from 'clsx';
 import PlusIcon from "@icons/Plus";
 import NewAuthorForm from "@components/NewAuthorForm.jsx";
 import NewBookForm from "@components/NewBookForm.jsx";
 import { useDialog } from "@context/DialogContext.tsx";
+import { Author } from "@customTypes/index";
 
-function AddButton({ onClick, selectedOption, authors, selectedAuthor }) {
+type AddButtonProps = { 
+  onClick: (type: string, data: any) => Promise<boolean>,
+  authors: Author[],
+  selectedAuthor: Author | null,
+}
+
+function AddButton({ 
+  onClick, authors, selectedAuthor 
+}: AddButtonProps) 
+{
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const { openDialog } = useDialog();
   const popoverRef = useRef(null);
 
   useEffect(() => {
     // Handle click outside
-    function handleClickOutside(event) {
-      if (isPopoverOpen && popoverRef.current && !popoverRef.current.contains(event.target)) {
+    function handleClickOutside(event: MouseEvent) {
+      if (isPopoverOpen && popoverRef.current && !(popoverRef.current as HTMLElement).contains(event.target as Node)) {
         setIsPopoverOpen(false);
       }
     }
@@ -37,7 +48,7 @@ function AddButton({ onClick, selectedOption, authors, selectedAuthor }) {
     openDialog(
       "Add New Author",
       <NewAuthorForm
-        onSubmit={async (authorName) => {
+        onSubmit={async (authorName: string) => {
           try {
             return await onClick("author", { name: authorName });
           } catch (error) {
@@ -74,7 +85,11 @@ function AddButton({ onClick, selectedOption, authors, selectedAuthor }) {
   return (
     <div className="relative z-40" ref={popoverRef}>
       <button
-        className="p-1.5 rounded-md transition-colors duration-200 text-slate-300 hover:text-cyan-400 hover:bg-slate-700/50"
+        className={clsx(
+          "p-1.5 rounded-md transition-colors duration-200 bg-transparent",
+          "hover:text-cyan-400 hover:bg-slate-700/50",
+          isPopoverOpen ? "text-cyan-400" : "text-slate-300"
+        )}
         title="Add new item"
         onClick={togglePopover}
         aria-expanded={isPopoverOpen}
@@ -83,11 +98,14 @@ function AddButton({ onClick, selectedOption, authors, selectedAuthor }) {
       </button>
 
       {isPopoverOpen && (
-        <div className="absolute top-full left-0 z-[60] min-w-40 bg-slate-800 border border-slate-700/50 rounded-lg shadow-lg overflow-hidden">
+        <div className={clsx(
+          "absolute top-full left-0 z-[60] min-w-40 bg-slate-800 border border-slate-700/50 ring-1 ring-black/5 z-50 rounded-md shadow-lg overflow-hidden",
+          "border border-slate-700/50"
+        )}>
           <div className="py-1">
             <div className="my-1">
               <button
-                className="w-full text-left px-3 py-2.5 text-sm transition-colors duration-150 text-slate-300 hover:bg-slate-700/50 hover:text-slate-300 flex items-center"
+                className="w-full text-left px-3 py-2 text-sm transition-colors duration-150 text-slate-300 hover:bg-slate-700/50 hover:text-slate-300 flex items-center"
                 onClick={handleAddAuthor}
               >
                 <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -96,7 +114,7 @@ function AddButton({ onClick, selectedOption, authors, selectedAuthor }) {
                 New Author
               </button>
               <button
-                className="w-full text-left px-3 py-2.5 text-sm transition-colors duration-150 text-slate-300 hover:bg-slate-700/50 hover:text-slate-300 flex items-center"
+                className="w-full text-left px-3 py-2 text-sm transition-colors duration-150 text-slate-300 hover:bg-slate-700/50 hover:text-slate-300 flex items-center"
                 onClick={handleAddBook}
               >
                 <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">

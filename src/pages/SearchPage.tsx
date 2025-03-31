@@ -1,6 +1,6 @@
 import { useState } from "react";
 import QuoteBox from "@components/QuoteBox";
-import { Book, Author, Quote, QuoteFts } from "../../types/index";
+import { Book, Author, Quote, QuoteFts } from "@customTypes/index.ts";
 
 type SearchPageProps = {
   books: Book[],
@@ -14,8 +14,8 @@ type SearchPageProps = {
   navigateToBook: (bookId: string) => void,
   navigateToAuthor: (authorId: string) => void,
   updateQuote: (note: Quote) => void,
-  starQuote: (noteId: string) => void,
-  removeQuote: (noteId: string) => void
+  starQuote: (quote: Quote) => void,
+  removeQuote: (quote: Quote) => void
 }
 
 function SearchPage(props: SearchPageProps) {
@@ -162,9 +162,9 @@ function SearchPage(props: SearchPageProps) {
                         e.stopPropagation();
                         setSelectedQuote(quote);
                       }}
-                      onStarClick={() => props.starQuote(quote.id)}
+                      onStarClick={() => props.starQuote(quote)}
                       onEdit={(content) => props.updateQuote({ ...quote, content })}
-                      onRemove={() => props.removeQuote(quote.id)}
+                      onRemove={() => props.removeQuote(quote)}
                     />
                   </div>
                 );

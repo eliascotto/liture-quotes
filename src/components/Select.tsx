@@ -12,7 +12,7 @@ interface SelectProps {
   id: string;
   label: string;
   maxHeightPx?: number;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
 }
 
 export default function Select({ 

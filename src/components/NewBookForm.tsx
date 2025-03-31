@@ -2,19 +2,34 @@ import { useState, useEffect } from 'react';
 import { useDialog } from '@context/DialogContext.tsx';
 import Select from '@components/Select.tsx';
 import Input from '@components/Input.tsx';
+import { Author, NewBookData } from '@customTypes/index';
 
-function NewBookForm({ onSubmit, onCancel, authors, selectedAuthor }) {
+type NewBookFormProps = {
+  onSubmit: (bookData: NewBookData) => Promise<boolean>,
+  onCancel: () => void,
+  authors: Author[],
+  selectedAuthor: Author | null,
+}
+
+function NewBookForm({ 
+  onSubmit, onCancel, authors, selectedAuthor 
+}: NewBookFormProps) 
+{
   const [title, setTitle] = useState('');
 
-  const [authorOption, setAuthorOption] = useState(selectedAuthor ? 'existing' : authors.length > 0 ? 'existing' : 'new');
-  const [authorId, setAuthorId] = useState(selectedAuthor ? selectedAuthor.id : '');
-  const [newAuthorName, setNewAuthorName] = useState('');
+  const [authorOption, setAuthorOption] = useState<NewBookData['authorOption']>(
+    selectedAuthor ? 'existing' : authors.length > 0 ? 'existing' : 'new'
+  );
+  const [authorId, setAuthorId] = useState<NewBookData['authorId']>(
+    selectedAuthor ? selectedAuthor.id : ''
+  );
+  const [newAuthorName, setNewAuthorName] = useState<NewBookData['newAuthorName']>('');
 
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { closeDialog } = useDialog();
 
-  const [selectedAuthorSize, setSelectedAuthorSize] = useState('md');
+  const [selectedAuthorSize, setSelectedAuthorSize] = useState<'xs' | 'sm' | 'md' | 'lg'>('md');
 
   useEffect(() => {
     const handleResize = () => {
@@ -45,7 +60,7 @@ function NewBookForm({ onSubmit, onCancel, authors, selectedAuthor }) {
   }, [selectedAuthor, authors]);
 
   const validate = () => {
-    const newErrors = {};
+    const newErrors: Record<string, string> = {};
     
     if (!title.trim()) {
       newErrors.title = 'Book title is required';
@@ -57,9 +72,9 @@ function NewBookForm({ onSubmit, onCancel, authors, selectedAuthor }) {
       newErrors.authorId = 'Please select an author';
     }
     
-    if (authorOption === 'new' && !newAuthorName.trim()) {
+    if (authorOption === 'new' && !newAuthorName?.trim()) {
       newErrors.newAuthorName = 'Author name is required';
-    } else if (authorOption === 'new' && newAuthorName.trim().length < 2) {
+    } else if (authorOption === 'new' && newAuthorName && newAuthorName.trim().length < 2) {
       newErrors.newAuthorName = 'Author name must be at least 2 characters';
     }
     
@@ -67,7 +82,7 @@ function NewBookForm({ onSubmit, onCancel, authors, selectedAuthor }) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     if (!validate()) return;
@@ -79,7 +94,7 @@ function NewBookForm({ onSubmit, onCancel, authors, selectedAuthor }) {
         title: title.trim(),
         authorOption,
         authorId: authorOption === 'existing' ? authorId : null,
-        newAuthorName: authorOption === 'new' ? newAuthorName.trim() : null
+        newAuthorName: authorOption === 'new' && newAuthorName ? newAuthorName?.trim() : null
       });
       
       if (success) {
@@ -130,7 +145,7 @@ function NewBookForm({ onSubmit, onCancel, authors, selectedAuthor }) {
       
       <div className="pt-2">
         <fieldset>
-          <legend className="block text-sm font-medium text-slate-300 mb-2">Author</legend>
+          <legend className="block text-sm font-medium text-slate-300 mb-1.5">Author</legend>
           
           <div className="space-y-3 bg-slate-700/20 p-3 rounded-md border border-slate-700/50">
             {authors.length > 0 && (
@@ -180,7 +195,7 @@ function NewBookForm({ onSubmit, onCancel, authors, selectedAuthor }) {
         <div className="transition-all duration-200 animate-fadeIn">
           <Select
             id="author-select"
-            value={authorId}
+            value={authorId || ''}
             onChange={(value) => {
               setAuthorId(value);
               setErrors({ ...errors, authorId: '' });
@@ -203,7 +218,7 @@ function NewBookForm({ onSubmit, onCancel, authors, selectedAuthor }) {
           <Input
             id="new-author-name"
             label="New Author Name"
-            value={newAuthorName}
+            value={newAuthorName || ''}
             onChange={(e) => {
               setNewAuthorName(e.target.value);
               setErrors({ ...errors, newAuthorName: '' });

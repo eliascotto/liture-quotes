@@ -6,20 +6,32 @@ import { convertStarredQuoteToQuote } from "@customTypes/convert";
 
 type FavouritesPageProps = {
   quotes: StarredQuote[],
+  sortByItems: string,
+  setSortByItems: (field: string) => void,
+  sortOrderItems: "ASC" | "DESC",
+  setSortOrderItems: (order: "ASC" | "DESC") => void,
   navigateToBook: (bookId: string) => void,
   updateQuote: (quote: Quote) => void,
   onStarClick: (quote: StarredQuote) => void,
-  removeQuote: () => void,
+  removeQuote: (quote: Quote) => void,
   reloadFavourites: (sortBy: string, sortOrder: "ASC" | "DESC") => void
 }
 
 function FavouritesPage({ 
-  quotes, navigateToBook, updateQuote, onStarClick, removeQuote, reloadFavourites 
+  quotes,
+  sortByItems,
+  setSortByItems,
+  sortOrderItems,
+  setSortOrderItems,
+  navigateToBook,
+  updateQuote,
+  onStarClick,
+  removeQuote,
+  reloadFavourites,
 }: FavouritesPageProps) 
 {
   const [selectedQuote, setSelectedQuote] = useState<StarredQuote | null>(null);
-  const [sortByItems, setSortByItems] = useState<string>("date_modified");
-  const [sortOrderItems, setSortOrderItems] = useState<"ASC" | "DESC">("DESC");
+
   const [sortByBook, setSortByBook] = useState<string>("book");
   const [sortOrderBook, setSortOrderBook] = useState<"ASC" | "DESC">("DESC");
   const sortLabels = {
@@ -118,7 +130,7 @@ function FavouritesPage({
                       }}
                       onEdit={(content) => updateQuote(convertStarredQuoteToQuote({ ...quote, content }))}
                       onStarClick={() => onStarClick(quote)}
-                      onRemove={removeQuote}
+                      onRemove={() => removeQuote(convertStarredQuoteToQuote(quote))}
                     />
                   ))}
                 </div>

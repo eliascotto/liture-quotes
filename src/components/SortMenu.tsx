@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
-import ChevronDown from './icons/ChevronDown';
+import clsx from 'clsx';
+import ChevronDown from '@icons/ChevronDown';
 
 export default function SortMenu(
   { sortBy, sortOrder, sortByFields, onSortChange }: 
@@ -40,10 +41,14 @@ export default function SortMenu(
   };
 
   return (
-    <div className="relative" ref={menuRef}>
+    <div className="relative select-none" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-3 py-1.5 rounded-md text-sm text-slate-300 hover:bg-slate-700/90 transition-colors"
+        className={clsx(
+          "flex items-center space-x-2 px-3 py-1.5 rounded-md text-sm text-slate-300",
+          "hover:bg-slate-700/90 transition-colors", 
+          isOpen ? "bg-slate-700/90" : "bg-transparent"
+        )}
       >
         <span>{getCurrentSortLabel()}</span>
         <ChevronDown 
@@ -52,7 +57,10 @@ export default function SortMenu(
       </button>
 
       {isOpen && (
-        <div className="absolute top-full right-0 mt-1 w-48 rounded-md shadow-lg bg-slate-800 ring-1 ring-black ring-opacity-5 z-50">
+        <div className={clsx(
+          "absolute top-full right-0 mt-1 w-48 rounded-md shadow-lg bg-slate-800 ring-1 ring-black/5 z-50",
+          "border border-slate-700/50 border border-slate-700/50"
+        )}>
           <div className="py-1">
             <div className="px-3 py-2 text-xs font-medium text-slate-400 uppercase tracking-wider">
               Sort by
@@ -61,11 +69,12 @@ export default function SortMenu(
               <button
                 key={field}
                 onClick={() => handleSortChange(field)}
-                className={`w-full text-left px-3 py-2 text-sm ${
+                className={clsx(
+                  "w-full text-left px-3 py-2 text-sm",
                   sortBy === field
                     ? "bg-cyan-600 text-white"
                     : "text-slate-300 hover:bg-slate-700"
-                }`}
+                )}
               >
                 <div className="flex items-center justify-between">
                   <span>{getSortLabel(field)}</span>
