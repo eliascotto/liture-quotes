@@ -17,3 +17,7 @@ macro_rules! debug_print {
         }
     };
 }
+
+pub fn is_dev() -> bool {
+    cfg!(debug_assertions)
+}

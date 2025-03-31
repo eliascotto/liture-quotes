@@ -49,18 +49,18 @@ function RandomQuoteBox({
   return (
     <div className="flex flex-col items-center justify-center h-full p-8">
       <div className="max-w-2xl w-full">
-        <blockquote className="relative p-8">
-          <p className="text-lg text-slate-400 italic mb-4 z-10 relative">
+        <blockquote className="relative p-8 select-none">
+          <p className="text-lg text-slate-400 italic mb-4 z-10 relative select-auto">
             {quote.content}
           </p>
-          <footer className="text-right">
+          <div className="text-right">
             <p className="text-slate-500 cursor-pointer hover:text-cyan-400"
               onClick={() => quote.book_id && navigateToBook(quote.book_id)}>
               <span className="font-semibold">{quote.book_title}</span>
             </p>
             <p className="text-slate-600 cursor-pointer hover:text-cyan-400"
               onClick={() => quote.author_id && navigateToAuthor(quote.author_id)}>{quote.author_name}</p>
-          </footer>
+          </div>
         </blockquote>
       </div>
     </div>

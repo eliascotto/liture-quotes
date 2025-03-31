@@ -28,7 +28,7 @@ function AuthorPage({
             {books.map((book) => (
               <div
                 key={`book_${book.id}`}
-                className="p-3 rounded-md bg-gradient-to-r from-slate-800/70 to-slate-800/80 cursor-pointer hover:bg-slate-700/50 transition-all duration-200 group"
+                className="p-3 bg-slate-800 cursor-pointer hover:bg-slate-700/50 transition-all duration-200 group"
                 title={book.title}
                 onClick={() => onBookSelect(book)}
               >

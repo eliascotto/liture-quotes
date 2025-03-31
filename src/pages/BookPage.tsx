@@ -6,7 +6,7 @@ import SortMenu from '@components/SortMenu.tsx';
 import Tooltip from "@components/Tooltip.tsx";
 import PlusIcon from '@icons/Plus';
 import EditableNoteBox from "@components/EditableQuoteBox";
-import { Book, Quote, StarredQuote, Author, Note } from "../../types/index";
+import { Book, Quote, Author, Note } from "@customTypes/index";
 import ChatBubble from "@components/icons/ChatBubble";
 
 function EditableTitle({
@@ -245,7 +245,7 @@ function BookPage({
           />
         </div>
 
-        <div className="space-y-4 select-none">
+        <div className="flex flex-col gap-y-0.9 select-none">
           {/* Create new quote form, don't create quote until save is clicked */}
           {newQuote && (
             <EditableNoteBox

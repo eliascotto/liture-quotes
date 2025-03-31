@@ -1,6 +1,8 @@
 use crate::db;
 use crate::models;
 use crate::queries;
+use crate::utils::is_dev;
+
 use anyhow::Result;
 use chrono::{NaiveDateTime, Utc};
 use regex::Regex;
@@ -118,7 +120,13 @@ impl std::fmt::Display for ImportError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             ImportError::IoError(e) => write!(f, "{}", e),
-            ImportError::DbError(e, msg) => write!(f, "{}: {}", msg, e),
+            ImportError::DbError(e, msg) => {
+                if is_dev() {
+                    write!(f, "{}: {}", msg, e)
+                } else {
+                    write!(f, "{}", msg)
+                }
+            }
             ImportError::InvalidFormat(msg) => write!(f, "{}", msg),
         }
     }
@@ -351,7 +359,7 @@ pub async fn import_kobo(str_path: &str) -> Result<String, ImportError> {
                 continue;
             }
 
-            let chapter = models::Chapter {
+            let new_chapter = models::Chapter {
                 id: Uuid::new_v4().to_string(),
                 book_id: Some(db_book.id.clone()),
                 title: chapter.title.clone(),
@@ -362,7 +370,7 @@ pub async fn import_kobo(str_path: &str) -> Result<String, ImportError> {
                 deleted_at: None,
             };
 
-            let chapter = queries::insert_chapter(&chapter, &mut *tx)
+            let chapter = queries::insert_chapter(&new_chapter, &mut *tx)
                 .await
                 .map_err(|e| ImportError::DbError(e, "Failed to insert chapter".to_string()))?;
             chapters_id_map.insert(chapter.original_id.clone().unwrap(), chapter.id.clone());

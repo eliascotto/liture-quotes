@@ -109,6 +109,10 @@ async fn main() {
         )
         .plugin(tauri_plugin_os::init())
         .setup(|app| {
+            println!(
+                "{}",
+                std::env::var("TAURI_ENV_DEBUG").unwrap_or("false".to_string())
+            );
             let app_handle = app.handle().clone();
 
             // Spawn a new task to initialize the database pool
