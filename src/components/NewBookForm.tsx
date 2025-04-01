@@ -23,7 +23,7 @@ function NewBookForm({
   const [authorId, setAuthorId] = useState<NewBookData['authorId']>(
     selectedAuthor ? selectedAuthor.id : ''
   );
-  const [newAuthorName, setNewAuthorName] = useState<NewBookData['newAuthorName']>('');
+  const [authorName, setAuthorName] = useState<NewBookData['authorName']>('');
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -72,10 +72,10 @@ function NewBookForm({
       newErrors.authorId = 'Please select an author';
     }
     
-    if (authorOption === 'new' && !newAuthorName?.trim()) {
-      newErrors.newAuthorName = 'Author name is required';
-    } else if (authorOption === 'new' && newAuthorName && newAuthorName.trim().length < 2) {
-      newErrors.newAuthorName = 'Author name must be at least 2 characters';
+    if (authorOption === 'new' && !authorName?.trim()) {
+      newErrors.authorName = 'Author name is required';
+    } else if (authorOption === 'new' && authorName && authorName.trim().length < 2) {
+      newErrors.authorName = 'Author name must be at least 2 characters';
     }
     
     setErrors(newErrors);
@@ -94,7 +94,7 @@ function NewBookForm({
         title: title.trim(),
         authorOption,
         authorId: authorOption === 'existing' ? authorId : null,
-        newAuthorName: authorOption === 'new' && newAuthorName ? newAuthorName?.trim() : null
+        authorName: authorOption === 'new' && authorName ? authorName?.trim() : null
       });
       
       if (success) {
@@ -218,14 +218,14 @@ function NewBookForm({
           <Input
             id="new-author-name"
             label="New Author Name"
-            value={newAuthorName || ''}
+            value={authorName || ''}
             onChange={(e) => {
-              setNewAuthorName(e.target.value);
-              setErrors({ ...errors, newAuthorName: '' });
+              setAuthorName(e.target.value);
+              setErrors({ ...errors, authorName: '' });
             }}
             placeholder="Enter author name"
             disabled={isSubmitting}
-            error={errors.newAuthorName}
+            error={errors.authorName}
           />
         </div>
       )}

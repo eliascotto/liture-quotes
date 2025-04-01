@@ -10,14 +10,14 @@ class Logger {
     return Logger.instance;
   }
 
-  public log(message: string) {
+  public debug(...messages: any[]) {
     if (import.meta.env.DEV) {
-      console.log(message);
+      console.log(...messages);
     }
   }
 
-  public error(message: string) {
-    console.error(message);
+  public error(...messages: any[]) {
+    console.error(...messages);
   }
 }
 

@@ -16,7 +16,7 @@ import { useToast } from "@context/ToastContext.tsx";
 import { useWindowState } from "@hooks/useWindowState.js";
 import Logger from "@utils/logger";
 import { errorToString } from "@utils/index";
-import { NewBookData, Author, Book, BooksAuthors, Note, Quote, PageState, StarredQuote, SearchResults } from "@customTypes/index.ts";
+import { NewBookData, Author, Book, BooksAuthors, Note, Quote, PageState, StarredQuote, SearchResults, Chapter } from "@customTypes/index.ts";
 
 const logger = Logger.getInstance();
 
@@ -51,6 +51,7 @@ function App() {
   // Current book
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [selectedBookAuthor, setSelectedBookAuthor] = useState<Author | null>(null);
+  const [bookChapters, setBookChapters] = useState<Chapter[]>([]);
 
   // Current author
   const [selectedAuthor, setSelectedAuthor] = useState<Author | null>(null);
@@ -157,25 +158,25 @@ function App() {
       switch (currentState.type) {
         case 'book':
           if (currentState.data && pageState.data &&
-              typeof currentState.data !== 'string' && typeof pageState.data !== 'string' &&
-              'id' in currentState.data && 'id' in pageState.data &&
-              currentState.data.id === (pageState.data as Book).id) {
+            typeof currentState.data !== 'string' && typeof pageState.data !== 'string' &&
+            'id' in currentState.data && 'id' in pageState.data &&
+            currentState.data.id === (pageState.data as Book).id) {
             return;
           }
           break;
         case 'author':
           if (currentState.data && pageState.data &&
-              typeof currentState.data !== 'string' && typeof pageState.data !== 'string' &&
-              'id' in currentState.data && 'id' in pageState.data &&
-              currentState.data.id === (pageState.data as Author).id) {
+            typeof currentState.data !== 'string' && typeof pageState.data !== 'string' &&
+            'id' in currentState.data && 'id' in pageState.data &&
+            currentState.data.id === (pageState.data as Author).id) {
             return;
           }
           break;
         case 'search':
           if (currentState.data && pageState.data &&
-              typeof currentState.data === 'object' && typeof pageState.data === 'object' &&
-              'term' in currentState.data && 'term' in pageState.data &&
-              currentState.data.term === (pageState.data as { term: string }).term) {
+            typeof currentState.data === 'object' && typeof pageState.data === 'object' &&
+            'term' in currentState.data && 'term' in pageState.data &&
+            currentState.data.term === (pageState.data as { term: string }).term) {
             return;
           }
           break;
@@ -260,17 +261,26 @@ function App() {
     setBookNotes(notes as Note[]);
   }
 
-  async function addAuthor(authorName: string) {
+  async function fetchBookChapters() {
+    if (!selectedBook) return;
+    const chapters = await invoke("fetch_book_chapters", { bookId: selectedBook.id });
+    setBookChapters(chapters as Chapter[]);
+  }
+
+  async function addAuthor(authorName: string, setSelected: boolean = true) {
     try {
       const newAuthor = await invoke("create_author", { name: authorName });
-      await fetchBooksAndAuthors();
-      setSelectedOption("Authors");
-      setSelectedAuthor(newAuthor as Author);
-      return true;
+
+      if (setSelected) {
+        await fetchBooksAndAuthors();
+        setSelectedOption("Authors");
+        setSelectedAuthor(newAuthor as Author);
+      }
+      return newAuthor;
     } catch (error: unknown) {
-      console.error("Error creating author:", error);
+      logger.error("Error creating author:", error);
       alert(`Error creating author: ${errorToString(error)}`);
-      return false;
+      return null;
     }
   }
 
@@ -289,11 +299,27 @@ function App() {
     }
   }
 
-  async function onAddButtonClick(type: string, data: NewBookData) {
-    const { title, authorOption, authorId, newAuthorName } = data;
+  async function addBookWithAuthor(title: string, authorName: string) {
+    try {
+      const newBook = await invoke("create_book_with_author", { title, authorName });
+      await fetchBooksAndAuthors();
+      setSelectedOption("Books");
+      setSelectedBook(newBook as Book);
+      return true;
+    } catch (error) {
+      logger.error("Error creating book with author:", error);
+      alert(`Error creating book with author: ${errorToString(error)}`);
+      return false;
+    }
+  }
 
-    if (type === "author" && newAuthorName) {
-      return await addAuthor(newAuthorName);
+  async function onAddButtonClick(type: string, data: NewBookData) {
+    const { title, authorOption, authorId, authorName } = data;
+
+    logger.debug("onAddButtonClick", type, data);
+    if (type === "author" && authorName) {
+      let newAuthor = await addAuthor(authorName);
+      return !!newAuthor;
     }
 
     if (type === "book") {
@@ -303,13 +329,9 @@ function App() {
         return await addBook(title, authorId);
       }
 
-      // Create new author first, then create book
-      try {
-        const newAuthor: Author = await invoke("create_author", { name: newAuthorName });
-        return await addBook(title, newAuthor.id);
-      } catch (error) {
-        console.error("Error creating author for book:", error);
-        return false;
+      if (authorOption === 'new' && authorName) {
+        // Create new author first, then create book
+        return await addBookWithAuthor(title, authorName);
       }
     }
 
@@ -450,11 +472,11 @@ function App() {
 
       // If we removed the current history entry, reset the index
       if (history[currentHistoryIndex] &&
-          history[currentHistoryIndex].type === 'book' &&
-          history[currentHistoryIndex].data &&
-          typeof history[currentHistoryIndex].data !== 'string' &&
-          'id' in history[currentHistoryIndex].data &&
-          history[currentHistoryIndex].data.id === bookId) {
+        history[currentHistoryIndex].type === 'book' &&
+        history[currentHistoryIndex].data &&
+        typeof history[currentHistoryIndex].data !== 'string' &&
+        'id' in history[currentHistoryIndex].data &&
+        history[currentHistoryIndex].data.id === bookId) {
         // Navigate to the first valid entry in history or reset if none
         const newHistory = history.filter(entry => {
           if (entry.type === 'book' && entry.data && typeof entry.data !== 'string' && 'id' in entry.data) {
@@ -516,12 +538,12 @@ function App() {
 
       // If we removed the current history entry, reset the index
       if (history[currentHistoryIndex] &&
-          ((history[currentHistoryIndex].type === 'author' &&
-            history[currentHistoryIndex].data &&
-            typeof history[currentHistoryIndex].data !== 'string' &&
-            'id' in history[currentHistoryIndex].data &&
-            history[currentHistoryIndex].data.id === authorId) ||
-           (history[currentHistoryIndex].type === 'book' &&
+        ((history[currentHistoryIndex].type === 'author' &&
+          history[currentHistoryIndex].data &&
+          typeof history[currentHistoryIndex].data !== 'string' &&
+          'id' in history[currentHistoryIndex].data &&
+          history[currentHistoryIndex].data.id === authorId) ||
+          (history[currentHistoryIndex].type === 'book' &&
             history[currentHistoryIndex].data &&
             typeof history[currentHistoryIndex].data !== 'string' &&
             'author_id' in history[currentHistoryIndex].data &&
@@ -614,6 +636,8 @@ function App() {
     if (selectedBook) {
       fetchQuotes();
       fetchBookNotes(selectedBook.id);
+      fetchBookChapters();
+
       if (selectedBook.author_id) {
         setSelectedBookAuthor(findAuthorById(authors, selectedBook.author_id));
       }
@@ -677,7 +701,8 @@ function App() {
     currentPage = (
       <BookPage
         book={selectedBook}
-        author={selectedBookAuthor}
+        author={selectedBookAuthor as Author}
+        chapters={bookChapters}
         quotes={quotes}
         notes={bookNotes}
         navigateToAuthor={navigateToAuthor}

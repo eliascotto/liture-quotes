@@ -101,7 +101,7 @@ function QuoteBox({
   const [menuOpen, setMenuOpen] = useState(false);
   const quoteRef = useRef(null);
 
-  const classBase = "text-slate-300 py-3 px-4 whitespace-pre-line transition-all duration-200 border-l border-slate-700/70";
+  const classBase = "text-slate-300 py-1.5 px-4 whitespace-pre-line transition-all duration-200 border-l-2 border-slate-700/90";
   const selectedClass = `${classBase} bg-gradient-to-r from-slate-800/70 to-slate-800/80 shadow-md`;
 
   const empty = quote.content?.trim() === '';
@@ -192,7 +192,7 @@ function QuoteBox({
         ) : (
           <div
             className={clsx(
-              "min-h-[48px]  select-none",
+              "select-none",
               selected ? selectedClass : classBase,
               empty && "text-opacity-30 cursor-default",
               "hover:bg-slate-800/70"
@@ -217,7 +217,7 @@ function QuoteBox({
             ) : (
               <div
                 id={note.id}
-                className="ml-8 text-sm leading-6 italic mb-2 text-slate-300/85 p-4 border-slate-700/50 group/note hover:bg-slate-700/50 select-none"
+                className="ml-8 text-sm leading-6 italic text-slate-300/85 py-2.5 px-4 border-slate-700/50 group/note hover:bg-slate-700/50 select-none"
                 onDoubleClick={() => onNoteEdit && setNoteEditable(true)}
               >
                 <span className="select-auto">{note.content}</span>

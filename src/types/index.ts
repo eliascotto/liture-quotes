@@ -1,20 +1,3 @@
-export interface Quote {
-  id: string;
-  content: string | null;
-  book_id: string | null;
-  book_title: string | null;
-  author_id: string | null;
-  author_name: string | null;
-  starred: number | null;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
-  imported_at: string | null;
-  chapter: string | null;
-  chapter_progress: number | null;
-  original_id: string | null;
-}
-
 export interface Book {
   id: string;
   author_id: string | null;
@@ -33,6 +16,34 @@ export interface Author {
   updated_at: string;
   deleted_at: string | null;
   original_id: string | null;
+}
+
+export interface Quote {
+  id: string;
+  content: string | null;
+  book_id: string | null;
+  book_title: string | null;
+  author_id: string | null;
+  author_name: string | null;
+  starred: number | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  imported_at: string | null;
+  chapter: string | null;
+  chapter_progress: number | null;
+  original_id: string | null;
+}
+
+export interface Chapter {
+  id: string;
+  book_id: string | null;
+  title: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  original_id: string | null;
+  volume_index: number | null;
 }
 
 export interface StarredQuote {
@@ -152,5 +163,5 @@ export interface NewBookData {
   title: string;
   authorOption: 'existing' | 'new';
   authorId: string | null;
-  newAuthorName: string | null;
+  authorName: string | null;
 }

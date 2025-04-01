@@ -146,6 +146,28 @@ pub mod commands {
         Ok(book)
     }
 
+    /// Create a book with an author in the same transaction.
+    /// If the author doesn't exist, create it.
+    #[tauri::command]
+    pub async fn create_book_with_author(title: &str, author_name: &str) -> Result<Book, String> {
+        let pool = get_pool();
+        let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
+
+        let author = match queries::get_author_by_name(author_name.to_string(), &mut *tx).await {
+            Ok(author) => author,
+            Err(_) => queries::insert_author(author_name.to_string(), &mut *tx)
+                .await
+                .map_err(|e| format!("Error creating author: {}", e))?,
+        };
+
+        let book = queries::insert_book(title.to_string(), Some(author.id), None, &mut *tx)
+            .await
+            .map_err(|e| format!("Error creating book: {}", e))?;
+
+        tx.commit().await.map_err(|e| e.to_string())?;
+        Ok(book)
+    }
+
     #[tauri::command]
     pub async fn create_quote(book_id: &str, content: &str) -> Result<Quote, String> {
         if content.trim().is_empty() {
@@ -273,6 +295,19 @@ pub mod commands {
 
         tx.commit().await.map_err(|e| e.to_string())?;
         Ok(())
+    }
+
+    #[tauri::command]
+    pub async fn update_author(author_id: &str, author_name: &str) -> Result<Author, String> {
+        let pool = get_pool();
+        let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
+
+        let result = queries::update_author_name(author_id, author_name, &mut *tx)
+            .await
+            .map_err(|e| e.to_string())?;
+
+        tx.commit().await.map_err(|e| e.to_string())?;
+        Ok(result)
     }
 
     #[tauri::command]

@@ -53,7 +53,7 @@ export default function EditableQuoteBox({
     <div
       ref={editableBoxRef}
       id={quote.id}
-      className="my-2 bg-slate-800/80 shadow-lg border border-slate-700/50 pt-3 pb-2 px-5 backdrop-blur-sm select-none"
+      className="bg-slate-800/80 shadow-lg rounded-sm border border-slate-700/50 pt-3 pb-2 px-5 backdrop-blur-sm select-none"
     >
       <textarea
         ref={textareaRef}
@@ -72,7 +72,7 @@ export default function EditableQuoteBox({
           <Tooltip content="Cancel quote" shortcut="Esc">
             <button
               onClick={onCancel}
-              className="px-3 py-1.5 text-sm rounded-md text-slate-400 hover:text-white transition-colors duration-200"
+              className="px-3 py-1.5 text-sm text-slate-400 hover:text-white transition-colors duration-200"
             >
               Cancel
             </button>
@@ -80,7 +80,7 @@ export default function EditableQuoteBox({
           <Tooltip content="Save quote" shortcut="⌘ ⏎">
             <button
               onClick={() => onSave(currentText ?? "")}
-              className="px-3 py-1.5 text-sm rounded-md text-cyan-500 hover:bg-slate-700/50 font-medium transition-colors duration-200"
+              className="px-3 py-1.5 text-sm rounded-sm text-cyan-500 hover:bg-slate-700/50 font-medium transition-colors duration-200"
             >
               Save
             </button>

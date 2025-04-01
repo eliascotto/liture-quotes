@@ -2,13 +2,18 @@ import { useState } from "react";
 import { useDialog } from "../context/DialogContext.tsx";
 import Input from "@components/Input.tsx";
 
-function NewAuthorForm({ onSubmit, onCancel }) {
+interface NewAuthorFormProps {
+  onSubmit: (name: string) => Promise<boolean>;
+  onCancel: () => void;
+}
+
+function NewAuthorForm({ onSubmit, onCancel }: NewAuthorFormProps) {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { closeDialog } = useDialog();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     
     // Validate

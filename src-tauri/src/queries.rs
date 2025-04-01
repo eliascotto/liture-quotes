@@ -265,6 +265,17 @@ where
     .await
 }
 
+pub async fn update_author_name<'e, E>(author_id: &str, author_name: &str, executor: E) -> Result<Author, sqlx::Error>
+where
+    E: Executor<'e, Database = Sqlite>,
+{
+    sqlx::query_as::<_, Author>("UPDATE author SET name = ?1 WHERE id = ?2 RETURNING *")
+        .bind(author_name)
+        .bind(author_id)
+        .fetch_one(executor)
+        .await
+}
+
 /// Get all books
 pub async fn get_books<'e, E>(executor: E) -> Result<Vec<Book>, sqlx::Error>
 where

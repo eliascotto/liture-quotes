@@ -1,10 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import clsx from 'clsx';
 import PlusIcon from "@icons/Plus";
-import NewAuthorForm from "@components/NewAuthorForm.jsx";
+import NewAuthorForm from "@components/NewAuthorForm.tsx";
 import NewBookForm from "@components/NewBookForm.jsx";
 import { useDialog } from "@context/DialogContext.tsx";
 import { Author } from "@customTypes/index";
+import Logger from "@utils/logger";
+
+const logger = new Logger("AddButton");
 
 type AddButtonProps = { 
   onClick: (type: string, data: any) => Promise<boolean>,
@@ -49,10 +52,13 @@ function AddButton({
       "Add New Author",
       <NewAuthorForm
         onSubmit={async (authorName: string) => {
+          logger.debug("Attempting to create author:", authorName);
           try {
-            return await onClick("author", { name: authorName });
+            const result = await onClick("author", { authorName });
+            logger.debug("Author creation result:", result);
+            return result;
           } catch (error) {
-            console.error("Error creating author:", error);
+            logger.error("Error creating author:", error);
             return false;
           }
         }}
