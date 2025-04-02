@@ -3,7 +3,14 @@ import { createPortal } from 'react-dom';
 import XIcon from '@components/icons/X';
 import clsx from 'clsx';
 
-function Dialog({ isOpen, onClose, title, children }) {
+type DialogProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode;
+} 
+
+function Dialog({ isOpen, onClose, title, children }: DialogProps) {
   const dialogRef = useRef(null);
   const [isExiting, setIsExiting] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -26,8 +33,8 @@ function Dialog({ isOpen, onClose, title, children }) {
   useEffect(() => {
     if (!isOpen) return;
 
-    function handleClickOutside(event) {
-      if (dialogRef.current && !dialogRef.current.contains(event.target)) {
+    function handleClickOutside(event: MouseEvent) {
+      if (dialogRef.current && !(dialogRef.current as HTMLElement).contains(event.target as Node)) {
         handleClose();
       }
     }
@@ -36,7 +43,7 @@ function Dialog({ isOpen, onClose, title, children }) {
     document.addEventListener('mousedown', handleClickOutside);
     
     // Handle escape key
-    function handleEscKey(event) {
+    function handleEscKey(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         handleClose();
       }
@@ -59,7 +66,7 @@ function Dialog({ isOpen, onClose, title, children }) {
       // but won't automatically focus any element when the dialog opens
       
       // Find all focusable elements
-      const focusableElements = dialogRef.current.querySelectorAll(
+      const focusableElements = (dialogRef.current as HTMLElement).querySelectorAll(
         'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
       );
       
@@ -70,12 +77,12 @@ function Dialog({ isOpen, onClose, title, children }) {
       // }
       
       // Keep the focus trap functionality
-      const handleTabKey = (e) => {
+      const handleTabKey = (e: KeyboardEvent) => {
         if (e.key === 'Tab') {
-          if (!dialogRef.current.contains(document.activeElement)) {
+          if (dialogRef.current && !(dialogRef.current as HTMLElement).contains(document.activeElement as Node)) {
             e.preventDefault();
             if (focusableElements.length > 0) {
-              focusableElements[0].focus();
+              (focusableElements[0] as HTMLElement).focus();
             }
           }
         }

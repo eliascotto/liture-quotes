@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, use } from "react";
 import clsx from 'clsx';
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
@@ -16,7 +16,18 @@ import { useToast } from "@context/ToastContext.tsx";
 import { useWindowState } from "@hooks/useWindowState.js";
 import Logger from "@utils/logger";
 import { errorToString } from "@utils/index";
-import { NewBookData, Author, Book, BooksAuthors, Note, Quote, PageState, StarredQuote, SearchResults, Chapter } from "@customTypes/index.ts";
+import {
+  NewBookData,
+  Author, 
+  Book,
+  BooksAuthors,
+  Note,
+  Quote,
+  PageState,
+  StarredQuote,
+  SearchResults,
+  Chapter
+} from "@customTypes/index.ts";
 
 const logger = Logger.getInstance();
 
@@ -51,19 +62,16 @@ function App() {
   // Current book
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [selectedBookAuthor, setSelectedBookAuthor] = useState<Author | null>(null);
+
+  const [sortBy, setSortBy] = useState<string>("date_modified");
+  const [sortOrder, setSortOrder] = useState<"ASC" | "DESC">("DESC");
+
+  const [bookNotes, setBookNotes] = useState<Note[]>([]);
   const [bookChapters, setBookChapters] = useState<Chapter[]>([]);
 
   // Current author
   const [selectedAuthor, setSelectedAuthor] = useState<Author | null>(null);
   const [selectedAuthorBooks, setSelectedAuthorBooks] = useState<Book[]>([]);
-
-  // Current quote
-  const [newlyCreatedQuoteId, setNewlyCreatedQuoteId] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState("date_modified");
-  const [sortOrder, setSortOrder] = useState("DESC");
-
-  // Current book's notes
-  const [bookNotes, setBookNotes] = useState<Note[]>([]);
 
   // Navigation history
   const [history, setHistory] = useState<PageState[]>([]);
@@ -73,8 +81,9 @@ function App() {
 
   // Favourites page
   const [showingFavourites, setShowingFavourites] = useState(false);
-  const [sortByFavouriteItems, setSortByFavouriteItems] = useState<string>("date_modified");
-  const [sortOrderFavouriteItems, setSortOrderFavouriteItems] = useState<"ASC" | "DESC">("DESC");
+
+  const [sortByFavourite, setSortByFavourite] = useState<string>("date_modified");
+  const [sortOrderFavourite, setSortOrderFavourite] = useState<"ASC" | "DESC">("DESC");
 
   // Get current page state
   const getCurrentPageState = useCallback((): PageState | null => {
@@ -247,8 +256,8 @@ function App() {
   async function fetchStarredQuotes(sortBy?: string, sortOrder?: string) {
     try {
       const notes = await invoke("get_starred_quotes", {
-        sortBy: sortBy || sortByFavouriteItems,
-        sortOrder: sortOrder || sortOrderFavouriteItems
+        sortBy: sortBy || sortByFavourite,
+        sortOrder: sortOrder || sortOrderFavourite
       });
       setStarredQuotes(notes as Quote[]);
     } catch (error) {
@@ -387,7 +396,6 @@ function App() {
         bookId,
         content,
       });
-      setNewlyCreatedQuoteId(newQuote.id);
       await fetchQuotes();
     } catch (error) {
       console.error("Error adding quote:", error);
@@ -411,7 +419,9 @@ function App() {
 
   function clearNavigation() {
     setShowingFavourites(false);
-    setNewlyCreatedQuoteId(null);
+    setSelectedBook(null);
+    setSelectedAuthor(null);
+    setSearch(null);
   }
 
   function onNavbarSelection(item: Book | Author) {
@@ -425,7 +435,6 @@ function App() {
 
   function onFavouritesButtonClick() {
     setShowingFavourites(!showingFavourites);
-    setNewlyCreatedQuoteId(null);
   }
 
   function navigateToBook(bookId: string) {
@@ -624,6 +633,14 @@ function App() {
       importErrorListener.then((unlisten) => unlisten());
     };
   }, []);
+  
+  useEffect(() => {
+    if (selectedBook) {
+      fetchQuotes();
+      fetchBookNotes(selectedBook.id);
+      fetchBookChapters();
+    }
+  }, [sortBy, sortOrder]);
 
   useEffect(() => {
     if (showingFavourites) {
@@ -664,10 +681,10 @@ function App() {
     currentPage = (
       <FavouritesPage
         quotes={starredQuotes}
-        sortByItems={sortByFavouriteItems}
-        setSortByItems={setSortByFavouriteItems}
-        sortOrderItems={sortOrderFavouriteItems}
-        setSortOrderItems={setSortOrderFavouriteItems}
+        sortByItems={sortByFavourite}
+        setSortByItems={setSortByFavourite}
+        sortOrderItems={sortOrderFavourite}
+        setSortOrderItems={setSortOrderFavourite}
         updateQuote={updateQuote}
         onStarClick={toggleFavouriteQuote}
         reloadFavourites={fetchStarredQuotes}

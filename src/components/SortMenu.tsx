@@ -1,14 +1,18 @@
-import { useRef, useState, useEffect } from 'react';
-import clsx from 'clsx';
-import ChevronDown from '@icons/ChevronDown';
+import { useRef, useState, useEffect } from "react";
+import clsx from "clsx";
+import ChevronDown from "@icons/ChevronDown";
 
-export default function SortMenu(
-  { sortBy, sortOrder, sortByFields, onSortChange }: 
-  { sortBy: string, 
-    sortOrder: string, 
-    sortByFields: string[], 
-    onSortChange: (field: string, order: string) => void }
-) {
+type SortMenuProps = {
+  sortBy: string;
+  sortOrder: "ASC" | "DESC";
+  sortByFields: string[];
+  onSortChange: (field: string, order: "ASC" | "DESC") => void;
+}
+
+export default function SortMenu({ 
+  sortBy, sortOrder, sortByFields, onSortChange 
+}: SortMenuProps) 
+{
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
 
@@ -19,12 +23,12 @@ export default function SortMenu(
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const getSortLabel = (field: string) => {
-    return field.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+    return field.replace(/_/g, " ").replace(/\b\w/g, (l: string) => l.toUpperCase());
   };
 
   const getCurrentSortLabel = () => {
@@ -52,7 +56,7 @@ export default function SortMenu(
       >
         <span>{getCurrentSortLabel()}</span>
         <ChevronDown 
-          className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          className={`w-4 h-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
 

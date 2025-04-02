@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import CheckIcon from "@icons/Check";
-import XMarkIcon from "@icons/XMark";
+import XMarkIcon from "@components/icons/XMark";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 
 const Toast = ({ 

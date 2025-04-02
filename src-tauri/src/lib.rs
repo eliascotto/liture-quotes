@@ -193,7 +193,7 @@ pub mod commands {
             id: note_id,
             book_id: Some(book.id),
             author_id: book.author_id,
-            chapter: None,
+            chapter_id: None,
             chapter_progress: None,
             content: Some(content.to_string()),
             starred: Some(0),

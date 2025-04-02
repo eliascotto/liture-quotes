@@ -19,22 +19,6 @@ CREATE TABLE IF NOT EXISTS book (
     FOREIGN KEY (author_id) REFERENCES author(id)
 );
 
-CREATE TABLE IF NOT EXISTS quote (
-    id TEXT PRIMARY KEY NOT NULL,
-    book_id TEXT,
-    author_id TEXT,
-    chapter TEXT,
-    chapter_progress REAL,
-    content TEXT,
-    starred INTEGER DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    imported_at TIMESTAMP,
-    deleted_at TIMESTAMP,
-    original_id TEXT,
-    FOREIGN KEY (book_id) REFERENCES book(id)
-);
-
 CREATE TABLE IF NOT EXISTS chapter (
     id TEXT PRIMARY KEY NOT NULL,
     book_id TEXT,
@@ -45,6 +29,24 @@ CREATE TABLE IF NOT EXISTS chapter (
     original_id TEXT,
     volume_index INTEGER,
     FOREIGN KEY (book_id) REFERENCES book(id)
+);
+
+CREATE TABLE IF NOT EXISTS quote (
+    id TEXT PRIMARY KEY NOT NULL,
+    book_id TEXT,
+    author_id TEXT,
+    chapter_id TEXT,
+    chapter_progress REAL,
+    content TEXT,
+    starred INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    imported_at TIMESTAMP,
+    deleted_at TIMESTAMP,
+    original_id TEXT,
+    FOREIGN KEY (book_id) REFERENCES book(id),
+    FOREIGN KEY (author_id) REFERENCES author(id),
+    FOREIGN KEY (chapter_id) REFERENCES chapter(id)
 );
 
 CREATE TABLE IF NOT EXISTS note (

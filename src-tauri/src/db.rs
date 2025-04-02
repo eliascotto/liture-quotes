@@ -23,7 +23,7 @@ pub async fn init_pool(app: tauri::AppHandle) -> Result<(), sqlx::Error> {
         fs::create_dir_all(&app_dir).expect("Failed to create database directory");
     }
 
-    let db_path = app_dir.join("quotes.db");
+    let db_path = app_dir.join("main.db");
     let db_url = format!("sqlite:{}", db_path.display());
 
     // Check if database exists, if not create it

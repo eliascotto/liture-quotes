@@ -1,6 +1,4 @@
-import React from 'react';
-
-const UsersIcon = ({ className = "w-5 h-5" }) => (
+const UsersIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
   <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path 
       strokeLinecap="round" 

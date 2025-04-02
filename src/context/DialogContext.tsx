@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useRef } from 'react';
-import Dialog from '../components/Dialog';
+import Dialog from '../components/Dialog.tsx';
 
 interface DialogContextType {
   openDialog: (title: string, content: React.ReactNode, onCloseCallback?: () => void) => void;

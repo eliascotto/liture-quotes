@@ -14,7 +14,7 @@ fn extract_order_clauses(sort_by: Option<&str>, order: Option<&str>) -> (String,
     let sort_by_clause = match sort_by {
         Some("date_created") => "created_at",
         Some("date_modified") => "updated_at",
-        Some("chapter") => "chapter",
+        Some("chapter") => "chapter_id",
         Some("chapter_progress") => "chapter_progress",
         Some("starred") => "starred",
         _ => "updated_at",
@@ -33,7 +33,6 @@ pub async fn init_db(pool: &SqlitePool) -> Result<(), sqlx::Error> {
         pool,
     )
     .await?;
-
     
     let _ = insert_quote_lite(
         "A reader lives a thousand lives before he dies... The man who never reads lives only one.".to_string(),
@@ -61,6 +60,7 @@ pub async fn init_db(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     Ok(())
 }
 
+// Insert a new quote with some default values
 pub async fn insert_quote_lite(content: String, book_id: Option<String>, author_id: Option<String>, pool: &SqlitePool) -> Result<Quote, sqlx::Error> {
     let now = chrono::Local::now().naive_utc();
     let quote = insert_quote(
@@ -69,7 +69,7 @@ pub async fn insert_quote_lite(content: String, book_id: Option<String>, author_
             content: Some(content),
             book_id: book_id,
             author_id: author_id,
-            chapter: None,
+            chapter_id: None,
             chapter_progress: None,
             starred: Some(0),
             created_at: now,
@@ -85,6 +85,7 @@ pub async fn insert_quote_lite(content: String, book_id: Option<String>, author_
     Ok(quote)
 }
 
+// Insert a new note with some default values
 pub async fn insert_note_lite(content: String, quote_id: Option<String>, book_id: Option<String>, author_id: Option<String>, pool: &SqlitePool) -> Result<Note, sqlx::Error> {
     let now = chrono::Local::now().naive_utc();
     let note = insert_note(
@@ -173,14 +174,14 @@ where
 {
     sqlx::query_as::<_, Quote>(
         "INSERT OR IGNORE INTO quote 
-            (id, book_id, author_id, chapter, chapter_progress, content, starred, original_id) 
+            (id, book_id, author_id, chapter_id, chapter_progress, content, starred, original_id) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             RETURNING *",
     )
     .bind(quote.id.clone())
     .bind(quote.book_id.clone())
     .bind(quote.author_id.clone())
-    .bind(quote.chapter.clone())
+    .bind(quote.chapter_id.clone())
     .bind(quote.chapter_progress)
     .bind(quote.content.clone())
     .bind(quote.starred)
@@ -355,7 +356,7 @@ where
         r#"SELECT 
                 q.id, 
                 q.content,
-                q.chapter,
+                q.chapter_id,
                 q.chapter_progress,
                 q.starred,
                 q.created_at,
@@ -384,7 +385,7 @@ where
         r#"SELECT 
                 q.id, 
                 q.content,
-                q.chapter,
+                q.chapter_id,
                 q.chapter_progress,
                 q.starred,
                 q.created_at,
@@ -414,7 +415,7 @@ where
         r#"SELECT 
                 q.id, 
                 q.content,
-                q.chapter,
+                q.chapter_id,
                 q.chapter_progress,
                 q.starred,
                 q.created_at,

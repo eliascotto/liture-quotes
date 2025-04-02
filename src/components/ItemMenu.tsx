@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, Fragment } from 'react';
 import DotsVertical from '@icons/DotsVertical';
 import { useDialog } from '@context/DialogContext.tsx';
-import DeleteConfirmationDialog from '@components/DeleteConfirmationDialog';
+import DeleteConfirmationDialog from '@components/DeleteConfirmationDialog.tsx';
 import clsx from 'clsx';
 
 const ItemMenu = (

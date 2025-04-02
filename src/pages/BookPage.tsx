@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, Fragment, MouseEvent as MouseEventHandler, KeyboardEvent, useMemo } from "react";
 import clsx from "clsx";
 import QuoteBox from "@components/QuoteBox";
-import ItemMenu from '@components/ItemMenu.tsx';
 import SortMenu from '@components/SortMenu.tsx';
 import Tooltip from "@components/Tooltip.tsx";
 import EditableNoteBox from "@components/EditableQuoteBox";
@@ -22,9 +21,9 @@ interface BookPageProps {
   notes: Note[];
   chapters: Chapter[];
   sortBy: string;
-  sortOrder: string;
+  sortOrder: "ASC" | "DESC";
   setSortBy: (sortBy: string) => void;
-  setSortOrder: (sortOrder: string) => void;
+  setSortOrder: (sortOrder: "ASC" | "DESC") => void;
   navigateToAuthor: (authorId: string) => void;
   createNewQuote: (bookId: string, content: string) => void;
   toggleFavouriteQuote: (quote: Quote) => void;
@@ -51,7 +50,7 @@ function BookPage({
 
   const sortByFields = ["date_modified", "date_created", "chapter_progress"];
 
-  const handleSortChange = (field: string, order: string) => {
+  const handleSortChange = (field: string, order: "ASC" | "DESC") => {
     setSortBy(field);
     setSortOrder(order);
   };
@@ -74,7 +73,7 @@ function BookPage({
       author_id: author.id,
       author_name: author.name,
       starred: 0,
-      chapter: null,
+      chapter_id: null,
       deleted_at: null,
       imported_at: null,
       original_id: null,

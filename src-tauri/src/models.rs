@@ -31,7 +31,7 @@ pub struct Quote {
     pub id: String,
     pub book_id: Option<String>,
     pub author_id: Option<String>,
-    pub chapter: Option<String>,
+    pub chapter_id: Option<String>,
     pub chapter_progress: Option<f64>,
     pub content: Option<String>,
     pub starred: Option<i64>,
@@ -153,7 +153,7 @@ pub struct QuoteJson {
     pub id: String,
     pub book_id: Option<String>,
     pub text: Option<String>,
-    pub chapter: Option<String>,
+    pub chapter_id: Option<String>,
     pub chapter_progress: Option<f64>,
     pub annotation: Option<String>,
     pub created_at: String,
@@ -200,7 +200,7 @@ pub fn parse_quote(value: &Value) -> Result<QuoteJson, Box<dyn error::Error>> {
             .as_str()
             .ok_or("Invalid parameter updated_at for quote")?
             .to_string(),
-        chapter: match value["chapter"].as_str() {
+        chapter_id: match value["chapter"].as_str() {
             Some(x) => Some(x.to_string()),
             None => None,
         },

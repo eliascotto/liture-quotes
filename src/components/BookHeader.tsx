@@ -3,6 +3,7 @@ import clsx from "clsx";
 import Tooltip from "@components/Tooltip";
 import ItemMenu from "@components/ItemMenu";
 import { Author, Book } from "@customTypes/index";
+import { cleanText } from "@utils/index";
 
 interface EditableTitleProps {
   title: string;
@@ -13,7 +14,7 @@ interface EditableTitleProps {
 function EditableTitle({
   title, onSave, onCancel
 }: EditableTitleProps) {
-  const [currentTitle, setCurrentTitle] = useState(title);
+  const [currentTitle, setCurrentTitle] = useState(cleanText(title));
   const inputRef = useRef(null);
   const editableTitleRef = useRef(null);
 
@@ -112,13 +113,13 @@ function BookHeader({
               className="text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text truncate text-ellipsis"
               onClick={handleTitleClick}
             >
-              {book.title}
+              {cleanText(book.title)}
             </h1>
             <ItemMenu
               onEdit={() => setIsEditingTitle(true)}
               onDelete={() => onDeleteBook(book.id)}
               itemType="Book"
-              itemName={book.title}
+              itemName={cleanText(book.title)}
             />
           </div>
           <div className="py-1.5">
@@ -128,7 +129,7 @@ function BookHeader({
                 className="text-slate-400 hover:text-cyan-400 transition-colors duration-200 cursor-pointer ml-1"
                 onClick={() => navigateToAuthor(author.id)}
               >
-                {author && author.name}
+                {author && cleanText(author.name)}
               </span>
             </h3>
           </div>

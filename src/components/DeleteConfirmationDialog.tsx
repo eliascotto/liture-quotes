@@ -1,7 +1,13 @@
 import React from 'react';
 import { useDialog } from '../context/DialogContext.tsx';
 
-const DeleteConfirmationDialog = ({ itemType, itemName, onConfirm }) => {
+type DeleteConfirmationDialogProps = {
+  itemType: string;
+  itemName: string;
+  onConfirm: () => void;
+}
+
+const DeleteConfirmationDialog = ({ itemType, itemName, onConfirm }: DeleteConfirmationDialogProps) => {
   const { closeDialog } = useDialog();
 
   return (

@@ -1,4 +1,4 @@
-export default function CheckIcon({ className = '' }) {
+export default function CheckIcon({ className = '' }: { className?: string }) {
   return (
     <svg
       className={`w-5 h-5 ${className}`}

@@ -6,6 +6,7 @@ use tauri::{menu::Menu, AppHandle, Emitter, Manager, Wry};
 pub enum MenuEvent {
     ImportFromKobo,
     ImportFromKindle,
+    ImportFromiBooks,
 }
 
 impl ToString for MenuEvent {
@@ -13,6 +14,7 @@ impl ToString for MenuEvent {
         match self {
             MenuEvent::ImportFromKobo => "import_from_kobo".to_string(),
             MenuEvent::ImportFromKindle => "import_from_kindle".to_string(),
+            MenuEvent::ImportFromiBooks => "import_from_ibooks".to_string(),
         }
     }
 }
@@ -25,6 +27,7 @@ impl FromStr for MenuEvent {
             // Convert to lowercase for case-insensitive matching
             "import_from_kobo" => Ok(MenuEvent::ImportFromKobo),
             "import_from_kindle" => Ok(MenuEvent::ImportFromKindle),
+            "import_from_ibooks" => Ok(MenuEvent::ImportFromiBooks),
             _ => Err(ParseError::InvalidMenuEvent),
         }
     }
@@ -49,20 +52,28 @@ impl std::error::Error for ParseError {}
 fn setup_file_submenu(app: &mut tauri::App) -> tauri::Result<tauri::menu::Submenu<Wry>> {
     use tauri::menu::{MenuItemBuilder, SubmenuBuilder};
 
-    // Build a new File submenu with the existing items plus the new "Save" item
-    SubmenuBuilder::new(app, "File")
+    // Create the "Import books" submenu
+    let mut import_submenu = SubmenuBuilder::new(app, "Import books")
         .item(
-            &SubmenuBuilder::new(app, "Import from")
-                .item(
-                    &MenuItemBuilder::with_id(MenuEvent::ImportFromKobo, "Kobo Reader file")
-                        .build(app)?,
-                )
-                .item(
-                    &MenuItemBuilder::with_id(MenuEvent::ImportFromKindle, "Kindle Clippings")
-                        .build(app)?,
-                )
-                .build()?,
+            &MenuItemBuilder::with_id(MenuEvent::ImportFromKobo, "From Kobo Reader file")
+                .build(app)?,
         )
+        .item(
+            &MenuItemBuilder::with_id(MenuEvent::ImportFromKindle, "From Kindle Clippings file")
+                .build(app)?,
+        );
+
+    // Add iBooks option only if running on macOS
+    if cfg!(target_os = "macos") {
+        import_submenu = import_submenu.item(
+            &MenuItemBuilder::with_id(MenuEvent::ImportFromiBooks, "From iBooks") // Use a unique ID if needed
+                .build(app)?,
+        );
+    }
+
+    // Build the File submenu with the conditionally populated Import submenu
+    SubmenuBuilder::new(app, "File")
+        .item(&import_submenu.build()?)
         .build()
 }
 
@@ -247,6 +258,18 @@ async fn handle_menu_event(app: &AppHandle, event: MenuEvent) {
                     }
                 }
                 Err(e) => log::error!("Error importing from Kindle Clippings: {}", e),
+            }
+        }
+        MenuEvent::ImportFromiBooks => {
+            webview
+                .emit("importing", create_payload(Some("ibooks".to_string()), None, None))
+                .unwrap();
+
+            match import::import_ibooks().await {
+                Ok(res) => webview
+                    .emit("import-success", create_payload(None, Some(res), None))
+                    .unwrap(),
+                Err(e) => log::error!("Error importing from iBooks: {}", e),
             }
         }
     }

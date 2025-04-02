@@ -4,7 +4,8 @@ use crate::queries;
 use crate::utils::is_dev;
 
 use anyhow::Result;
-use chrono::{NaiveDateTime, Utc};
+use chrono::{NaiveDateTime, TimeZone, Utc};
+use glob::glob;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -12,7 +13,7 @@ use sqlx::{sqlite::SqlitePool, FromRow, Row};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader, Read};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use tauri::{AppHandle, Manager};
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
 use uuid::Uuid;
@@ -79,6 +80,14 @@ fn read_json(path: &str) -> io::Result<Value> {
     Ok(json)
 }
 
+fn resolve_path(pattern: &str) -> Result<PathBuf, String> {
+    glob(pattern)
+        .map_err(|e| format!("Failed to read pattern '{}': {}", pattern, e))?
+        .next()
+        .and_then(|entry| entry.ok())
+        .ok_or_else(|| format!("No matching path found for pattern '{}'", pattern))
+}
+
 fn parse_datetime(s: &str) -> Result<NaiveDateTime, chrono::format::ParseError> {
     let formats = [
         "%Y-%m-%dT%H:%M:%S%.3f",   // For "2020-11-22T10:11:42.000"
@@ -95,6 +104,21 @@ fn parse_datetime(s: &str) -> Result<NaiveDateTime, chrono::format::ParseError> 
     }
 
     NaiveDateTime::parse_from_str(s, formats[0])
+}
+
+// Offset between Unix epoch (1970) and Core Data epoch (2001) in seconds
+const CORE_DATA_EPOCH_OFFSET: f64 = 978_307_200.0;
+
+fn core_data_to_naive_datetime(core_data_ts: f64) -> Option<NaiveDateTime> {
+    let unix_ts = core_data_ts + CORE_DATA_EPOCH_OFFSET;
+
+    // Split into seconds and nanoseconds
+    let seconds = unix_ts.trunc() as i64;
+    let nanos = ((unix_ts.fract()) * 1_000_000_000.0) as u32;
+
+    Utc.timestamp_opt(seconds, nanos)
+        .single()
+        .map(|dt| dt.naive_utc())
 }
 
 #[derive(Debug)]
@@ -132,15 +156,20 @@ impl std::fmt::Display for ImportError {
     }
 }
 
+///
+/// Kobo
+///
+///
+
 #[derive(Debug, Serialize, Deserialize, FromRow)]
-struct Book {
+struct KoboBook {
     volume_id: String,
     title: String,
     author: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, FromRow)]
-struct Chapter {
+struct KoboChapter {
     content_id: String,
     book_id: String,
     book_title: String,
@@ -149,7 +178,7 @@ struct Chapter {
 }
 
 #[derive(Debug, Serialize, Deserialize, FromRow)]
-struct BookItem {
+struct KoboQuote {
     volume_id: String,
     text: Option<String>,
     annotation: Option<String>,
@@ -162,7 +191,7 @@ struct BookItem {
     item_type: String,
 }
 
-const QUERY_BOOKS_AUTHORS: &str = r#"
+const QUERY_KOBO_BOOKS_AUTHORS: &str = r#"
     SELECT DISTINCT
         b.VolumeID as volume_id,
         c.Title as title,
@@ -174,7 +203,7 @@ const QUERY_BOOKS_AUTHORS: &str = r#"
         c.Title;
 "#;
 
-const QUERY_CHAPTERS: &str = r#"
+const QUERY_KOBO_CHAPTERS: &str = r#"
     SELECT DISTINCT
     	c.ContentID as content_id,
     	c.BookID as book_id,
@@ -187,7 +216,7 @@ const QUERY_CHAPTERS: &str = r#"
     ORDER BY c.VolumeIndex;
 "#;
 
-const QUERY_ITEMS_V175: &str = r#"
+const QUERY_KOBO_ITEMS_V175: &str = r#"
     SELECT 
         b.VolumeID as volume_id,
         c.ContentID as content_id,
@@ -206,7 +235,7 @@ const QUERY_ITEMS_V175: &str = r#"
     ORDER BY b.ChapterProgress ASC, b.DateCreated ASC;
 "#;
 
-const QUERY_ITEMS_V174: &str = r#"
+const QUERY_KOBO_ITEMS_V174: &str = r#"
     SELECT 
         b.VolumeID as volume_id,
         c.ContentID as content_id,
@@ -257,7 +286,7 @@ pub async fn import_kobo(str_path: &str) -> Result<String, ImportError> {
         .get(0);
 
     // Fetch all the books with their authors first.
-    let books = sqlx::query_as::<_, Book>(QUERY_BOOKS_AUTHORS)
+    let books = sqlx::query_as::<_, KoboBook>(QUERY_KOBO_BOOKS_AUTHORS)
         .fetch_all(&kobo_file_db_conn)
         .await
         .map_err(|e| ImportError::DbError(e, "Failed to fetch books".to_string()))?;
@@ -267,7 +296,7 @@ pub async fn import_kobo(str_path: &str) -> Result<String, ImportError> {
 
     // Loop through all books and fetch their chapters.
     for book in books.iter() {
-        let book_chapters = sqlx::query_as::<_, Chapter>(QUERY_CHAPTERS)
+        let book_chapters = sqlx::query_as::<_, KoboChapter>(QUERY_KOBO_CHAPTERS)
             .bind(book.volume_id.clone())
             .fetch_all(&kobo_file_db_conn)
             .await
@@ -277,12 +306,12 @@ pub async fn import_kobo(str_path: &str) -> Result<String, ImportError> {
 
     // Fetch all the highlights/notes.
     let items = if db_version >= 175 {
-        sqlx::query_as::<_, BookItem>(QUERY_ITEMS_V175)
+        sqlx::query_as::<_, KoboQuote>(QUERY_KOBO_ITEMS_V175)
             .fetch_all(&kobo_file_db_conn)
             .await
             .map_err(|e| ImportError::DbError(e, "Failed to fetch items".to_string()))?
     } else {
-        sqlx::query_as::<_, BookItem>(QUERY_ITEMS_V174)
+        sqlx::query_as::<_, KoboQuote>(QUERY_KOBO_ITEMS_V174)
             .fetch_all(&kobo_file_db_conn)
             .await
             .map_err(|e| ImportError::DbError(e, "Failed to fetch items".to_string()))?
@@ -350,6 +379,7 @@ pub async fn import_kobo(str_path: &str) -> Result<String, ImportError> {
         // Chapters
         let book_chapters = chapters.get(&book.volume_id).unwrap();
         let now = Utc::now().naive_utc();
+
         for chapter in book_chapters.iter() {
             // Skip if chapter already exists
             if let Ok(existing_chapter) =
@@ -370,10 +400,10 @@ pub async fn import_kobo(str_path: &str) -> Result<String, ImportError> {
                 deleted_at: None,
             };
 
-            let chapter = queries::insert_chapter(&new_chapter, &mut *tx)
+            let db_chapter = queries::insert_chapter(&new_chapter, &mut *tx)
                 .await
                 .map_err(|e| ImportError::DbError(e, "Failed to insert chapter".to_string()))?;
-            chapters_id_map.insert(chapter.original_id.clone().unwrap(), chapter.id.clone());
+            chapters_id_map.insert(chapter.content_id.clone(), db_chapter.id.clone());
         }
     }
 
@@ -383,36 +413,32 @@ pub async fn import_kobo(str_path: &str) -> Result<String, ImportError> {
             continue;
         }
 
-        let book_id = books_id_map
-            .get(&item.volume_id)
-            .cloned();
+        let book_id = books_id_map.get(&item.volume_id).cloned();
         let author_id = authors_id_map.get(&item.volume_id).unwrap_or(&None).clone();
-        let now = Utc::now().naive_utc();
 
         let created_at = parse_datetime(&item.date_created)
             .map_err(|e| ImportError::InvalidFormat(format!("Error parsing datetime => {}", e)))?;
         let updated_at = match item.date_modified.clone() {
-            Some(date_modified) => parse_datetime(&date_modified)
-                .map_err(|e| ImportError::InvalidFormat(format!("Error parsing datetime => {}", e)))?,
+            Some(date_modified) => parse_datetime(&date_modified).map_err(|e| {
+                ImportError::InvalidFormat(format!("Error parsing datetime => {}", e))
+            })?,
             None => created_at,
         };
 
+        let chapter_id = chapters_id_map.get(&item.chapter).cloned();
+
+        // Quote
         let quote = models::Quote {
-            id: item.bookmark_id.clone(),
+            id: Uuid::new_v4().to_string(),
             book_id: book_id.clone(),
             author_id: author_id.clone(),
-            chapter: Some(
-                chapters_id_map
-                    .get(&item.chapter)
-                    .cloned()
-                    .unwrap_or_else(|| item.chapter.clone()),
-            ),
+            chapter_id: chapter_id,
             chapter_progress: Some(item.chapter_progress),
             content: item.text.clone(),
             starred: Some(0),
-            created_at,
-            updated_at,
-            imported_at: Some(now),
+            created_at: created_at,
+            updated_at: updated_at,
+            imported_at: Some(Utc::now().naive_utc()),
             deleted_at: None,
             original_id: Some(item.bookmark_id.clone()),
         };
@@ -423,8 +449,8 @@ pub async fn import_kobo(str_path: &str) -> Result<String, ImportError> {
 
         imported_quotes += 1;
 
+        // Note
         if item.item_type == "note" && item.annotation.is_some() {
-            // Note
             let note = models::Note {
                 id: Uuid::new_v4().to_string(),
                 book_id: book_id.clone(),
@@ -442,7 +468,9 @@ pub async fn import_kobo(str_path: &str) -> Result<String, ImportError> {
         }
     }
 
-    tx.commit().await.map_err(|e| ImportError::DbError(e, "Failed to commit transaction".to_string()))?;
+    tx.commit()
+        .await
+        .map_err(|e| ImportError::DbError(e, "Failed to commit transaction".to_string()))?;
 
     Ok(format!(
         "Imported successfully {} new books and {} new quotes",
@@ -450,13 +478,18 @@ pub async fn import_kobo(str_path: &str) -> Result<String, ImportError> {
     ))
 }
 
+///
+/// Kindle My Clippings.txt
+///
+///
+
 // Define a struct to represent a single clipping entry
 #[derive(Debug)]
 struct Clipping {
     title: String,
     author: Option<String>,
+    entry_type: String,
     added_at: NaiveDateTime,
-    metadata: String,
     content: Option<String>, // Absent for bookmarks
 }
 
@@ -485,7 +518,7 @@ fn read_clippings_file(path: &str) -> Result<Vec<Clipping>, ImportError> {
         buffer = buffer.trim_start_matches("\u{feff}").to_string();
     }
     if !buffer.trim().is_empty() {
-        lines.push(buffer.clone()); // Always keep the first line if it’s not empty
+        lines.push(buffer.clone()); // Always keep the first line if it's not empty
     }
     buffer.clear();
 
@@ -493,11 +526,12 @@ fn read_clippings_file(path: &str) -> Result<Vec<Clipping>, ImportError> {
     for line in reader.lines() {
         let line = line.map_err(|e| ImportError::IoError(e))?;
         if line.trim() == "==========" {
-            // Process the accumulated lines into a Clipping
-            let clipping =
-                parse_clipping(&lines).map_err(|e| ImportError::InvalidFormat(e))?;
-            clippings.push(clipping);
-            lines.clear();
+            if !lines.is_empty() {
+                // Process the accumulated lines into a Clipping
+                let clipping = parse_clipping(&lines).map_err(|e| ImportError::InvalidFormat(e))?;
+                clippings.push(clipping);
+                lines.clear();
+            }
         } else {
             lines.push(line);
         }
@@ -505,8 +539,7 @@ fn read_clippings_file(path: &str) -> Result<Vec<Clipping>, ImportError> {
 
     // Handle any remaining lines (in case file ends without delimiter)
     if !lines.is_empty() {
-        let clipping =
-            parse_clipping(&lines).map_err(|e| ImportError::InvalidFormat(e))?;
+        let clipping = parse_clipping(&lines).map_err(|e| ImportError::InvalidFormat(e))?;
         clippings.push(clipping);
     }
 
@@ -523,16 +556,18 @@ fn parse_clipping(lines: &[String]) -> Result<Clipping, String> {
     let book_title = caps[1].trim().to_string();
     let author = caps.get(2).map(|m| m.as_str().trim().to_string());
 
-    // Parse date from second line
-    let re_metadata = Regex::new(r"Added on (.*?)$").unwrap();
+    // Parse entry_type and date from second line
+    let re_metadata =
+        Regex::new(r"(?:- )?(?:Your )?(Highlight|Note|Bookmark).*?Added on (.*?)$").unwrap();
     let Some(caps) = re_metadata.captures(lines[1].trim()) else {
-        return Err(format!("Invalid date on line {}", lines[1]));
+        return Err(format!("Invalid metadata format on line: {}", lines[1]));
     };
-    let date_str = caps[1].trim();
+    let entry_type = caps[1].to_string(); // Captures "Highlight", "Note", or "Bookmark"
+    let date_str = caps[2].trim();
+
     // Parse date into NaiveDateTime
     let added_at = parse_datetime(date_str).map_err(|e| format!("Error parsing date => {}", e))?;
 
-    let metadata = lines[1].trim().to_string();
     // Line[2] is empty by specification
     let content = if lines.len() > 2 && lines[2].is_empty() {
         Some(lines[3..].join("\n")) // Join content lines if multi-line
@@ -543,15 +578,14 @@ fn parse_clipping(lines: &[String]) -> Result<Clipping, String> {
     Ok(Clipping {
         title: book_title,
         author,
+        entry_type,
         added_at,
-        metadata,
         content,
     })
 }
 
 pub async fn import_clippings(path: &str) -> Result<String, ImportError> {
-    let clippings = read_clippings_file(path)
-        .map_err(|e| e)?;
+    let clippings = read_clippings_file(path).map_err(|e| e)?;
 
     let mut books = HashMap::new();
     let mut authors = HashMap::new();
@@ -572,7 +606,9 @@ pub async fn import_clippings(path: &str) -> Result<String, ImportError> {
                 Err(_) => {
                     let book = queries::insert_book(clipping.title.clone(), None, None, &mut *tx)
                         .await
-                        .map_err(|e| ImportError::DbError(e, "Failed to insert book".to_string()))?;
+                        .map_err(|e| {
+                            ImportError::DbError(e, "Failed to insert book".to_string())
+                        })?;
                     books.insert(clipping.title.clone(), book.id.clone());
                     imported_books += 1;
                 }
@@ -589,7 +625,9 @@ pub async fn import_clippings(path: &str) -> Result<String, ImportError> {
                     Err(_) => {
                         let author = queries::insert_author(author_name.clone(), &mut *tx)
                             .await
-                            .map_err(|e| ImportError::DbError(e, "Failed to insert author".to_string()))?;
+                            .map_err(|e| {
+                                ImportError::DbError(e, "Failed to insert author".to_string())
+                            })?;
                         authors.insert(author_name.clone(), author.id.clone());
                     }
                 }
@@ -602,154 +640,323 @@ pub async fn import_clippings(path: &str) -> Result<String, ImportError> {
             None => None,
         };
 
-        if let Some(content) = &clipping.content {
-            // Check if the quote already exists by comparing the content and book id
-            if let Ok(_) =
-                queries::get_quote_by_book_and_content(book_id.clone(), content.clone(), &mut *tx)
-                    .await
-            {
-                continue;
-            }
-
-            let quote = models::Quote {
-                id: Uuid::new_v4().to_string(),
-                book_id: Some(book_id.clone()),
-                author_id: author_id,
-                chapter: None,
-                chapter_progress: None,
-                content: clipping.content.clone(),
-                starred: Some(0),
-                created_at: clipping.added_at,
-                updated_at: clipping.added_at,
-                imported_at: Some(Utc::now().naive_utc()),
-                deleted_at: None,
-                original_id: None,
-            };
-
-            let _ = queries::insert_quote(&quote, &mut *tx)
+        if clipping.entry_type == "Highlight" {
+            if let Some(content) = &clipping.content {
+                // Check if the quote already exists by comparing the content and book id
+                if let Ok(_) = queries::get_quote_by_book_and_content(
+                    book_id.clone(),
+                    content.clone(),
+                    &mut *tx,
+                )
                 .await
-                .map_err(|e| ImportError::DbError(e, "Failed to insert quote".to_string()))?;
-            imported_quotes += 1;
+                {
+                    continue;
+                }
+
+                let quote = models::Quote {
+                    id: Uuid::new_v4().to_string(),
+                    book_id: Some(book_id.clone()),
+                    author_id: author_id,
+                    chapter_id: None,
+                    chapter_progress: None,
+                    content: clipping.content.clone(),
+                    starred: Some(0),
+                    created_at: clipping.added_at,
+                    updated_at: clipping.added_at,
+                    imported_at: Some(Utc::now().naive_utc()),
+                    deleted_at: None,
+                    original_id: None,
+                };
+
+                let _ = queries::insert_quote(&quote, &mut *tx)
+                    .await
+                    .map_err(|e| ImportError::DbError(e, "Failed to insert quote".to_string()))?;
+                imported_quotes += 1;
+            }
+        } else if clipping.entry_type == "Note" {
+            if let Some(content) = &clipping.content {
+                let note = models::Note {
+                    id: Uuid::new_v4().to_string(),
+                    book_id: Some(book_id.clone()),
+                    author_id: author_id,
+                    quote_id: None,
+                    content: Some(content.clone()),
+                    created_at: clipping.added_at,
+                    updated_at: clipping.added_at,
+                    deleted_at: None,
+                };
+
+                let _ = queries::insert_note(&note, &mut *tx)
+                    .await
+                    .map_err(|e| ImportError::DbError(e, "Failed to insert note".to_string()))?;
+            }
         }
     }
 
-    tx.commit().await.map_err(|e| ImportError::DbError(e, "Failed to commit transaction".to_string()))?;
+    tx.commit()
+        .await
+        .map_err(|e| ImportError::DbError(e, "Failed to commit transaction".to_string()))?;
     Ok(format!(
         "Imported successfully {} new books and {} new quotes",
         imported_books, imported_quotes
     ))
 }
 
-/// Import books from JSON
-pub async fn import_books(path: &str) -> Result<String, String> {
-    let books_values = read_json(path).map_err(|e| format!("Error reading JSON: {}", e))?;
+///
+/// iBooks
+///
+///
 
-    let books_vec = books_values
-        .as_array()
-        .ok_or("JSON file doesn't contain a valid array")?;
+const IBOOKS_DB_PATH: &str = "/Library/Containers/com.apple.iBooksX/Data/Documents/";
+const IBOOKS_DB_ANNOTATION_PATH: &str = "AEAnnotation/AEAnnotation*.sqlite";
+const IBOOKS_DB_ASSET_PATH: &str = "BKLibrary/BKLibrary*.sqlite";
 
-    let mut books = Vec::new();
-    for bk in books_vec.iter() {
-        let b = models::parse_book(bk).map_err(|e| format!("Failed to parse JSON => {}", e))?;
-        books.push(b);
+#[derive(Debug, Serialize, Deserialize, FromRow)]
+struct IBooksBookAuthor {
+    id: String,
+    author: Option<String>,
+    title: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, FromRow)]
+struct IBooksQuote {
+    id: String,
+    book_id: String,
+    content: String,
+    created_at: f64,
+    modified_at: Option<f64>,
+    annotation: Option<String>,
+}
+
+const QUERY_IBOOKS_BOOKS: &str = r#"
+    SELECT 
+        ZASSETID as id,
+        ZAUTHOR as author,
+        ZTITLE as title
+    FROM
+        ZBKLIBRARYASSET;
+"#;
+
+const QUERY_IBOOKS_ANNOTATIONS: &str = r#"
+    SELECT
+        ZANNOTATIONUUID AS id,    -- Verify column name (Annotation's unique key)
+        ZANNOTATIONASSETID AS book_id,       -- Verify column name (Links to Book)
+        COALESCE(ZANNOTATIONSELECTEDTEXT, ZFUTUREPROOFING5) AS content, -- Verify column names (The highlighted text)
+        -- Timestamps need conversion from Core Data (add 978307200 for Unix Epoch in your app)
+        ZANNOTATIONCREATIONDATE AS created_at, -- Verify column name
+        ZANNOTATIONMODIFICATIONDATE AS modified_at, -- Verify column name
+        ZANNOTATIONNOTE as annotation
+    FROM
+        ZAEANNOTATION               -- Verify table name
+    WHERE
+        ZANNOTATIONDELETED = 0                     -- Filter out deleted (Verify 0 = not deleted)
+        AND COALESCE(ZANNOTATIONSELECTEDTEXT, ZFUTUREPROOFING5) IS NOT NULL -- Ensure highlighted text exists
+        AND COALESCE(ZANNOTATIONSELECTEDTEXT, ZFUTUREPROOFING5) != '';
+    "#;
+
+pub async fn import_ibooks() -> Result<String, ImportError> {
+    let home_path = dirs::home_dir()
+        .ok_or_else(|| {
+            ImportError::IoError(io::Error::new(
+                io::ErrorKind::NotFound,
+                "Home directory not found",
+            ))
+        })?
+        .to_str()
+        .ok_or(ImportError::IoError(io::Error::new(
+            io::ErrorKind::NotFound,
+            "Error converting PathBuf to String",
+        )))?
+        .to_string();
+
+    let annotation_pattern = format!(
+        "{}{}{}",
+        home_path, IBOOKS_DB_PATH, IBOOKS_DB_ANNOTATION_PATH
+    );
+    let asset_pattern = format!("{}{}{}", home_path, IBOOKS_DB_PATH, IBOOKS_DB_ASSET_PATH);
+
+    let annotation_path = resolve_path(annotation_pattern.as_str()).map_err(|e| {
+        ImportError::IoError(io::Error::new(
+            io::ErrorKind::NotFound,
+            format!("iBooks annotation database not found: {}", e),
+        ))
+    })?;
+
+    let asset_path = resolve_path(asset_pattern.as_str()).map_err(|e| {
+        ImportError::IoError(io::Error::new(
+            io::ErrorKind::NotFound,
+            format!("iBooks asset database not found: {}", e),
+        ))
+    })?;
+
+    if !annotation_path.exists()
+        || !annotation_path.is_file()
+        || !asset_path.exists()
+        || !asset_path.is_file()
+    {
+        return Err(ImportError::IoError(io::Error::new(
+            io::ErrorKind::NotFound,
+            "iBooks database files not found",
+        )));
     }
 
-    let pool = db::get_pool();
-    let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
+    let annotation_db = SqlitePool::connect(annotation_path.to_str().unwrap())
+        .await
+        .map_err(|e| {
+            ImportError::DbError(
+                e,
+                "Failed to connect to iBooks annotation database".to_string(),
+            )
+        })?;
+    let asset_db = SqlitePool::connect(asset_path.to_str().unwrap())
+        .await
+        .map_err(|e| {
+            ImportError::DbError(e, "Failed to connect to iBooks asset database".to_string())
+        })?;
 
-    for book in books.iter() {
-        let author_id = match &book.author {
+    let mut books_author = sqlx::query_as::<_, IBooksBookAuthor>(QUERY_IBOOKS_BOOKS)
+        .fetch_all(&asset_db)
+        .await
+        .map_err(|e| ImportError::DbError(e, "Failed to fetch books".to_string()))?;
+
+    let quotes_annotations = sqlx::query_as::<_, IBooksQuote>(QUERY_IBOOKS_ANNOTATIONS)
+        .fetch_all(&annotation_db)
+        .await
+        .map_err(|e| ImportError::DbError(e, "Failed to fetch annotations".to_string()))?;
+
+    asset_db.close().await;
+    annotation_db.close().await;
+
+    // Filtering out books_author without a quote
+    books_author = books_author.into_iter().filter(|book| {
+        quotes_annotations.iter().any(|quote| quote.book_id == book.id)
+    }).collect();
+
+    let pool = db::get_pool();
+    let mut tx = pool
+        .begin()
+        .await
+        .map_err(|e| ImportError::DbError(e, "Failed to begin transaction".to_string()))?;
+
+    // Map of book id to book.
+    let mut books_id_map = HashMap::new();
+    // Map of author name to author.
+    let mut authors_id_map = HashMap::new();
+    let mut imported_books = 0;
+    let mut imported_quotes = 0;
+
+    for book in books_author.iter() {
+        // Skip if book already exists
+        if let Ok(existing_book) = queries::get_book_by_original_id(book.id.clone(), &mut *tx).await
+        {
+            books_id_map.insert(book.id.clone(), existing_book.id.clone());
+            continue;
+        }
+
+        // Author
+        let author_id = match book.author.clone() {
             Some(book_author) => {
-                let author = queries::insert_author(book_author.clone(), &mut *tx)
-                    .await
-                    .map_err(|e| format!("Error creating Author => {}", e))?;
+                let author = match queries::get_author_by_name(book_author.clone(), &mut *tx).await
+                {
+                    Ok(existing_author) => existing_author,
+                    Err(_) => queries::insert_author(book_author.clone(), &mut *tx)
+                        .await
+                        .map_err(|e| {
+                            ImportError::DbError(e, "Failed to insert author".to_string())
+                        })?,
+                };
                 Some(author.id)
             }
             None => None,
         };
 
-        queries::insert_book(book.title.clone(), author_id, None, &mut *tx)
-            .await
-            .map_err(|e| format!("Error creating Book => {}", e))?;
+        authors_id_map.insert(book.id.clone(), author_id.clone());
+
+        // Book
+        let db_book = queries::insert_book(
+            book.title.clone(),
+            author_id.clone(),
+            Some(book.id.clone()),
+            &mut *tx,
+        )
+        .await
+        .map_err(|e| ImportError::DbError(e, "Failed to insert book".to_string()))?;
+
+        books_id_map.insert(book.id.clone(), db_book.id.clone());
+
+        imported_books += 1;
     }
 
-    tx.commit().await.map_err(|e| e.to_string())?;
-    Ok("Books imported correctly".into())
-}
+    for quote in quotes_annotations.iter() {
+        // Skip if quote already exists
+        if let Ok(_) = queries::get_quote_by_original_id(quote.id.clone(), &mut *tx).await {
+            continue;
+        }
 
-/// Import quotes from JSON
-pub async fn import_quotes(path: &str) -> Result<String, String> {
-    let quotes_values = read_json(path).map_err(|e| format!("Error reading JSON: {}", e))?;
+        let book_id = books_id_map.get(&quote.book_id).cloned();
+        let author_id = authors_id_map.get(&quote.book_id).unwrap_or(&None).clone();
 
-    let quotes_vec = quotes_values
-        .as_array()
-        .ok_or("JSON file doesn't contain a valid array")?;
+        if book_id.is_none() {
+            log::info!("Quote missing book {}", quote.book_id);
+            continue;
+            
+        }
 
-    let mut quotes = Vec::new();
-    for note_value in quotes_vec.iter() {
-        let note = models::parse_quote(note_value)
-            .map_err(|e| format!("Failed to parse JSON => {}", e))?;
-        quotes.push(note);
-    }
+        let created_at: NaiveDateTime =
+            core_data_to_naive_datetime(quote.created_at).unwrap_or_else(|| Utc::now().naive_utc());
+        let updated_at: NaiveDateTime = match quote.modified_at {
+            Some(modified_at) => {
+                core_data_to_naive_datetime(modified_at).unwrap_or_else(|| Utc::now().naive_utc())
+            }
+            None => created_at,
+        };
 
-    let pool = db::get_pool();
-    let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
-
-    for quote in quotes.iter() {
-        let book = queries::get_book_by_id(quote.book_id.clone().unwrap(), &mut *tx)
-            .await
-            .map_err(|e| {
-                format!(
-                    "Book not found with id \"{}\" => {}",
-                    quote.book_id.clone().unwrap(),
-                    e
-                )
-            })?;
-
-        let created_at =
-            NaiveDateTime::parse_from_str(quote.created_at.as_str(), "%Y-%m-%d %H:%M:%S").unwrap();
-        let updated_at =
-            NaiveDateTime::parse_from_str(quote.updated_at.as_str(), "%Y-%m-%d %H:%M:%S").unwrap();
-
-        let n = models::Quote {
-            id: quote.id.clone(),
-            book_id: Some(book.id),
-            author_id: book.author_id,
-            chapter: quote.chapter.clone(),
-            chapter_progress: quote.chapter_progress,
-            content: quote.text.clone(),
+        // Quote
+        let new_quote = models::Quote {
+            id: Uuid::new_v4().to_string(),
+            book_id: book_id.clone(),
+            author_id: author_id.clone(),
+            chapter_id: None,
+            chapter_progress: None,
+            content: Some(quote.content.clone()),
             starred: Some(0),
             created_at: created_at,
             updated_at: updated_at,
-            imported_at: None,
+            imported_at: Some(Utc::now().naive_utc()),
             deleted_at: None,
             original_id: Some(quote.id.clone()),
         };
 
-        sqlx::query("INSERT OR IGNORE INTO quote 
-             (id, book_id, author_id, chapter, chapter_progress, content, starred, created_at, updated_at, deleted_at) 
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-            .bind(n.id.clone())
-            .bind(n.book_id.clone())
-            .bind(n.author_id.clone())
-            .bind(n.chapter.clone())
-            .bind(n.chapter_progress)
-            .bind(n.content.clone())
-            .bind(n.starred)
-            .bind(n.created_at)
-            .bind(n.updated_at)
-            .bind(n.deleted_at)
-            .execute(&mut *tx)
+        let db_quote = queries::insert_quote(&new_quote, &mut *tx)
             .await
-            .map_err(|e| format!("Error creating quote => {}\n{:#?}", e, quote))?;
+            .map_err(|e| ImportError::DbError(e, "Failed to insert quote".to_string()))?;
+
+        imported_quotes += 1;
+
+        if let Some(annotation) = &quote.annotation {
+            let note = models::Note {
+                id: Uuid::new_v4().to_string(),
+                book_id: book_id.clone(),
+                author_id: author_id.clone(),
+                quote_id: Some(db_quote.id.clone()),
+                content: Some(annotation.clone()),
+                created_at,
+                updated_at,
+                deleted_at: None,
+            };
+
+            queries::insert_note(&note, &mut *tx)
+                .await
+                .map_err(|e| ImportError::DbError(e, "Failed to insert note".to_string()))?;
+        }
     }
 
-    // Optimize FTS after bulk notes insertion
-    sqlx::query("INSERT INTO quote_fts(quote_fts) VALUES('optimize')")
-        .execute(&mut *tx)
+    tx.commit()
         .await
-        .map_err(|e| format!("Error optimizing fts: {}", e))?;
+        .map_err(|e| ImportError::DbError(e, "Failed to commit transaction".to_string()))?;
 
-    tx.commit().await.map_err(|e| e.to_string())?;
-    Ok("Notes imported correctly".into())
+    Ok(format!(
+        "Imported successfully {} new books and {} new quotes",
+        imported_books, imported_quotes
+    ))
 }

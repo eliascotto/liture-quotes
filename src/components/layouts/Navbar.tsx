@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, MouseEvent, UIEvent } from "react";
+import clsx from "clsx";
 import { platform } from '@tauri-apps/plugin-os';
 import BookIcon from "@icons/BookIcon";
 import UsersIcon from "@icons/UsersIcon";
-import clsx from "clsx";
 import Tooltip from "@components/Tooltip";
+import { cleanText } from "@utils/index";
 
 const MIN_WIDTH = 180;
 const MAX_WIDTH = 400;
@@ -149,19 +150,35 @@ function Navbar({
             <ul className="px-2 py-0.5 space-y-1">
               {items.map((item) => {
                 const isSelected = selected && selected.id === item.id;
+                const isEmpty = item[property] === "";
+                const cleanedText = cleanText(item[property]);
+
+                if (isEmpty) {
+                  return (
+                    <li
+                      className={clsx(
+                        "cursor-pointer min-h-[32px] py-1.5 px-1.5 text-sm italic font-medium truncate rounded transition-all duration-200 hover:bg-slate-700/20 select-none",
+                        isSelected ? "text-cyan-400 bg-slate-700/30" : "text-slate-600 hover:text-white"
+                      )}
+                      onClick={() => onSelection(item)}>
+                      No title
+                    </li>
+                  )
+                }
+
                 return (
                   <Tooltip
                     key={`navbar-item-${item.id}`}
-                    content={item[property]}
+                    content={cleanedText}
                     usePortal={true}
                   >
                     <li
-                      className={`cursor-pointer py-1.5 px-1.5 text-sm font-medium truncate rounded transition-all duration-200 hover:bg-slate-700/20 select-none ${isSelected
-                        ? 'text-cyan-400 bg-slate-700/30'
-                        : 'text-slate-300 hover:text-white'
-                        }`}
+                      className={clsx(
+                        "cursor-pointer min-h-[32px] py-1.5 px-1.5 text-sm font-medium truncate rounded transition-all duration-200 hover:bg-slate-700/20 select-none",
+                        isSelected ? "text-cyan-400 bg-slate-700/30" : "text-slate-300 hover:text-white"
+                      )}
                       onClick={() => onSelection(item)}>
-                      {item[property]}
+                      {cleanedText}
                     </li>
                   </Tooltip>
                 );

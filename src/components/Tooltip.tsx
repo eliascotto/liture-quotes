@@ -46,7 +46,7 @@ const Tooltip = React.memo((
     <div
       ref={refs.setFloating}
       style={floatingStyles}
-      className="bg-slate-800 border border-slate-700/50 rounded shadow-lg text-sm py-1.5 px-2.5 z-[1000]"
+      className="bg-slate-800 border max-w-2xl break-all border-slate-700/50 rounded shadow-lg text-sm py-1.5 px-2.5 z-[1000]"
       data-placement={placement}
       {...getFloatingProps()}
     >

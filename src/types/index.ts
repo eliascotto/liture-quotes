@@ -30,7 +30,7 @@ export interface Quote {
   updated_at: string;
   deleted_at: string | null;
   imported_at: string | null;
-  chapter: string | null;
+  chapter_id: string | null;
   chapter_progress: number | null;
   original_id: string | null;
 }

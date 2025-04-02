@@ -1,4 +1,4 @@
-export default function XIcon({ className = "h-5 w-5" }) {
+export default function XIcon({ className = "h-5 w-5" }: { className?: string }) {
   return (
     <svg 
       xmlns="http://www.w3.org/2000/svg" 

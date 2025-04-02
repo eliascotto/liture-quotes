@@ -1,4 +1,4 @@
-export default function ChevronUpDown({ className = "", ...props }) {
+export default function ChevronUpDown({ className = "", ...props }: { className?: string, props?: React.SVGProps<SVGSVGElement> }) {
   return (
     <svg
       className={className}
