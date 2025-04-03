@@ -623,8 +623,8 @@ function App() {
       fetchStarredQuotes();
     });
 
-    const importErrorListener = listen("import-error", (event: { payload: { error: string } }) => {
-      addToast(event.payload.error, "error");
+    const importErrorListener = listen("import-error", (event: { payload: { message: string } }) => {
+      addToast(event.payload.message, "error");
     });
 
     return () => {

@@ -8,7 +8,8 @@ mod utils;
 use chrono::Utc;
 use models::*;
 use uuid::Uuid;
-
+use tauri::AppHandle;
+use tokio;
 
 // Create a separate module for the Tauri commands
 pub mod commands {
@@ -16,8 +17,14 @@ pub mod commands {
     use crate::db::get_pool;
 
     #[tauri::command]
-    pub fn is_debug() -> bool {
-        *utils::IS_DEBUG
+    pub async fn import_from_ibooks(app: AppHandle) -> bool {
+        let app_clone = app.clone();
+
+        tokio::spawn(async move {
+            import::import_from_ibooks(&app_clone).await;
+        });
+
+        true
     }
 
     #[tauri::command]

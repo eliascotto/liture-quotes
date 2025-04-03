@@ -8,21 +8,117 @@ use chrono::{NaiveDateTime, TimeZone, Utc};
 use glob::glob;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use sqlx::{sqlite::SqlitePool, FromRow, Row};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader, Read};
 use std::path::{Path, PathBuf};
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Emitter, Manager, WebviewWindow};
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
 use uuid::Uuid;
 
-/// The type of import.
+/// Payload for the import events.
+/// 
+/// * `device` - The device that is importing the data.
+/// * `message` - The message to display to the user. Can be a success message or an error message.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+struct Payload {
+    device: Option<String>,
+    message: Option<String>,
+}
+
+fn create_payload(device: Option<String>, message: Option<String>) -> Payload {
+    Payload { device, message }
+}
+
+fn get_webview(app: &AppHandle) -> Option<WebviewWindow> {
+    app.get_webview_window("main")
+}
+
+pub async fn import_from_kobo(app: &AppHandle) {
+    let webview = get_webview(app).expect("unable to find window");
+
+    match import_dialog(app, DialogImportType::Kobo).await {
+        Ok(path) => {
+            webview
+                .emit("importing", create_payload(Some("kobo".to_string()), None))
+                .unwrap();
+
+            match import_kobo(&path).await {
+                Ok(res) => {
+                    log::info!("Import result: {}", res);
+                    webview
+                        .emit("import-success", create_payload(None, Some(res)))
+                        .unwrap();
+                }
+                Err(e) => {
+                    log::error!("Error importing from Kobo: {}", e);
+                    webview
+                        .emit("import-error", create_payload(None, Some(e.to_string())))
+                        .unwrap();
+                }
+            }
+        }
+        Err(e) => log::error!("Error importing from Kobo: {}", e),
+    }
+}
+
+pub async fn import_from_kindle(app: &AppHandle) {
+    let webview = get_webview(app).expect("unable to find window");
+
+    match import_dialog(app, DialogImportType::Clippings).await {
+        Ok(path) => {
+            webview
+                .emit(
+                    "importing",
+                    create_payload(Some("kindle".to_string()), None),
+                )
+                .unwrap();
+
+            match import_clippings(&path).await {
+                Ok(res) => webview
+                    .emit("import-success", create_payload(None, Some(res)))
+                    .unwrap(),
+                Err(e) => {
+                    log::error!("Error importing from Kindle Clippings: {}", e);
+                    webview
+                        .emit("import-error", create_payload(None, Some(e.to_string())))
+                        .unwrap();
+                }
+            }
+        }
+        Err(e) => log::error!("Error importing from Kindle Clippings: {}", e),
+    }
+}
+
+pub async fn import_from_ibooks(app: &AppHandle) {
+    let webview = get_webview(app).expect("unable to find window");
+
+    webview
+        .emit(
+            "importing",
+            create_payload(Some("ibooks".to_string()), None),
+        )
+        .unwrap();
+
+    match import_ibooks().await {
+        Ok(res) => webview
+            .emit("import-success", create_payload(None, Some(res)))
+            .unwrap(),
+        Err(e) => {
+            log::error!("Error importing from iBooks: {}", e);
+            webview
+                .emit("import-error", create_payload(None, Some(e.to_string())))
+                .unwrap();
+        }
+    }
+}
+
+/// The type of import that have a Dialog.
 ///
 /// * `Kobo` - Import from Kobo.
 /// * `Clippings` - Import from clippings.
-pub enum ImportType {
+pub enum DialogImportType {
     Kobo,
     Clippings,
 }
@@ -37,15 +133,18 @@ pub enum ImportType {
 /// # Returns
 ///
 /// `Result<String, String>` - The path of the selected file or an error.
-pub async fn import_dialog(app: &AppHandle, import_type: ImportType) -> Result<String, String> {
+pub async fn import_dialog(
+    app: &AppHandle,
+    import_type: DialogImportType,
+) -> Result<String, String> {
     // Create a future that resolves when the file dialog completes
     let (tx, rx) = tokio::sync::oneshot::channel();
 
     let window = app.get_window("main").ok_or("No main window found")?;
 
     let (dialog_name, dialog_extension) = match import_type {
-        ImportType::Kobo => ("KoboReader", &["sqlite"]),
-        ImportType::Clippings => ("Clippings", &["txt"]),
+        DialogImportType::Kobo => ("KoboReader", &["sqlite"]),
+        DialogImportType::Clippings => ("Clippings", &["txt"]),
     };
 
     let dialog = FileDialogBuilder::new(app.dialog().clone())
@@ -63,21 +162,6 @@ pub async fn import_dialog(app: &AppHandle, import_type: ImportType) -> Result<S
 
     // Await the result from the channel
     rx.await.map_err(|_| "Dialog channel error".to_string())?
-}
-
-fn read_file(path: &str) -> io::Result<String> {
-    let path = Path::new(path);
-    let mut file = File::open(path)?;
-    let mut contents = String::new();
-
-    file.read_to_string(&mut contents)?;
-    Ok(contents)
-}
-
-fn read_json(path: &str) -> io::Result<Value> {
-    let contents = read_file(path)?;
-    let json: Value = serde_json::from_str(&contents)?;
-    Ok(json)
 }
 
 fn resolve_path(pattern: &str) -> Result<PathBuf, String> {
@@ -122,7 +206,7 @@ fn core_data_to_naive_datetime(core_data_ts: f64) -> Option<NaiveDateTime> {
 }
 
 #[derive(Debug)]
-pub enum ImportError {
+enum ImportError {
     IoError(io::Error),
     DbError(sqlx::Error, String),
     InvalidFormat(String),
@@ -263,7 +347,7 @@ const QUERY_KOBO_ITEMS_V174: &str = r#"
 /// # Returns
 ///
 /// `Result<String, String>` - A success message or an error.
-pub async fn import_kobo(str_path: &str) -> Result<String, ImportError> {
+async fn import_kobo(str_path: &str) -> Result<String, ImportError> {
     let path = Path::new(str_path);
     if !path.exists() || !path.is_file() {
         return Err(ImportError::IoError(io::Error::new(
@@ -584,7 +668,7 @@ fn parse_clipping(lines: &[String]) -> Result<Clipping, String> {
     })
 }
 
-pub async fn import_clippings(path: &str) -> Result<String, ImportError> {
+async fn import_clippings(path: &str) -> Result<String, ImportError> {
     let clippings = read_clippings_file(path).map_err(|e| e)?;
 
     let mut books = HashMap::new();
@@ -754,7 +838,7 @@ const QUERY_IBOOKS_ANNOTATIONS: &str = r#"
         AND COALESCE(ZANNOTATIONSELECTEDTEXT, ZFUTUREPROOFING5) != '';
     "#;
 
-pub async fn import_ibooks() -> Result<String, ImportError> {
+async fn import_ibooks() -> Result<String, ImportError> {
     let home_path = dirs::home_dir()
         .ok_or_else(|| {
             ImportError::IoError(io::Error::new(
@@ -828,9 +912,14 @@ pub async fn import_ibooks() -> Result<String, ImportError> {
     annotation_db.close().await;
 
     // Filtering out books_author without a quote
-    books_author = books_author.into_iter().filter(|book| {
-        quotes_annotations.iter().any(|quote| quote.book_id == book.id)
-    }).collect();
+    books_author = books_author
+        .into_iter()
+        .filter(|book| {
+            quotes_annotations
+                .iter()
+                .any(|quote| quote.book_id == book.id)
+        })
+        .collect();
 
     let pool = db::get_pool();
     let mut tx = pool
@@ -899,7 +988,6 @@ pub async fn import_ibooks() -> Result<String, ImportError> {
         if book_id.is_none() {
             log::info!("Quote missing book {}", quote.book_id);
             continue;
-            
         }
 
         let created_at: NaiveDateTime =

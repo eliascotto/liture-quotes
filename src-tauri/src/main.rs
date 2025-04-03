@@ -147,7 +147,6 @@ async fn main() {
             _ => {}
         })
         .invoke_handler(tauri::generate_handler![
-            litforge_notes_lib::commands::is_debug,
             // Fetch
             litforge_notes_lib::commands::fetch_books_authors,
             litforge_notes_lib::commands::fetch_all_quotes,

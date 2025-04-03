@@ -129,7 +129,6 @@ function AddButton({
             <div className="my-0.5 border-t border-slate-700/50"></div>
             <button
               className="w-full text-left px-3 py-2 text-sm transition-colors duration-150 text-slate-300 hover:bg-slate-700/50 hover:text-slate-300 flex items-center"
-              onClick={handleAddBook}
             >
               <ImportIcon className="w-4 h-4 mr-2" />
               Import

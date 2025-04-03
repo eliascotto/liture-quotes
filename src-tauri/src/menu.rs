@@ -1,6 +1,6 @@
 use crate::import;
 use std::str::FromStr;
-use tauri::{menu::Menu, AppHandle, Emitter, Manager, Wry};
+use tauri::{menu::Menu, AppHandle, Manager, Wry};
 
 #[derive(Debug, Clone, Copy, serde::Deserialize)]
 pub enum MenuEvent {
@@ -182,95 +182,16 @@ pub fn setup_menu(app: &mut tauri::App) -> tauri::Result<Menu<Wry>> {
     }
 }
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-struct Payload {
-    device: Option<String>,
-    message: Option<String>,
-    error: Option<String>,
-}
-
-fn create_payload(
-    device: Option<String>,
-    message: Option<String>,
-    error: Option<String>,
-) -> Payload {
-    Payload {
-        device,
-        message,
-        error,
-    }
-}
-
 async fn handle_menu_event(app: &AppHandle, event: MenuEvent) {
-    let webview = app
-        .get_webview_window("main")
-        .expect("unable to find window");
-
     match event {
         MenuEvent::ImportFromKobo => {
-            match import::import_dialog(app, import::ImportType::Kobo).await {
-                Ok(path) => {
-                    webview
-                        .emit(
-                            "importing",
-                            create_payload(Some("kobo".to_string()), None, None),
-                        )
-                        .unwrap();
-
-                    match import::import_kobo(&path).await {
-                        Ok(res) => {
-                            log::info!("Import result: {}", res);
-                            webview
-                                .emit("import-success", create_payload(None, Some(res), None))
-                                .unwrap();
-                        }
-                        Err(e) => {
-                            log::error!("Error importing from Kobo: {}", e);
-                            webview
-                                .emit("import-error", create_payload(None, None, Some(e.to_string())))
-                                .unwrap();
-                        }
-                    }
-                }
-                Err(e) => log::error!("Error importing from Kobo: {}", e),
-            }
+            import::import_from_kobo(app).await;
         }
         MenuEvent::ImportFromKindle => {
-            match import::import_dialog(app, import::ImportType::Clippings).await {
-                Ok(path) => {
-                    webview
-                        .emit(
-                            "importing",
-                            create_payload(Some("kindle".to_string()), None, None),
-                        )
-                        .unwrap();
-
-                    match import::import_clippings(&path).await {
-                        Ok(res) => webview
-                            .emit("import-success", create_payload(None, Some(res), None))
-                            .unwrap(),
-                        Err(e) => {
-                            log::error!("Error importing from Kindle Clippings: {}", e);
-                            webview
-                                .emit("import-error", create_payload(None, None, Some(e.to_string())))
-                                .unwrap();
-                        }
-                    }
-                }
-                Err(e) => log::error!("Error importing from Kindle Clippings: {}", e),
-            }
+            import::import_from_kindle(app).await;
         }
         MenuEvent::ImportFromiBooks => {
-            webview
-                .emit("importing", create_payload(Some("ibooks".to_string()), None, None))
-                .unwrap();
-
-            match import::import_ibooks().await {
-                Ok(res) => webview
-                    .emit("import-success", create_payload(None, Some(res), None))
-                    .unwrap(),
-                Err(e) => log::error!("Error importing from iBooks: {}", e),
-            }
+            import::import_from_ibooks(app).await;
         }
     }
 }
