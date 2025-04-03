@@ -99,7 +99,7 @@ function BookHeader({
 }: BookHeaderProps) 
 {
   return (
-    <div className="px-2 mb-3 pb-3 border-b border-slate-700/30">
+    <div className="px-2 mb-3 pb-3 border-b border-slate-700/30 select-none">
       {isEditingTitle ? (
         <EditableTitle
           title={book.title}
@@ -108,9 +108,9 @@ function BookHeader({
         />
       ) : (
         <Fragment>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between select-none">
             <h1
-              className="text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text truncate text-ellipsis"
+              className="text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text truncate text-ellipsis select-auto"
               onClick={handleTitleClick}
             >
               {cleanText(book.title)}
@@ -122,8 +122,8 @@ function BookHeader({
               itemName={cleanText(book.title)}
             />
           </div>
-          <div className="py-1.5">
-            <h3 className="text-slate-300 font-medium">
+          <div className="py-1.5 select-none">
+            <h3 className="text-slate-300 font-medium select-auto">
               Author:
               <span
                 className="text-slate-400 hover:text-cyan-400 transition-colors duration-200 cursor-pointer ml-1"

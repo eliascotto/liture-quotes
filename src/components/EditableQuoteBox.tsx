@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect, MouseEvent } from "react";
 import Tooltip from "@components/Tooltip";
-import { Quote, Note } from "src/types/index";
+import { Quote, QuoteFts, Note } from "src/types/index";
 
 type EditableQuoteBoxProps = {
-  item: Quote | Note,
+  item: Quote | QuoteFts | Note,
   onSave: (content: string) => void,
   onCancel: () => void,
   placeholder?: string,

@@ -31,14 +31,16 @@ const ItemMenu = (
 
   const handleDeleteClick = () => {
     setIsMenuOpen(false);
-    openDialog(
-      `Delete ${itemType}`,
-      <DeleteConfirmationDialog
-        itemType={itemType}
-        itemName={itemName}
-        onConfirm={onDelete}
-      />
-    );
+    if (onDelete) {
+      openDialog(
+        `Delete ${itemType}`,
+        <DeleteConfirmationDialog
+          itemType={itemType}
+          itemName={itemName}
+          onConfirm={onDelete}
+        />
+      );
+    }
   };
 
   const handleEditClick = () => {
@@ -49,7 +51,7 @@ const ItemMenu = (
   }
 
   return (
-    <div className="relative" ref={menuRef}>
+    <div className="relative select-none" ref={menuRef}>
       <button
         onClick={toggleMenu}
         className={clsx(
@@ -63,7 +65,7 @@ const ItemMenu = (
       </button>
 
       {isMenuOpen && (
-        <div 
+        <div
           className={clsx(
             "absolute right-0 mt-0.5 py-0.5 w-32 rounded-md bg-slate-800 z-10",
             "border border-slate-700/50 shadow-lg ring-1 ring-black/5",
@@ -81,10 +83,7 @@ const ItemMenu = (
           )}
           {!!onDelete && (
             <Fragment>
-              <div className={clsx(
-                "my-0.5",
-                !!onEdit && "border-t border-slate-700/50",
-              )}></div>
+              <div className="my-0.5 border-t border-slate-700/50"></div>
               <div className="py-0.5">
                 <button
                   onClick={handleDeleteClick}
@@ -96,8 +95,9 @@ const ItemMenu = (
             </Fragment>
           )}
         </div>
-      )}
-    </div>
+      )
+      }
+    </div >
   );
 };
 

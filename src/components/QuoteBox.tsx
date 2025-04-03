@@ -9,6 +9,7 @@ import CopyIcon from "@icons/Copy";
 import Tooltip from "@components/Tooltip";
 import EditableNoteBox from "@components/EditableQuoteBox";
 import { Note, Quote, QuoteFts } from "src/types/index";
+import DotsVertical from "./icons/DotsVertical";
 
 type DropdownMenuProps = {
   isOpen: boolean,
@@ -54,28 +55,28 @@ function DropdownMenu({
       <div className="py-0.5">
         <button
           onClick={onCopy}
-          className="w-full text-left px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors duration-150 flex items-center gap-2"
+          className="w-full text-left px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition-colors duration-150 flex items-center gap-2"
         >
           {withIcons && <CopyIcon />} Copy
         </button>
         <button
           onClick={onEdit}
-          className="w-full text-left px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors duration-150 flex items-center gap-2"
+          className="w-full text-left px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition-colors duration-150 flex items-center gap-2"
         >
           {withIcons && <EditIcon />} Edit
         </button>
         <button
           onClick={onStar}
-          className="w-full text-left px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors duration-150 flex items-center gap-2"
+          className="w-full text-left px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition-colors duration-150 flex items-center gap-2"
         >
           {withIcons && <StarMenuIcon filled={!isStarred} />} {isStarred ? "Unstar" : "Star"}
         </button>
         <div className="border-t border-slate-700/50 my-0.5"></div>
         <button
           onClick={onRemove}
-          className="w-full text-left px-3 py-1.5 text-sm text-red-400 hover:bg-slate-700/50 hover:text-red-300 transition-colors duration-150 flex items-center gap-2"
+          className="w-full text-left px-3 py-1.5 text-sm text-red-400 hover:bg-slate-700 transition-colors duration-150 flex items-center gap-2"
         >
-          {withIcons && <TrashIcon />} Remove
+          {withIcons && <TrashIcon />} Delete
         </button>
       </div>
     </div>
@@ -99,6 +100,7 @@ function QuoteBox({
   const [editable, setEditable] = useState(false);
   const [noteEditable, setNoteEditable] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mouseOver, setMouseOver] = useState(false);
   const quoteRef = useRef(null);
 
   const classBase = "text-slate-300 py-1.5 px-4 whitespace-pre-line transition-all duration-200 border-l-2 border-slate-700/90";
@@ -192,15 +194,28 @@ function QuoteBox({
         ) : (
           <div
             className={clsx(
-              "select-none",
+              "relative select-none",
               selected ? selectedClass : classBase,
               empty && "text-opacity-30 cursor-default",
               "hover:bg-slate-800/70"
             )}
             onClick={(e: ReactMouseEvent) => handleClick(e)}
             onContextMenu={(e: ReactMouseEvent) => handleContextMenu(e)}
+            onMouseEnter={() => setMouseOver(true)}
+            onMouseLeave={() => setMouseOver(false)}
           >
             <span className="select-auto">{empty ? "Empty" : quote.content}</span>
+            {(mouseOver || selected) && (
+              <div
+                className="absolute top-0 right-0 rounded-sm p-0.5"
+                onClick={(e: ReactMouseEvent) => handleContextMenu(e)}
+              >
+                <DotsVertical className={clsx(
+                  "h-5 w-5 hover:text-slate-400",
+                  menuOpen ? "text-slate-400" : "text-slate-500",
+                )} />
+              </div>
+            )}
           </div>
         )}
 
