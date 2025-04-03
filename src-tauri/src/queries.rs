@@ -23,45 +23,13 @@ fn extract_order_clauses(sort_by: Option<&str>, order: Option<&str>) -> (String,
     (order_clause.to_string(), sort_by_clause.to_string())
 }
 
-/// Initialize the database with some default data
-pub async fn init_db(pool: &SqlitePool) -> Result<(), sqlx::Error> {
-    let author = insert_author("George R.R. Martin".to_string(), pool).await?;
-    let book = insert_book(
-        "A Dance with Dragons".to_string(),
-        Some(author.id.clone()),
-        None,
-        pool,
-    )
-    .await?;
-    
-    let _ = insert_quote_lite(
-        "A reader lives a thousand lives before he dies... The man who never reads lives only one.".to_string(),
-        Some(book.id.clone()),
-        Some(author.id.clone()),
-        pool,
-    )
-    .await?;
-    let quote_with_comment = insert_quote_lite(
-        "These are just examples, add your own quotes to make it yours! You can edit a quote by double clicking on it.".to_string(),
-        Some(book.id.clone()),
-        Some(author.id.clone()),
-        pool,
-    )
-    .await?;
-    let _ = insert_note_lite(
-        "This is a comment. Double click to edit.".to_string(),
-        Some(quote_with_comment.id),
-        Some(book.id),
-        Some(author.id),
-        pool,
-    )
-    .await?;
-
-    Ok(())
-}
-
 // Insert a new quote with some default values
-pub async fn insert_quote_lite(content: String, book_id: Option<String>, author_id: Option<String>, pool: &SqlitePool) -> Result<Quote, sqlx::Error> {
+pub async fn insert_quote_lite(
+    content: String,
+    book_id: Option<String>,
+    author_id: Option<String>,
+    pool: &SqlitePool,
+) -> Result<Quote, sqlx::Error> {
     let now = chrono::Local::now().naive_utc();
     let quote = insert_quote(
         &Quote {
@@ -74,7 +42,7 @@ pub async fn insert_quote_lite(content: String, book_id: Option<String>, author_
             starred: Some(0),
             created_at: now,
             updated_at: now,
-            imported_at: None,
+            imported_at: Some(now),
             deleted_at: None,
             original_id: None,
         },
@@ -86,7 +54,13 @@ pub async fn insert_quote_lite(content: String, book_id: Option<String>, author_
 }
 
 // Insert a new note with some default values
-pub async fn insert_note_lite(content: String, quote_id: Option<String>, book_id: Option<String>, author_id: Option<String>, pool: &SqlitePool) -> Result<Note, sqlx::Error> {
+pub async fn insert_note_lite(
+    content: String,
+    quote_id: Option<String>,
+    book_id: Option<String>,
+    author_id: Option<String>,
+    pool: &SqlitePool,
+) -> Result<Note, sqlx::Error> {
     let now = chrono::Local::now().naive_utc();
     let note = insert_note(
         &Note {
@@ -174,8 +148,21 @@ where
 {
     sqlx::query_as::<_, Quote>(
         "INSERT OR IGNORE INTO quote 
-            (id, book_id, author_id, chapter_id, chapter_progress, content, starred, original_id) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            (
+                id,
+                book_id,
+                author_id,
+                chapter_id,
+                chapter_progress,
+                content,
+                starred,
+                created_at,
+                updated_at,
+                imported_at,
+                deleted_at,
+                original_id
+            ) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             RETURNING *",
     )
     .bind(quote.id.clone())
@@ -185,6 +172,10 @@ where
     .bind(quote.chapter_progress)
     .bind(quote.content.clone())
     .bind(quote.starred)
+    .bind(quote.created_at)
+    .bind(quote.updated_at)
+    .bind(quote.imported_at)
+    .bind(quote.deleted_at)
     .bind(quote.original_id.clone())
     .fetch_one(executor)
     .await
@@ -209,7 +200,10 @@ where
     .await
 }
 
-pub async fn get_chapters_by_book<'e, E>(book_id: &str, executor: E) -> Result<Vec<Chapter>, sqlx::Error>
+pub async fn get_chapters_by_book<'e, E>(
+    book_id: &str,
+    executor: E,
+) -> Result<Vec<Chapter>, sqlx::Error>
 where
     E: Executor<'e, Database = Sqlite>,
 {
@@ -219,7 +213,10 @@ where
         .await
 }
 
-pub async fn fetch_notes_by_book<'e, E>(book_id: &str, executor: E) -> Result<Vec<Note>, sqlx::Error>
+pub async fn fetch_notes_by_book<'e, E>(
+    book_id: &str,
+    executor: E,
+) -> Result<Vec<Note>, sqlx::Error>
 where
     E: Executor<'e, Database = Sqlite>,
 {
@@ -250,7 +247,11 @@ where
     .await
 }
 
-pub async fn update_note<'e, E>(note_id: &str, content: &str, executor: E) -> Result<Note, sqlx::Error>
+pub async fn update_note<'e, E>(
+    note_id: &str,
+    content: &str,
+    executor: E,
+) -> Result<Note, sqlx::Error>
 where
     E: Executor<'e, Database = Sqlite>,
 {
@@ -258,7 +259,7 @@ where
         "UPDATE note 
         SET content = ?1, updated_at = CURRENT_TIMESTAMP 
         WHERE id = ?2
-        RETURNING *"
+        RETURNING *",
     )
     .bind(content)
     .bind(note_id)
@@ -266,7 +267,11 @@ where
     .await
 }
 
-pub async fn update_author_name<'e, E>(author_id: &str, author_name: &str, executor: E) -> Result<Author, sqlx::Error>
+pub async fn update_author_name<'e, E>(
+    author_id: &str,
+    author_name: &str,
+    executor: E,
+) -> Result<Author, sqlx::Error>
 where
     E: Executor<'e, Database = Sqlite>,
 {
@@ -377,7 +382,11 @@ where
     .await
 }
 
-pub async fn find_quotes_by_book_title<'e, E>(search: &str, book_title: &str, executor: E) -> Result<Vec<QuoteFts>, sqlx::Error>
+pub async fn find_quotes_by_book_title<'e, E>(
+    search: &str,
+    book_title: &str,
+    executor: E,
+) -> Result<Vec<QuoteFts>, sqlx::Error>
 where
     E: Executor<'e, Database = Sqlite>,
 {
@@ -407,7 +416,11 @@ where
     .await
 }
 
-pub async fn find_quotes_by_author_name<'e, E>(search: &str, author_name: &str, executor: E) -> Result<Vec<QuoteFts>, sqlx::Error>
+pub async fn find_quotes_by_author_name<'e, E>(
+    search: &str,
+    author_name: &str,
+    executor: E,
+) -> Result<Vec<QuoteFts>, sqlx::Error>
 where
     E: Executor<'e, Database = Sqlite>,
 {
@@ -599,9 +612,7 @@ where
 }
 
 /// Get random quote
-pub async fn get_random_quote<'e, E>(
-    executor: E,
-) -> Result<Option<RandomQuote>, sqlx::Error>
+pub async fn get_random_quote<'e, E>(executor: E) -> Result<Option<RandomQuote>, sqlx::Error>
 where
     E: Executor<'e, Database = Sqlite>,
 {

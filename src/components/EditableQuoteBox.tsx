@@ -64,7 +64,7 @@ export default function EditableQuoteBox({
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
       />
-      <div className="flex justify-between items-center mt-0 border-t border-slate-700/30 pt-2">
+      <div className="flex justify-between items-center mt-0 border-t border-slate-700/30 pt-2 mt-1">
         <div className="text-xs italic text-slate-500">
           {info || ""}
         </div>

@@ -50,7 +50,7 @@ function DropdownMenu({
   return (
     <div
       ref={menuRef}
-      className="absolute right-0 top-1 mt-6 w-32 bg-slate-800 border border-slate-700/50 rounded-lg shadow-lg z-10 overflow-hidden backdrop-blur-sm"
+      className="absolute right-0 top-1.5 mt-6 w-32 bg-slate-800 border border-slate-700/50 rounded-lg shadow-lg z-10 overflow-hidden backdrop-blur-sm"
     >
       <div className="py-0.5">
         <button

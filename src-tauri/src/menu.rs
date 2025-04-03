@@ -1,6 +1,6 @@
 use crate::import;
 use std::str::FromStr;
-use tauri::{menu::Menu, AppHandle, Manager, Wry};
+use tauri::{menu::Menu, AppHandle, Wry};
 
 #[derive(Debug, Clone, Copy, serde::Deserialize)]
 pub enum MenuEvent {
@@ -152,11 +152,6 @@ pub fn setup_menu(app: &mut tauri::App) -> tauri::Result<Menu<Wry>> {
     #[cfg(target_os = "macos")]
     {
         use tauri::menu::MenuBuilder;
-
-        let main_window = app.get_webview_window("main").unwrap();
-
-        // Get the current menu
-        let curr_menu = main_window.menu().expect("No default menu found");
 
         // Setup our custom submenus
         let file_submenu = setup_file_submenu(app)?;

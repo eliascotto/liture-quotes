@@ -130,11 +130,18 @@ function BookPage({
 
   const renderChapterQuotes = () => {
     if (!showChapters) return renderQuotes(getQuotesWithNotes());
+    console.log(quotes)
 
     const quoteByChapter = quotes.reduce((acc, quote) => {
-      const chapter = chapters.find((c) => c.title === quote.chapter);
+      const chapter = chapters.find((c) => c.id === quote.chapter_id);
       if (chapter) {
-        acc[chapter.id] = [...(acc[chapter.id] || []), { ...quote, note: notes.find((n) => n.quote_id === quote.id) || null }];
+        acc[chapter.id] = [
+          ...(acc[chapter.id] || []), 
+          {
+            ...quote,
+            note: notes.find((n) => n.quote_id === quote.id) || null
+          }
+        ];
       }
       return acc;
     }, {} as Record<string, QuoteWithNote[]>);

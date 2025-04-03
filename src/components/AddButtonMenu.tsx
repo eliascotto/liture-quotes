@@ -96,16 +96,19 @@ function AddButtonMenu({
 
   const handleImportIBooks = () => {
     onImportIBooks?.();
+    setIsImportingMenuOpen(false);
     closePopover();
   }
 
   const handleImportKobo = () => {
     onImportKobo?.();
+    setIsImportingMenuOpen(false);
     closePopover();
   }
 
   const handleImportKindle = () => {
     onImportKindle?.();
+    setIsImportingMenuOpen(false);
     closePopover();
   }
 

@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::{sqlite::SqlitePool, FromRow, Row};
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::{self, BufRead, BufReader, Read};
+use std::io::{self, BufRead, BufReader};
 use std::path::{Path, PathBuf};
 use tauri::{AppHandle, Emitter, Manager, WebviewWindow};
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
@@ -179,6 +179,8 @@ fn parse_datetime(s: &str) -> Result<NaiveDateTime, chrono::format::ParseError> 
         "%Y-%m-%d %H:%M:%S",       // For "2020-11-22 10:11:42"
         "%A, %e %B %Y %H:%M:%S",   // For "Saturday, 26 March 2016 14:59:39"
         "%A, %B %d, %Y, %I:%M %p", // For "Saturday, March 26, 2016, 02:59 PM"
+        "%Y-%m-%d %H:%M:%S%.3f",
+        "%Y-%m-%d %H:%M:%S%.6f",
     ];
 
     for &fmt in &formats {
@@ -264,6 +266,7 @@ struct KoboChapter {
 #[derive(Debug, Serialize, Deserialize, FromRow)]
 struct KoboQuote {
     volume_id: String,
+    content_id: String,
     text: Option<String>,
     annotation: Option<String>,
     date_created: String,
@@ -484,10 +487,10 @@ async fn import_kobo(str_path: &str) -> Result<String, ImportError> {
                 deleted_at: None,
             };
 
-            let db_chapter = queries::insert_chapter(&new_chapter, &mut *tx)
+            let _ = queries::insert_chapter(&new_chapter, &mut *tx)
                 .await
                 .map_err(|e| ImportError::DbError(e, "Failed to insert chapter".to_string()))?;
-            chapters_id_map.insert(chapter.content_id.clone(), db_chapter.id.clone());
+            chapters_id_map.insert(chapter.content_id.clone(), new_chapter.id.clone());
         }
     }
 
@@ -500,6 +503,11 @@ async fn import_kobo(str_path: &str) -> Result<String, ImportError> {
         let book_id = books_id_map.get(&item.volume_id).cloned();
         let author_id = authors_id_map.get(&item.volume_id).unwrap_or(&None).clone();
 
+        log::debug!("Raw date_created from Kobo: {}", item.date_created);
+        if let Some(date_modified) = &item.date_modified {
+            log::debug!("Raw date_modified from Kobo: {}", date_modified);
+        }
+
         let created_at = parse_datetime(&item.date_created)
             .map_err(|e| ImportError::InvalidFormat(format!("Error parsing datetime => {}", e)))?;
         let updated_at = match item.date_modified.clone() {
@@ -509,7 +517,11 @@ async fn import_kobo(str_path: &str) -> Result<String, ImportError> {
             None => created_at,
         };
 
-        let chapter_id = chapters_id_map.get(&item.chapter).cloned();
+        log::debug!("Created_at inserted: {}", created_at);
+        log::debug!("Updated_at inserted: {}", updated_at);
+
+        let chapter_id = chapters_id_map.get(&item.content_id).cloned();
+        let now = Utc::now().naive_utc();
 
         // Quote
         let quote = models::Quote {
@@ -522,7 +534,7 @@ async fn import_kobo(str_path: &str) -> Result<String, ImportError> {
             starred: Some(0),
             created_at: created_at,
             updated_at: updated_at,
-            imported_at: Some(Utc::now().naive_utc()),
+            imported_at: Some(now),
             deleted_at: None,
             original_id: Some(item.bookmark_id.clone()),
         };

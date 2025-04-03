@@ -7,8 +7,8 @@ import { convertStarredQuoteToQuote } from "@customTypes/convert";
 type FavouritesPageProps = {
   quotes: StarredQuote[],
   sortByItems: string,
-  setSortByItems: (field: string) => void,
   sortOrderItems: "ASC" | "DESC",
+  setSortByItems: (field: string) => void,
   setSortOrderItems: (order: "ASC" | "DESC") => void,
   navigateToBook: (bookId: string) => void,
   updateQuote: (quote: Quote) => void,
@@ -20,8 +20,8 @@ type FavouritesPageProps = {
 function FavouritesPage({ 
   quotes,
   sortByItems,
-  setSortByItems,
   sortOrderItems,
+  setSortByItems,
   setSortOrderItems,
   navigateToBook,
   updateQuote,

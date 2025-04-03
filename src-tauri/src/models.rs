@@ -1,7 +1,4 @@
 use chrono::NaiveDateTime;
-use serde_json::Value;
-use std::error;
-
 // SQLITE tables
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, Clone, sqlx::FromRow)]

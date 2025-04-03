@@ -40,10 +40,47 @@ pub async fn init_pool(app: tauri::AppHandle) -> Result<(), sqlx::Error> {
 
     if initialized {
         sqlx::migrate!("../migrations").run(&pool).await?;
-        queries::init_db(&pool).await?;
+        init_db(&pool).await?;
     }
 
     DB_POOL.set(pool).expect("Failed to set database pool");
+    Ok(())
+}
+
+/// Initialize the database with some default data
+pub async fn init_db(pool: &SqlitePool) -> Result<(), sqlx::Error> {
+    let author = queries::insert_author("George R.R. Martin".to_string(), pool).await?;
+    let book = queries::insert_book(
+        "A Dance with Dragons".to_string(),
+        Some(author.id.clone()),
+        None,
+        pool,
+    )
+    .await?;
+    
+    let _ = queries::insert_quote_lite(
+        "A reader lives a thousand lives before he dies... The man who never reads lives only one.".to_string(),
+        Some(book.id.clone()),
+        Some(author.id.clone()),
+        pool,
+    )
+    .await?;
+    let quote_with_comment = queries::insert_quote_lite(
+        "These are just examples, add your own quotes to make it yours! You can edit a quote by double clicking on it.".to_string(),
+        Some(book.id.clone()),
+        Some(author.id.clone()),
+        pool,
+    )
+    .await?;
+    let _ = queries::insert_note_lite(
+        "This is a comment. Double click to edit.".to_string(),
+        Some(quote_with_comment.id),
+        Some(book.id),
+        Some(author.id),
+        pool,
+    )
+    .await?;
+
     Ok(())
 }
 
