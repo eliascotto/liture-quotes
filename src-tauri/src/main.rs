@@ -147,6 +147,10 @@ async fn main() {
             _ => {}
         })
         .invoke_handler(tauri::generate_handler![
+            // Import
+            litforge_notes_lib::commands::import_from_ibooks,
+            litforge_notes_lib::commands::import_from_kobo,
+            litforge_notes_lib::commands::import_from_kindle,
             // Fetch
             litforge_notes_lib::commands::fetch_books_authors,
             litforge_notes_lib::commands::fetch_all_quotes,

@@ -53,7 +53,7 @@ fn setup_file_submenu(app: &mut tauri::App) -> tauri::Result<tauri::menu::Submen
     use tauri::menu::{MenuItemBuilder, SubmenuBuilder};
 
     // Create the "Import books" submenu
-    let mut import_submenu = SubmenuBuilder::new(app, "Import books")
+    let mut import_submenu = SubmenuBuilder::new(app, "Import")
         .item(
             &MenuItemBuilder::with_id(MenuEvent::ImportFromKobo, "From Kobo Reader file")
                 .build(app)?,

@@ -16,6 +16,10 @@ pub mod commands {
     use super::*;
     use crate::db::get_pool;
 
+    //
+    // Import
+    // 
+
     #[tauri::command]
     pub async fn import_from_ibooks(app: AppHandle) -> bool {
         let app_clone = app.clone();
@@ -26,6 +30,32 @@ pub mod commands {
 
         true
     }
+
+    #[tauri::command]
+    pub async fn import_from_kobo(app: AppHandle) -> bool {
+        let app_clone = app.clone();
+
+        tokio::spawn(async move {
+            import::import_from_kobo(&app_clone).await;
+        });
+
+        true
+    }
+
+    #[tauri::command]
+    pub async fn import_from_kindle(app: AppHandle) -> bool {
+        let app_clone = app.clone();
+
+        tokio::spawn(async move {
+            import::import_from_kindle(&app_clone).await;
+        });
+
+        true
+    }
+
+    //
+    // CRUD
+    //
 
     #[tauri::command]
     pub async fn fetch_books_authors() -> Result<Library, String> {

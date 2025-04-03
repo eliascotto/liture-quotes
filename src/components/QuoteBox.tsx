@@ -50,7 +50,7 @@ function DropdownMenu({
   return (
     <div
       ref={menuRef}
-      className="absolute right-0 top-0 mt-6 w-32 bg-slate-800 border border-slate-700/50 rounded-lg shadow-lg z-10 overflow-hidden backdrop-blur-sm"
+      className="absolute right-0 top-1 mt-6 w-32 bg-slate-800 border border-slate-700/50 rounded-lg shadow-lg z-10 overflow-hidden backdrop-blur-sm"
     >
       <div className="py-0.5">
         <button
@@ -103,7 +103,7 @@ function QuoteBox({
   const [mouseOver, setMouseOver] = useState(false);
   const quoteRef = useRef(null);
 
-  const classBase = "text-slate-300 py-1.5 px-4 whitespace-pre-line transition-all duration-200 border-l-2 border-slate-700/90";
+  const classBase = "text-slate-300 py-1.5 pl-4 pr-5 whitespace-pre-line transition-all duration-200 border-l-2 border-slate-700/90";
   const selectedClass = `${classBase} bg-gradient-to-r from-slate-800/70 to-slate-800/80 shadow-md`;
 
   const empty = quote.content?.trim() === '';
@@ -205,9 +205,10 @@ function QuoteBox({
             onMouseLeave={() => setMouseOver(false)}
           >
             <span className="select-auto">{empty ? "Empty" : quote.content}</span>
+            {/* Quote context menu */}
             {(mouseOver || selected) && (
               <div
-                className="absolute top-0 right-0 rounded-sm p-0.5"
+                className="absolute top-0 right-0 rounded-sm p-0.5 pt-1.5"
                 onClick={(e: ReactMouseEvent) => handleContextMenu(e)}
               >
                 <DotsVertical className={clsx(

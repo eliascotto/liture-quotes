@@ -1,10 +1,15 @@
+import { invoke } from "@tauri-apps/api/core";
 import NavigationControls from "@components/NavigationControls";
 import HeaderButton from "@components/HeaderButton.tsx";
-import AddButton from "@components/AddButton.tsx";
+import AddButtonMenu from "@components/AddButtonMenu";
 import SearchBox from "@components/SearchBox.tsx";
 import { Author, NewBookData } from "@customTypes/index";
 import ArrowsCircle from "@components/icons/ArrowsCircle";
 import StarStroke from "@components/icons/StartStroke";
+import { errorToString } from "@utils/index";
+import Logger from "@utils/logger";
+
+const logger = Logger.getInstance();
 
 type HeaderProps = {
   canGoBack: boolean,
@@ -39,6 +44,34 @@ function Header({
   onSearchExit,
   onReloadButtonClick,
 }: HeaderProps) {
+
+  const handleImportIBooks = async () => {
+    try {
+      await invoke("import_from_ibooks", {});
+    } catch (error) {
+      logger.error("Error importing iBooks:", error);
+      alert(`Error importing iBooks: ${errorToString(error)}`);
+    }
+  }
+
+  const handleImportKobo = async () => {
+    try {
+      await invoke("import_from_kobo", {});
+    } catch (error) {
+      logger.error("Error importing Kobo:", error);
+      alert(`Error importing Kobo: ${errorToString(error)}`);
+    }
+  }
+
+  const handleImportKindle = async () => {
+    try {
+      await invoke("import_from_kindle", {});
+    } catch (error) {
+      logger.error("Error importing Kindle:", error);
+      alert(`Error importing Kindle: ${errorToString(error)}`);
+    }
+  }
+
   return (
     <header
       className="z-20 border-b border-slate-700/50 bg-slate-900/90 min-h-12
@@ -52,10 +85,13 @@ function Header({
           onBack={goBack}
           onForward={goForward}
         />
-        <AddButton
+        <AddButtonMenu
           onClick={(type: string, data: NewBookData) => onAddButtonClick(type, data)}
           authors={authors}
           selectedAuthor={!isBooksSelected ? selectedAuthor : null}
+          onImportIBooks={handleImportIBooks}
+          onImportKobo={handleImportKobo}
+          onImportKindle={handleImportKindle}
         />
       </div>
       <div className="flex flex-row items-center gap-4">

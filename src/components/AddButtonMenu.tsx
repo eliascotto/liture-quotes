@@ -7,7 +7,7 @@ import { useDialog } from "@context/DialogContext.tsx";
 import { Author } from "@customTypes/index";
 import Logger from "@utils/logger";
 import UserIcon from "@icons/User";
-import ImportIcon from "./icons/Import";
+import ImportIcon from "@icons/Import";
 
 const logger = Logger.getInstance();
 
@@ -15,12 +15,17 @@ type AddButtonProps = {
   onClick: (type: string, data: any) => Promise<boolean>,
   authors: Author[],
   selectedAuthor: Author | null,
+  onImportKobo?: () => void,
+  onImportKindle?: () => void,
+  onImportIBooks?: () => void,
 }
 
-function AddButton({
-  onClick, authors, selectedAuthor
+function AddButtonMenu({
+  onClick, authors, selectedAuthor, onImportKobo, onImportKindle, onImportIBooks
 }: AddButtonProps) {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [isImportingMenuOpen, setIsImportingMenuOpen] = useState(false);
+
   const { openDialog } = useDialog();
   const popoverRef = useRef(null);
 
@@ -89,6 +94,21 @@ function AddButton({
     );
   };
 
+  const handleImportIBooks = () => {
+    onImportIBooks?.();
+    closePopover();
+  }
+
+  const handleImportKobo = () => {
+    onImportKobo?.();
+    closePopover();
+  }
+
+  const handleImportKindle = () => {
+    onImportKindle?.();
+    closePopover();
+  }
+
   return (
     <div className="relative z-40" ref={popoverRef}>
       <button
@@ -106,7 +126,7 @@ function AddButton({
 
       {isPopoverOpen && (
         <div className={clsx(
-          "absolute top-full left-0 z-[60] min-w-40 bg-slate-800 border border-slate-700/50 ring-1 ring-black/5 z-50 rounded-md shadow-xl overflow-hidden",
+          "absolute top-full left-0 z-[60] min-w-40 bg-slate-800 border border-slate-700/50 ring-1 ring-black/5 z-50 rounded-md shadow-xl",
           "border border-slate-700/50"
         )}>
           <div className="my-0.5">
@@ -127,12 +147,48 @@ function AddButton({
               New Book
             </button>
             <div className="my-0.5 border-t border-slate-700/50"></div>
-            <button
-              className="w-full text-left px-3 py-2 text-sm transition-colors duration-150 text-slate-300 hover:bg-slate-700/50 hover:text-slate-300 flex items-center"
+            <div
+              className="relative group"
+              onMouseEnter={() => setIsImportingMenuOpen(true)}
+              onMouseLeave={() => setIsImportingMenuOpen(false)}
             >
-              <ImportIcon className="w-4 h-4 mr-2" />
-              Import
-            </button>
+              <button
+                className="w-full text-left px-3 py-2 text-sm transition-colors duration-150 text-slate-300 hover:bg-slate-700/50 hover:text-slate-300 flex items-center justify-between"
+              >
+                <span className="flex items-center">
+                  <ImportIcon className="w-4 h-4 mr-2" />
+                  Import
+                </span>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+              <div className={clsx(
+                "absolute left-full top-0 z-50 min-w-52 bg-slate-800 border border-slate-700/50 ring-1 ring-black/5 rounded-md shadow-xl",
+                isImportingMenuOpen ? "block" : "hidden"
+              )}>
+                <div className="my-0.5">
+                  <button
+                    className="w-full text-left px-3 py-2 text-sm transition-colors duration-150 text-slate-300 hover:bg-slate-700/50 hover:text-slate-300"
+                    onClick={handleImportKobo}
+                >
+                  From Kobo Reader file
+                </button>
+                <button
+                  className="w-full text-left px-3 py-2 text-sm transition-colors duration-150 text-slate-300 hover:bg-slate-700/50 hover:text-slate-300"
+                  onClick={handleImportKindle}
+                >
+                  From Kindle Clippings file
+                </button>
+                <button
+                  className="w-full text-left px-3 py-2 text-sm transition-colors duration-150 text-slate-300 hover:bg-slate-700/50 hover:text-slate-300"
+                  onClick={handleImportIBooks}
+                >
+                    From iBooks
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -140,4 +196,4 @@ function AddButton({
   );
 }
 
-export default AddButton;
+export default AddButtonMenu;
