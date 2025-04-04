@@ -62,6 +62,7 @@ pub async fn init_db(pool: &SqlitePool) -> Result<(), sqlx::Error> {
         "A reader lives a thousand lives before he dies... The man who never reads lives only one.".to_string(),
         Some(book.id.clone()),
         Some(author.id.clone()),
+        Some(0),
         pool,
     )
     .await?;
@@ -69,6 +70,7 @@ pub async fn init_db(pool: &SqlitePool) -> Result<(), sqlx::Error> {
         "These are just examples, add your own quotes to make it yours! You can edit a quote by double clicking on it.".to_string(),
         Some(book.id.clone()),
         Some(author.id.clone()),
+        Some(0),
         pool,
     )
     .await?;

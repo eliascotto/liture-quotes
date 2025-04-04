@@ -1,7 +1,7 @@
 pub mod db;
 pub mod import;
 pub mod menu;
-mod models;
+pub mod models;
 pub mod queries;
 mod utils;
 

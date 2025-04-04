@@ -28,6 +28,7 @@ pub async fn insert_quote_lite(
     content: String,
     book_id: Option<String>,
     author_id: Option<String>,
+    starred: Option<i64>,
     pool: &SqlitePool,
 ) -> Result<Quote, sqlx::Error> {
     let now = chrono::Local::now().naive_utc();
@@ -39,7 +40,7 @@ pub async fn insert_quote_lite(
             author_id: author_id,
             chapter_id: None,
             chapter_progress: None,
-            starred: Some(0),
+            starred: starred,
             created_at: now,
             updated_at: now,
             imported_at: Some(now),
