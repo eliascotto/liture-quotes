@@ -450,7 +450,7 @@ async fn import_kobo(str_path: &str) -> Result<String, ImportError> {
         authors_id_map.insert(book.volume_id.clone(), author_id.clone());
 
         // Book
-        let db_book = queries::insert_book(
+        let db_book = queries::insert_book_with_defaults(
             book.title.clone(),
             author_id.clone(),
             Some(book.volume_id.clone()),
@@ -700,7 +700,7 @@ async fn import_clippings(path: &str) -> Result<String, ImportError> {
                     books.insert(clipping.title.clone(), existing_book.id.clone());
                 }
                 Err(_) => {
-                    let book = queries::insert_book(clipping.title.clone(), None, None, &mut *tx)
+                    let book = queries::insert_book_with_defaults(clipping.title.clone(), None, None, &mut *tx)
                         .await
                         .map_err(|e| {
                             ImportError::DbError(e, "Failed to insert book".to_string())
@@ -974,7 +974,7 @@ async fn import_ibooks() -> Result<String, ImportError> {
         authors_id_map.insert(book.id.clone(), author_id.clone());
 
         // Book
-        let db_book = queries::insert_book(
+        let db_book = queries::insert_book_with_defaults(
             book.title.clone(),
             author_id.clone(),
             Some(book.id.clone()),

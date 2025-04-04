@@ -9,17 +9,21 @@ const ToastContext = createContext<{
   removeToast: () => {},
 });
 
+type ToastProviderProps = {
+  children: React.ReactNode;
+  timeout?: number;
+};
+
 export const ToastProvider = ({
-   children 
-}: { 
-  children: React.ReactNode 
-}) => {
+  children,
+  timeout = 3000,
+}: ToastProviderProps) => {
   const [toasts, setToasts] = useState<{ id: string; message: string; type: string }[]>([]);
 
   const addToast = (message: string, type = "info") => {
     const id = Math.random().toString(36).substr(2, 9);
     setToasts((prev: { id: string; message: string; type: string }[]) => [...prev, { id, message, type }]);
-    setTimeout(() => removeToast(id), 3000); // Auto-dismiss after 3 seconds
+    setTimeout(() => removeToast(id), timeout);
   };
 
   const removeToast = (id: string) => {

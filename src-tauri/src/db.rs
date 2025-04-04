@@ -50,7 +50,7 @@ pub async fn init_pool(app: tauri::AppHandle) -> Result<(), sqlx::Error> {
 /// Initialize the database with some default data
 pub async fn init_db(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     let author = queries::insert_author("George R.R. Martin".to_string(), pool).await?;
-    let book = queries::insert_book(
+    let book = queries::insert_book_with_defaults(
         "A Dance with Dragons".to_string(),
         Some(author.id.clone()),
         None,

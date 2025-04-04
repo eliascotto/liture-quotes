@@ -175,7 +175,7 @@ pub mod commands {
         let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
 
         // Insert the book
-        let book = queries::insert_book(title.to_string(), Some(author_id), None, &mut *tx)
+        let book = queries::insert_book_with_defaults(title.to_string(), Some(author_id), None, &mut *tx)
             .await
             .map_err(|e| format!("Error creating book: {}", e))?;
 
@@ -197,7 +197,7 @@ pub mod commands {
                 .map_err(|e| format!("Error creating author: {}", e))?,
         };
 
-        let book = queries::insert_book(title.to_string(), Some(author.id), None, &mut *tx)
+        let book = queries::insert_book_with_defaults(title.to_string(), Some(author.id), None, &mut *tx)
             .await
             .map_err(|e| format!("Error creating book: {}", e))?;
 

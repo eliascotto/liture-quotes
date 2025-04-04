@@ -24,3 +24,9 @@ dist-ssr
 *.sw?
 
 database/*.sqlite
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

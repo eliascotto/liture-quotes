@@ -22,6 +22,13 @@ export default defineConfig(async () => ({
     },
   },
 
+  test: {
+    globals: true, // Enables global test functions like `describe`, `it`, etc.
+    environment: 'jsdom', // Simulates a browser for React
+    setupFiles: './src/setupTests.ts', // Optional setup file
+    css: false, // Disable CSS processing unless needed
+  },
+
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   clearScreen: false,
   server: {

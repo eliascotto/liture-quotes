@@ -123,7 +123,7 @@ where
 }
 
 /// Insert a new book
-pub async fn insert_book<'e, E>(
+pub async fn insert_book_with_defaults<'e, E>(
     book_title: String,
     author_id: Option<String>,
     original_id: Option<String>,
