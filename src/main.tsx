@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
-import "./styles.css";
+import "./styles/base.css";
 import { DialogProvider } from "./context/DialogContext.tsx";
 import { ToastProvider } from "./context/ToastContext.tsx";
 import { attachConsole } from "@tauri-apps/plugin-log";

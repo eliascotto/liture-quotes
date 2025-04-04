@@ -80,14 +80,11 @@ function Navbar({
     <div
       ref={navbarRef}
       className={clsx(
-        "relative h-full border-r border-slate-700/50 bg-slate-900/90 select-none",
-        {
-          "bg-opacity-[0.25]": currentPlatform === "macos"
-        }
+        "relative h-full border-r border-slate-700/50 bg-slate-900 select-none"
       )}
       style={{ width: `${width}px`, minWidth: `${MIN_WIDTH}px`, maxWidth: `${MAX_WIDTH}px` }}
     >
-      <div className="h-full flex flex-col backdrop-blur-sm shadow-lg select-none">
+      <div className="h-full flex flex-col select-none">
         {/* Sticky header with icons */}
         <div
           className={clsx(

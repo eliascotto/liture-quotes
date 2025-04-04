@@ -74,7 +74,7 @@ function Header({
 
   return (
     <header
-      className="z-20 border-b border-slate-700/50 bg-slate-900/90 min-h-12
+      className="z-20 border-b border-slate-700/50 bg-slate-900 min-h-12
             flex flex-row py-2.5 px-4 w-full items-center justify-between gap-4 shadow-md"
       data-tauri-drag-region
     >
