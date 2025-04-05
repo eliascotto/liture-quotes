@@ -55,7 +55,7 @@ function Header({
 
   useEffect(() => {
     if (navbarCollapsed) {
-      setTimeout(() => setCollapseButtonVisible(true), 100);
+      setTimeout(() => setCollapseButtonVisible(true), 50);
     } else {
       setCollapseButtonVisible(false);
     }

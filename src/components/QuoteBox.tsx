@@ -168,9 +168,8 @@ function QuoteBox({
   return (
     <div className="relative my-2 group select-none" ref={quoteRef}>
       <div
-        className="absolute top-[10px] -left-[22.5px] cursor-pointer"
+        className="absolute top-[8px] -left-[22.5px] cursor-pointer flex flex-col items-center gap-1"
         onClick={() => onStarClick()}
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
       >
         <Tooltip content={quote.starred ? "Unstar Quote" : "Star Quote"} usePortal>
           <div className={clsx({
@@ -183,10 +182,11 @@ function QuoteBox({
         </Tooltip>
       </div>
       {hasTags && (
-        <div className="absolute top-[10px] cursor-pointer text-red-500">
-          <Tooltip content={tags.map((tag) => tag.name).join(", ")} usePortal>
-            <div className="text-slate-400">
-              <TagFill />
+        <div className="absolute top-[4px] -right-[30px] cursor-pointer gap-1">
+          <Tooltip content="Edit tags" usePortal delay={{ open: 1000 }}>
+            <div className="flex flex-row items-center gap-0.5 hover:fill-slate-500 fill-slate-600 text-slate-600 hover:text-slate-500">
+              <TagFill className="w-3.5 h-3.5" />
+              <span className="text-xs font-semibold">{tags.length}</span>
             </div>
           </Tooltip>
         </div>
@@ -203,10 +203,10 @@ function QuoteBox({
         ) : (
           <div
             className={clsx(
-              "relative select-none",
+              "relative w-full select-none",
               "text-slate-300 py-[8px] pl-4 pr-5 whitespace-pre-line transition-all duration-200 border border-l-2 border-l-slate-700/90",
-              "hover:bg-slate-800/70",
-              selected && "bg-gradient-to-r from-slate-800/70 to-slate-800/80  shadow-md",
+              "hover:bg-slate-700/30",
+              selected && "bg-slate-700/20  shadow-md",
               selected ? "border-slate-600/70 rounded-sm" : "border-transparent",
               empty && "text-opacity-30 cursor-default",
             )}

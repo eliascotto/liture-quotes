@@ -72,7 +72,7 @@ pub async fn init_pool(app: tauri::AppHandle) -> Result<(), DbError> {
 
     if initialized {
         sqlx::migrate!("../migrations").run(&pool).await?;
-        init_db(&pool).await?;
+        init_db_with_defaults(&pool).await?;
     }
 
     DB_POOL.set(pool).expect("Failed to set database pool");
@@ -80,7 +80,7 @@ pub async fn init_pool(app: tauri::AppHandle) -> Result<(), DbError> {
 }
 
 /// Initialize the database with some default data
-pub async fn init_db(pool: &SqlitePool) -> Result<(), DbInitError> {
+async fn init_db_with_defaults(pool: &SqlitePool) -> Result<(), DbInitError> {
     log::info!("Starting database initialization...");
     
     // Start a transaction to ensure atomicity
@@ -144,6 +144,25 @@ pub async fn init_db(pool: &SqlitePool) -> Result<(), DbInitError> {
             return Err(DbInitError::QuoteCreation(e));
         }
     };
+
+    for i in 0..10 {
+        let _ = match queries::insert_quote_lite(
+            "A reader lives a thousand lives before he dies... The man who never reads lives only one.".to_string(),
+            Some(book.id.clone()),
+            Some(author.id.clone()),
+            Some(0),
+            &mut *tx,
+        ).await {
+            Ok(quote) => {
+                log::info!("Created quote with id: {}", quote.id);
+                quote
+            },
+            Err(e) => {
+                log::error!("Failed to create quote: {}", e);
+                return Err(DbInitError::QuoteCreation(e));
+            }
+        };
+    }
 
     log::info!("Creating reading tag...");
     let reading_tag = match queries::insert_tag(&Tag {

@@ -1,4 +1,4 @@
-export default function XMarkIcon({ className = '' }: { className?: string }) {
+export default function XMarkIcon({ className = '', dataTestId = '' }: { className?: string, dataTestId?: string }) {
   return (
     <svg 
       xmlns="http://www.w3.org/2000/svg" 
@@ -7,6 +7,7 @@ export default function XMarkIcon({ className = '' }: { className?: string }) {
       strokeWidth={2} 
       stroke="currentColor" 
       className={`size-3.5 ${className}`}
+      data-testid={dataTestId}
     >
       <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
     </svg>

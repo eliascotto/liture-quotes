@@ -5,6 +5,7 @@
 @tailwind utilities;
 
 @import "./theme.css";
+@import "./transitions.css";
 
 :root {
   /* Base styles */

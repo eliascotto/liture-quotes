@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import Dialog from './Dialog';
+import Dialog from '@components/Dialog';
 import XIcon from '@components/icons/X';
 
 // Mock the X icon

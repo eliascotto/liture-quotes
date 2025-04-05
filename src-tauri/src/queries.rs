@@ -353,8 +353,7 @@ where
         "WITH QuoteResults AS (
             SELECT * 
             FROM quote 
-            WHERE book_id = ? AND deleted_at IS NULL 
-            ORDER BY {} {}
+            WHERE book_id = ? AND deleted_at IS NULL
         )
         SELECT 
             q.*,
@@ -368,7 +367,9 @@ where
         FROM QuoteResults q
         LEFT JOIN quote_tag qt ON q.id = qt.quote_id
         LEFT JOIN tag t ON qt.tag_id = t.id
-        GROUP BY q.id",
+        GROUP BY q.id
+        ORDER BY q.{} {}
+        ",
         sort_by_clause, order_clause
     );
 

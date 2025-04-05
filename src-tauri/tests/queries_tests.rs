@@ -126,11 +126,21 @@ async fn init_db(pool: &SqlitePool) -> Result<TestData, sqlx::Error> {
 
     // Starred quotes - multiple
     for i in 0..STARRED_QUOTES_COUNT {
-        let _ = queries::insert_quote_lite(
-            format!("{} - This is a starred quote.", i),
-            Some(book.id.clone()),
-            Some(author.id.clone()),
-            Some(1),
+        let _ = queries::insert_quote(
+            &Quote {
+                id: Uuid::new_v4().to_string(),
+                book_id: Some(book.id.clone()),
+                content: Some(format!("{} - This is a starred quote.", i)),
+                created_at: now,
+                updated_at: now,
+                deleted_at: None,
+                original_id: Some(generate_random_string(10)),
+                author_id: Some(author.id.clone()),
+                chapter_id: Some(chapters[0].id.clone()),
+                chapter_progress: Some(i as f64),
+                starred: Some(1),
+                imported_at: Some(now),
+            },
             pool,
         )
         .await?;
@@ -263,6 +273,52 @@ async fn test_get_all_quotes_by_book_id(pool: SqlitePool) {
         .unwrap();
     assert_eq!(quotes.len(), 5);
 }
+
+#[sqlx::test(migrations = "../migrations")]
+async fn test_get_all_quotes_by_book_id_with_sort_by(pool: SqlitePool) {
+    let test_data = init_db(&pool).await.unwrap();
+
+    let mut quotes = queries::get_all_quotes_by_book_id(&test_data.book.id, Some("created_at"), Some("desc"), &pool)
+        .await
+        .unwrap();
+    assert_eq!(quotes.len(), 5);
+    assert_eq!(quotes[0].content, Some("5 - This is a starred quote.".to_string()));
+
+    quotes = queries::get_all_quotes_by_book_id(&test_data.book.id, Some("created_at"), Some("asc"), &pool)
+        .await
+        .unwrap();
+    assert_eq!(quotes[0].content, Some("1 - This is a starred quote.".to_string()));
+
+    quotes = queries::get_all_quotes_by_book_id(&test_data.book.id, Some("updated_at"), Some("desc"), &pool)
+        .await
+        .unwrap();
+    assert_eq!(quotes[0].content, Some("5 - This is a starred quote.".to_string()));
+
+    quotes = queries::get_all_quotes_by_book_id(&test_data.book.id, Some("updated_at"), Some("asc"), &pool)
+        .await
+        .unwrap();
+    
+    quotes = queries::get_all_quotes_by_book_id(&test_data.book.id, Some("starred"), Some("desc"), &pool)
+        .await
+        .unwrap();
+    assert_eq!(quotes[0].content, Some("5 - This is a starred quote.".to_string()));
+
+    quotes = queries::get_all_quotes_by_book_id(&test_data.book.id, Some("starred"), Some("asc"), &pool)
+        .await
+        .unwrap();
+    assert_eq!(quotes[0].content, Some("1 - This is a starred quote.".to_string()));
+
+    quotes = queries::get_all_quotes_by_book_id(&test_data.book.id, Some("chapter_progress"), Some("desc"), &pool)
+        .await
+        .unwrap();
+    assert_eq!(quotes[0].content, Some("5 - This is a starred quote.".to_string()));
+
+    quotes = queries::get_all_quotes_by_book_id(&test_data.book.id, Some("chapter_progress"), Some("asc"), &pool)
+        .await
+        .unwrap();
+    assert_eq!(quotes[0].content, Some("1 - This is a starred quote.".to_string()));
+}
+
 
 #[sqlx::test(migrations = "../migrations")]
 async fn test_update_quote_content(pool: SqlitePool) {

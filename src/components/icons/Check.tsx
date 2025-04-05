@@ -1,4 +1,4 @@
-export default function CheckIcon({ className = '' }: { className?: string }) {
+export default function CheckIcon({ className = '', dataTestId = '' }: { className?: string, dataTestId?: string }) {
   return (
     <svg
       className={`w-5 h-5 ${className}`}
@@ -6,6 +6,7 @@ export default function CheckIcon({ className = '' }: { className?: string }) {
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
+      data-testid={dataTestId}
     >
       <path
         strokeLinecap="round"

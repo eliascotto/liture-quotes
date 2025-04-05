@@ -10,10 +10,20 @@ import {
 } from '@floating-ui/react';
 import { createPortal } from 'react-dom';
 
+type TooltipProps = {
+  children: React.ReactNode,
+  content: string,
+  shortcut?: string,
+  usePortal?: boolean,
+  delay?: {
+    open?: number,
+    close?: number,
+  },
+}
+
 // Avoid re-rendering the tooltip when the content is the same
 const Tooltip = React.memo((
-  { children, content, shortcut, usePortal = false }:
-    { children: React.ReactNode, content: string, shortcut?: string, usePortal?: boolean }
+  { children, content, shortcut, usePortal = false, delay }: TooltipProps
 ) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -34,8 +44,8 @@ const Tooltip = React.memo((
   const hover = useHover(context, {
     // Configure the delay for opening and closing separately.
     delay: {
-      open: 500,
-      close: 0,
+      open: delay?.open || 500,
+      close: delay?.close || 0,
     },
   });
 

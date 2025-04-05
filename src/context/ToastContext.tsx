@@ -14,20 +14,28 @@ type ToastProviderProps = {
   timeout?: number;
 };
 
+type Toast = {
+  id: string;
+  message: string;
+  messageType: string;
+  key?: string;
+  onClose?: () => void;
+};
+
 export const ToastProvider = ({
   children,
   timeout = 3000,
 }: ToastProviderProps) => {
-  const [toasts, setToasts] = useState<{ id: string; message: string; type: string }[]>([]);
+  const [toasts, setToasts] = useState<Toast[]>([]);
 
   const addToast = (message: string, type = "info") => {
     const id = Math.random().toString(36).substr(2, 9);
-    setToasts((prev: { id: string; message: string; type: string }[]) => [...prev, { id, message, type }]);
+    setToasts((prev: Toast[]) => [...prev, { id, message, messageType: type, key: id, onClose: () => removeToast(id) }]);
     setTimeout(() => removeToast(id), timeout);
   };
 
   const removeToast = (id: string) => {
-    setToasts((prev: { id: string; message: string; type: string }[]) => prev.filter((toast) => toast.id !== id));
+    setToasts((prev: Toast[]) => prev.filter((toast) => toast.id !== id));
   };
 
   return (

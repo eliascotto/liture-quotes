@@ -3,11 +3,15 @@ import CheckIcon from "@icons/Check";
 import XMarkIcon from "@components/icons/XMark";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 
+type ToastProps = {
+  message: string;
+  messageType: string;
+  onClose: () => void;
+};
+
 const Toast = ({
-  message, type, onClose
-}: {
-  message: string, type: string, onClose: () => void
-}) => {
+  message, messageType, onClose
+}: ToastProps) => {
   const typeStyles: Record<string, string> = {
     success: 'bg-slate-800/90 border-green-500/30 text-green-400',
     error: 'bg-slate-800/90 border-red-500/30 text-red-400',
@@ -22,7 +26,7 @@ const Toast = ({
   return (
     <div
       className={clsx(
-        typeStyles[type] || typeStyles.info,
+        typeStyles[messageType] || typeStyles.info,
         "px-4 py-2 rounded-md shadow-lg flex items-center justify-between min-w-[200px] animate-slide-up border backdrop-blur-sm"
       )}
     >
@@ -31,8 +35,8 @@ const Toast = ({
         className="flex items-center gap-2 text-sm"
         onClick={copyContentToClipboard}
       >
-        {type === 'success' && <CheckIcon data-testid="check-icon" className="size-4" />}
-        {type === 'error' && <XMarkIcon data-testid="xmark-icon" className="h-5 w-5 size-4" />}
+        {messageType === 'success' && <CheckIcon dataTestId="check-icon" className="size-4" />}
+        {messageType === 'error' && <XMarkIcon dataTestId="error-icon" className="h-5 w-5 size-4" />}
         <span>{message}</span>
       </div>
       <button
@@ -40,7 +44,7 @@ const Toast = ({
         onClick={onClose}
         className="ml-2 text-slate-400 hover:text-slate-300 transition-colors duration-200 text-sm focus:outline-none"
       >
-        <XMarkIcon data-testid="xmark-icon" className="h-3.5 w-3.5" />
+        <XMarkIcon dataTestId="close-icon" className="h-3.5 w-3.5" />
       </button>
     </div>
   );

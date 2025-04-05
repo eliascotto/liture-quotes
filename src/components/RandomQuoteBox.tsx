@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { RandomQuote } from "@customTypes/index";
+import { cleanText } from "@utils/index";
 
 type RandomQuoteProps = {
   navigateToBook: (bookId: string) => void;
@@ -56,10 +57,10 @@ function RandomQuoteBox({
           <div className="text-right">
             <p className="text-slate-500 cursor-pointer hover:text-cyan-400"
               onClick={() => quote.book_id && navigateToBook(quote.book_id)}>
-              <span className="font-semibold">{quote.book_title}</span>
+              <span className="font-semibold">{cleanText(quote.book_title || "")}</span>
             </p>
             <p className="text-slate-600 cursor-pointer hover:text-cyan-400"
-              onClick={() => quote.author_id && navigateToAuthor(quote.author_id)}>{quote.author_name}</p>
+              onClick={() => quote.author_id && navigateToAuthor(quote.author_id)}>{cleanText(quote.author_name || "")}</p>
           </div>
         </blockquote>
       </div>

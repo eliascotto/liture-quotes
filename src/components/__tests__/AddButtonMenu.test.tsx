@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import AddButtonMenu from './AddButtonMenu';
+import AddButtonMenu from '@components/AddButtonMenu';
 import { DialogProvider } from '@context/DialogContext';
 import { Author } from '@customTypes/index';
 

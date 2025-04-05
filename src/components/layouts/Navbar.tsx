@@ -25,6 +25,7 @@ function Navbar({
   property, items, itemType, selected, collapsed, setCollapsed, onCategoryChange, onSelection
 }: NavbarProps) {
   const [width, setWidth] = useState(DEFAULT_WIDTH);
+  const [lastWidth, setLastWidth] = useState(DEFAULT_WIDTH);
   const [isResizing, setIsResizing] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isEmpty, setIsEmpty] = useState(false);
@@ -41,11 +42,6 @@ function Navbar({
     e.preventDefault();
     setIsResizing(true);
   };
-
-
-  useEffect(() => {
-
-  }, [collapsed]);
 
   useEffect(() => {
     setIsEmpty(items.length === 0);
@@ -83,9 +79,10 @@ function Navbar({
   // Handle the navbar collapsing and uncollapsing animation
   useEffect(() => {
     if (collapsed) {
+      setLastWidth(width);
       setTimeout(() => setWidth(0));
     } else {
-      setWidth(DEFAULT_WIDTH); // Instantly restore to default width when uncollapsing
+      setWidth(lastWidth); // Instantly restore to default width when uncollapsing
     }
   }, [collapsed]);
 
@@ -95,7 +92,7 @@ function Navbar({
     <div
       ref={navbarRef}
       className={clsx(
-        "relative h-full border-r border-slate-700/50 bg-slate-900 select-none",
+        "relative h-full border-r border-slate-700/30 bg-slate-900 select-none transition-width duration-50 ease-linear",
         {
           "border-r-0": collapsed,
         }
@@ -105,7 +102,6 @@ function Navbar({
         // Avoid min-width when collapser for smooth animation
         ...(!collapsed ? { minWidth: `${MIN_WIDTH}px` } : {}),
         maxWidth: `${MAX_WIDTH}px`,
-        transition: "width 0.1s",
       }}
     >
       <div className="h-full flex flex-col select-none">
@@ -124,14 +120,14 @@ function Navbar({
           <div className="flex items-center ml-[74px]">
             <button
               onClick={() => setCollapsed(true)}
-              className="px-1.5 py-1 text-slate-400 hover:text-cyan-500 hover:bg-slate-700/20 rounded-md transition-all duration-200"
+              className="px-1.5 py-1.5 text-slate-400 hover:text-cyan-500 hover:bg-slate-700/20 rounded-md transition-all duration-200"
             >
               <SidebarLeft className="w-4 h-4" />
             </button>
           </div>
           <div className="flex w-full justify-end items-center" data-tauri-drag-region>
             {!collapsed && (
-              <div className="flex space-x-1.5 select-none">
+              <div className="flex space-x-1 select-none">
                 {/* Books Icon */}
                 <button
                   onClick={() => onCategoryChange("Books")}
