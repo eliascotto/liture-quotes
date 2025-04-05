@@ -63,6 +63,20 @@ CREATE TABLE IF NOT EXISTS note (
     FOREIGN KEY (quote_id) REFERENCES quote(id)
 );
 
+CREATE TABLE IF NOT EXISTS tag (
+    id TEXT PRIMARY KEY NOT NULL,
+    name TEXT NOT NULL,
+    color TEXT
+);
+
+CREATE TABLE IF NOT EXISTS quote_tag (
+    quote_id TEXT,
+    tag_id TEXT,
+    PRIMARY KEY (quote_id, tag_id),
+    FOREIGN KEY (quote_id) REFERENCES quote(id),
+    FOREIGN KEY (tag_id) REFERENCES tag(id)
+);
+
 -- Create indexes for performance
 CREATE INDEX IF NOT EXISTS idx_book_author_id ON book(author_id);
 CREATE INDEX IF NOT EXISTS idx_quote_book_id ON quote(book_id);

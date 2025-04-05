@@ -83,18 +83,8 @@ export interface Tag {
   color?: string;
 }
 
-export interface User {
-  id: string;
-  username: string;
-  email: string;
-  createdAt: Date;
-}
-
-export interface NoteFilter {
-  searchTerm?: string;
-  tags?: string[];
-  isArchived?: boolean;
-  isPinned?: boolean;
+export interface QuoteWithTags extends Quote {
+  tags: Tag[];
 }
 
 export interface QuoteFts {

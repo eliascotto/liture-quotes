@@ -8,15 +8,15 @@ import ChatBubble from "@components/icons/ChatBubble";
 import BookHeader from "@components/BookHeader";
 import PlusIcon from '@icons/Plus';
 import DetailsIcon from '@icons/Details';
-import { Book, Quote, Author, Note, Chapter } from "@customTypes/index";
+import { Book, Quote, Author, Note, Chapter, QuoteWithTags } from "@customTypes/index";
 
 const QUOTES_GAP = "gap-y-1";
 
-type QuoteWithNote = Quote & { note: Note | null };
+type QuoteWithNote = QuoteWithTags & { note: Note | null };
 
 interface BookPageProps {
   book: Book;
-  quotes: Quote[];
+  quotesWithTags: QuoteWithTags[];
   author: Author;
   notes: Note[];
   chapters: Chapter[];
@@ -35,7 +35,7 @@ interface BookPageProps {
 }
 
 function BookPage({
-  book, quotes, author, notes, chapters,
+  book, quotesWithTags, author, notes, chapters,
   sortBy, sortOrder, setSortBy, setSortOrder,
   navigateToAuthor,
   createNewQuote, toggleFavouriteQuote, updateQuote, deleteQuote,
@@ -107,6 +107,7 @@ function BookPage({
       <QuoteBox
         key={quote.id}
         quote={quote}
+        tags={quote.tags}
         note={showNotes ? quote.note : null}
         selected={!!selectedQuote && !!selectedQuote.id && selectedQuote.id === quote.id}
         onClick={(e) => {
@@ -122,24 +123,23 @@ function BookPage({
   }
 
   const getQuotesWithNotes = (): QuoteWithNote[] => {
-    return quotes.map((quote) => ({
-      ...quote,
-      note: notes.find((note) => note.quote_id === quote.id) || null,
+    return quotesWithTags.map((quoteWithTags) => ({
+      ...quoteWithTags,
+      note: notes.find((note) => note.quote_id === quoteWithTags.id) || null,
     }));
   };
 
   const renderChapterQuotes = () => {
     if (!showChapters) return renderQuotes(getQuotesWithNotes());
-    console.log(quotes)
 
-    const quoteByChapter = quotes.reduce((acc, quote) => {
-      const chapter = chapters.find((c) => c.id === quote.chapter_id);
+    const quoteByChapter = quotesWithTags.reduce((acc, quoteWithTags) => {
+      const chapter = chapters.find((c) => c.id === quoteWithTags.chapter_id);
       if (chapter) {
         acc[chapter.id] = [
           ...(acc[chapter.id] || []), 
           {
-            ...quote,
-            note: notes.find((n) => n.quote_id === quote.id) || null
+            ...quoteWithTags,
+            note: notes.find((n) => n.quote_id === quoteWithTags.id) || null
           }
         ];
       }
@@ -171,7 +171,7 @@ function BookPage({
           onDeleteBook={onDeleteBook}
         />
 
-        <div className="flex justify-between items-center mb-3">
+        <div className="flex justify-between items-center mb-2">
           {/* Header left */}
           <div className="flex items-center space-x-1">
             <Tooltip content="Add new quote">
@@ -234,7 +234,7 @@ function BookPage({
           {book && book.title}
         </div>
         <div className="text-xs text-slate-400">
-          Items: <span className="text-cyan-400 font-medium">{quotes.length}</span>
+          Quotes: <span className="text-cyan-400 font-medium">{quotesWithTags.length}</span>
         </div>
       </div>
     </div>

@@ -1,34 +1,35 @@
 import { useState, useEffect, useRef, MouseEvent, UIEvent } from "react";
 import clsx from "clsx";
-import { platform } from '@tauri-apps/plugin-os';
 import BookIcon from "@icons/BookIcon";
 import UsersIcon from "@icons/UsersIcon";
 import Tooltip from "@components/Tooltip";
 import { cleanText } from "@utils/index";
+import SidebarLeft from "@components/icons/SidebarLeft";
 
 const MIN_WIDTH = 180;
 const MAX_WIDTH = 400;
+const DEFAULT_WIDTH = 240;
 
 type NavbarProps = {
   property: string,
   items: any[],
   itemType: string,
   selected: any,
+  collapsed: boolean,
+  setCollapsed: (collapsed: boolean) => void,
   onCategoryChange: (category: string) => void,
   onSelection: (item: any) => void,
 }
 
 function Navbar({
-  property, items, itemType, selected, onCategoryChange, onSelection
+  property, items, itemType, selected, collapsed, setCollapsed, onCategoryChange, onSelection
 }: NavbarProps) {
-  const [width, setWidth] = useState(240); // Default width
+  const [width, setWidth] = useState(DEFAULT_WIDTH);
   const [isResizing, setIsResizing] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isEmpty, setIsEmpty] = useState(false);
   const navbarRef = useRef(null);
   const scrollContainerRef = useRef(null);
-
-  const currentPlatform = platform();
 
   const handleScroll = (e: UIEvent<HTMLDivElement>) => {
     const scrollTop = (e.target as HTMLElement).scrollTop;
@@ -40,6 +41,11 @@ function Navbar({
     e.preventDefault();
     setIsResizing(true);
   };
+
+
+  useEffect(() => {
+
+  }, [collapsed]);
 
   useEffect(() => {
     setIsEmpty(items.length === 0);
@@ -74,15 +80,33 @@ function Navbar({
     };
   }, [isResizing]);
 
+  // Handle the navbar collapsing and uncollapsing animation
+  useEffect(() => {
+    if (collapsed) {
+      setTimeout(() => setWidth(0));
+    } else {
+      setWidth(DEFAULT_WIDTH); // Instantly restore to default width when uncollapsing
+    }
+  }, [collapsed]);
+
   const isBooks = property === "title";
 
   return (
     <div
       ref={navbarRef}
       className={clsx(
-        "relative h-full border-r border-slate-700/50 bg-slate-900 select-none"
+        "relative h-full border-r border-slate-700/50 bg-slate-900 select-none",
+        {
+          "border-r-0": collapsed,
+        }
       )}
-      style={{ width: `${width}px`, minWidth: `${MIN_WIDTH}px`, maxWidth: `${MAX_WIDTH}px` }}
+      style={{
+        width: `${width}px`,
+        // Avoid min-width when collapser for smooth animation
+        ...(!collapsed ? { minWidth: `${MIN_WIDTH}px` } : {}),
+        maxWidth: `${MAX_WIDTH}px`,
+        transition: "width 0.1s",
+      }}
     >
       <div className="h-full flex flex-col select-none">
         {/* Sticky header with icons */}
@@ -97,16 +121,25 @@ function Navbar({
           )}
           data-tauri-drag-region
         >
+          <div className="flex items-center ml-[74px]">
+            <button
+              onClick={() => setCollapsed(true)}
+              className="px-1.5 py-1 text-slate-400 hover:text-cyan-500 hover:bg-slate-700/20 rounded-md transition-all duration-200"
+            >
+              <SidebarLeft className="w-4 h-4" />
+            </button>
+          </div>
           <div className="flex w-full justify-end items-center" data-tauri-drag-region>
-            <div className="flex space-x-3 select-none">
-              {/* Books Icon */}
-              <button
-                onClick={() => onCategoryChange("Books")}
+            {!collapsed && (
+              <div className="flex space-x-1.5 select-none">
+                {/* Books Icon */}
+                <button
+                  onClick={() => onCategoryChange("Books")}
                 className={clsx(
                   "px-1.5 py-1 rounded-md transition-all duration-200",
                   {
                     "text-cyan-500 bg-slate-700/10": isBooks,
-                    "text-slate-500 hover:text-cyan-300 hover:bg-slate-700/20": !isBooks,
+                    "text-slate-400 hover:text-cyan-300 hover:bg-slate-700/20": !isBooks,
                   }
                 )}
                 title="Books"
@@ -121,14 +154,15 @@ function Navbar({
                   "px-1.5 py-1 rounded-md transition-all duration-200",
                   {
                     "text-cyan-500 bg-slate-700/10": !isBooks,
-                    "text-slate-500 hover:text-cyan-300 hover:bg-slate-700/20": isBooks,
+                    "text-slate-400 hover:text-cyan-300 hover:bg-slate-700/20": isBooks,
                   }
                 )}
                 title="Authors"
               >
                 <UsersIcon />
-              </button>
-            </div>
+                </button>
+              </div>
+            )}
           </div>
         </div>
 

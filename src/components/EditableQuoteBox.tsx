@@ -53,7 +53,7 @@ export default function EditableQuoteBox({
     <div
       ref={editableBoxRef}
       id={quote.id}
-      className="bg-slate-800/80 shadow-lg rounded-sm border border-slate-700/50 pt-3 pb-2 px-5 backdrop-blur-sm select-none"
+      className="bg-slate-800/80 shadow-lg rounded-sm border border-slate-600/50 pt-3 pb-2 px-5 backdrop-blur-sm select-none"
     >
       <textarea
         ref={textareaRef}

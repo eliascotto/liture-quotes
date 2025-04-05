@@ -24,13 +24,16 @@ fn extract_order_clauses(sort_by: Option<&str>, order: Option<&str>) -> (String,
 }
 
 // Insert a new quote with some default values
-pub async fn insert_quote_lite(
+pub async fn insert_quote_lite<'e, E>(
     content: String,
     book_id: Option<String>,
     author_id: Option<String>,
     starred: Option<i64>,
-    pool: &SqlitePool,
-) -> Result<Quote, sqlx::Error> {
+    executor: E,
+) -> Result<Quote, sqlx::Error>
+where
+    E: Executor<'e, Database = Sqlite>,
+{
     let now = chrono::Local::now().naive_utc();
     let quote = insert_quote(
         &Quote {
@@ -47,7 +50,7 @@ pub async fn insert_quote_lite(
             deleted_at: None,
             original_id: None,
         },
-        pool,
+        executor,
     )
     .await?;
 
@@ -55,13 +58,16 @@ pub async fn insert_quote_lite(
 }
 
 // Insert a new note with some default values
-pub async fn insert_note_lite(
+pub async fn insert_note_lite<'e, E>(
     content: String,
     quote_id: Option<String>,
     book_id: Option<String>,
     author_id: Option<String>,
-    pool: &SqlitePool,
-) -> Result<Note, sqlx::Error> {
+    executor: E,
+) -> Result<Note, sqlx::Error>
+where
+    E: Executor<'e, Database = Sqlite>,
+{
     let now = chrono::Local::now().naive_utc();
     let note = insert_note(
         &Note {
@@ -74,7 +80,7 @@ pub async fn insert_note_lite(
             updated_at: now,
             deleted_at: None,
         },
-        pool,
+        executor,
     )
     .await?;
 
@@ -112,7 +118,7 @@ where
     E: Executor<'e, Database = Sqlite>,
 {
     let author = sqlx::query_as::<_, Author>(
-        "INSERT OR IGNORE INTO author (id, name) VALUES (?, ?) RETURNING *",
+        "INSERT INTO author (id, name) VALUES (?, ?) RETURNING *",
     )
     .bind(Uuid::new_v4().to_string())
     .bind(author_name.clone())
@@ -133,7 +139,7 @@ where
     E: Executor<'e, Database = Sqlite>,
 {
     sqlx::query_as::<_, Book>(
-        "INSERT OR IGNORE INTO book (id, title, author_id, original_id) VALUES (?, ?, ?, ?) RETURNING *",
+        "INSERT INTO book (id, title, author_id, original_id) VALUES (?, ?, ?, ?) RETURNING *",
     )
     .bind(Uuid::new_v4().to_string())
     .bind(book_title)
@@ -148,7 +154,7 @@ where
     E: Executor<'e, Database = Sqlite>,
 {
     sqlx::query_as::<_, Quote>(
-        "INSERT OR IGNORE INTO quote 
+        "INSERT INTO quote 
             (
                 id,
                 book_id,
@@ -214,10 +220,7 @@ where
         .await
 }
 
-pub async fn fetch_notes_by_book<'e, E>(
-    book_id: &str,
-    executor: E,
-) -> Result<Vec<Note>, sqlx::Error>
+pub async fn get_notes_by_book<'e, E>(book_id: &str, executor: E) -> Result<Vec<Note>, sqlx::Error>
 where
     E: Executor<'e, Database = Sqlite>,
 {
@@ -232,18 +235,19 @@ where
     E: Executor<'e, Database = Sqlite>,
 {
     sqlx::query_as::<_, Note>(
-        "INSERT OR IGNORE INTO note 
-        (id, book_id, author_id, quote_id, content, created_at, updated_at) 
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        RETURNING *",
+        "INSERT INTO note 
+            (id, content, quote_id, book_id, author_id, created_at, updated_at, deleted_at) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            RETURNING *",
     )
     .bind(note.id.clone())
+    .bind(note.content.clone())
+    .bind(note.quote_id.clone())
     .bind(note.book_id.clone())
     .bind(note.author_id.clone())
-    .bind(note.quote_id.clone())
-    .bind(note.content.clone())
     .bind(note.created_at)
     .bind(note.updated_at)
+    .bind(note.deleted_at)
     .fetch_one(executor)
     .await
 }
@@ -338,7 +342,7 @@ pub async fn get_all_quotes_by_book_id<'e, E>(
     sort_by: Option<&str>,
     sort_order: Option<&str>,
     executor: E,
-) -> Result<Vec<Quote>, sqlx::Error>
+) -> Result<Vec<QuoteWithTags>, sqlx::Error>
 where
     E: Executor<'e, Database = Sqlite>,
 {
@@ -346,11 +350,58 @@ where
     let (order_clause, sort_by_clause) = extract_order_clauses(sort_by, Some(order));
 
     let sql = format!(
-        "SELECT * FROM quote WHERE book_id = ? AND deleted_at IS NULL ORDER BY {} {}",
+        "WITH QuoteResults AS (
+            SELECT * 
+            FROM quote 
+            WHERE book_id = ? AND deleted_at IS NULL 
+            ORDER BY {} {}
+        )
+        SELECT 
+            q.*,
+            json_group_array(
+                json_object(
+                    'id', t.id,
+                    'name', t.name,
+                    'color', t.color
+                )
+            ) as tags_json
+        FROM QuoteResults q
+        LEFT JOIN quote_tag qt ON q.id = qt.quote_id
+        LEFT JOIN tag t ON qt.tag_id = t.id
+        GROUP BY q.id",
         sort_by_clause, order_clause
     );
 
-    sqlx::query_as(&sql).bind(book_id).fetch_all(executor).await
+    let rows = sqlx::query(&sql)
+        .bind(book_id)
+        .fetch_all(executor)
+        .await?;
+
+    let quotes_with_tags = rows
+        .iter()
+        .map(|row| {
+            let tags_json: String = row.get("tags_json");
+            let tags: Vec<Tag> = serde_json::from_str(&tags_json).unwrap_or_default();
+
+            QuoteWithTags {
+                id: row.get("id"),
+                book_id: row.get("book_id"),
+                author_id: row.get("author_id"),
+                chapter_id: row.get("chapter_id"),
+                chapter_progress: row.get("chapter_progress"),
+                content: row.get("content"),
+                starred: row.get("starred"),
+                created_at: row.get("created_at"),
+                updated_at: row.get("updated_at"),
+                imported_at: row.get("imported_at"),
+                deleted_at: row.get("deleted_at"),
+                original_id: row.get("original_id"),
+                tags: tags,
+            }
+        })
+        .collect();
+
+    Ok(quotes_with_tags)
 }
 
 /// Find notes using full-text search
@@ -748,5 +799,120 @@ where
     .bind(book.created_at)
     .bind(book.id.clone())
     .fetch_one(executor)
+    .await
+}
+
+pub async fn get_tags<'e, E>(executor: E) -> Result<Vec<Tag>, sqlx::Error>
+where
+    E: Executor<'e, Database = Sqlite>,
+{
+    sqlx::query_as::<_, Tag>("SELECT * FROM tag")
+        .fetch_all(executor)
+        .await
+}
+
+pub async fn get_quote_tags<'e, E>(quote_id: &str, executor: E) -> Result<Vec<Tag>, sqlx::Error>
+where
+    E: Executor<'e, Database = Sqlite>,
+{
+    sqlx::query_as::<_, Tag>(
+        "SELECT t.* FROM tag t
+        JOIN quote_tag qt ON t.id = qt.tag_id
+        WHERE qt.quote_id = ?",
+    )
+    .bind(quote_id)
+    .fetch_all(executor)
+    .await
+}
+
+pub async fn insert_tag<'e, E>(tag: &Tag, executor: E) -> Result<Tag, sqlx::Error>
+where
+    E: Executor<'e, Database = Sqlite>,
+{
+    sqlx::query_as::<_, Tag>(
+        "INSERT INTO tag (id, name, color) VALUES (?, ?, ?) RETURNING *",
+    )
+    .bind(tag.id.clone())
+    .bind(tag.name.clone())
+    .bind(tag.color.clone())
+    .fetch_one(executor)
+    .await
+}
+
+pub async fn insert_quote_tag<'e, E>(
+    quote_id: &str,
+    tag_id: &str,
+    executor: E,
+) -> Result<(), sqlx::Error>
+where
+    E: Executor<'e, Database = Sqlite>,
+{
+    sqlx::query(
+        "INSERT INTO quote_tag (quote_id, tag_id) VALUES (?, ?)",
+    )
+    .bind(quote_id)
+    .bind(tag_id)
+    .execute(executor)
+    .await?;
+
+    Ok(())
+}
+
+pub async fn delete_quote_tag<'e, E>(
+    quote_id: &str,
+    tag_id: &str,
+    executor: E,
+) -> Result<(), sqlx::Error>
+where
+    E: Executor<'e, Database = Sqlite>,
+{
+    sqlx::query("DELETE FROM quote_tag WHERE quote_id = ? AND tag_id = ?")
+        .bind(quote_id)
+        .bind(tag_id)
+        .execute(executor)
+        .await?;
+
+    Ok(())
+}
+
+pub async fn delete_tag<'e, E>(tag_id: &str, executor: E) -> Result<(), sqlx::Error>
+where
+    E: Executor<'e, Database = Sqlite>,
+{
+    sqlx::query("DELETE FROM tag WHERE id = ?")
+        .bind(tag_id)
+        .execute(executor)
+        .await?;
+
+    Ok(())
+}
+
+pub async fn get_quotes_by_tag<'e, E>(tag_id: &str, executor: E) -> Result<Vec<Quote>, sqlx::Error>
+where
+    E: Executor<'e, Database = Sqlite>,
+{
+    sqlx::query_as::<_, Quote>(
+        "SELECT q.* FROM quote q
+        JOIN quote_tag qt ON q.id = qt.quote_id
+        WHERE qt.tag_id = ?",
+    )
+    .bind(tag_id)
+    .fetch_all(executor)
+    .await
+}
+
+pub async fn get_tags_by_book_id<'e, E>(book_id: &str, executor: E) -> Result<Vec<Tag>, sqlx::Error>
+where
+    E: Executor<'e, Database = Sqlite>,
+{
+    sqlx::query_as::<_, Tag>(
+        "SELECT t.* 
+        FROM tag t
+        JOIN quote_tag qt ON t.id = qt.tag_id
+        JOIN quote q ON qt.quote_id = q.id
+        WHERE q.book_id = ?",
+    )
+    .bind(book_id)
+    .fetch_all(executor)
     .await
 }

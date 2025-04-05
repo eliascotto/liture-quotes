@@ -64,6 +64,19 @@ pub struct Note {
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, Clone, sqlx::FromRow)]
+pub struct Tag {
+    pub id: String,
+    pub name: String,
+    pub color: Option<String>,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize, Clone, sqlx::FromRow)]
+pub struct QuoteTag {
+    pub quote_id: String,
+    pub tag_id: String,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize, Clone, sqlx::FromRow)]
 pub struct QuoteFts {
     pub id: String,
     pub content: Option<String>,
@@ -109,4 +122,21 @@ pub struct RandomQuote {
     pub author_id: Option<String>,
     pub author_name: Option<String>,
     pub content: Option<String>,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize, Clone, sqlx::FromRow)]
+pub struct QuoteWithTags {
+    pub id: String,
+    pub book_id: Option<String>,
+    pub author_id: Option<String>,
+    pub chapter_id: Option<String>,
+    pub chapter_progress: Option<f64>,
+    pub content: Option<String>,
+    pub starred: Option<i64>,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
+    pub imported_at: Option<NaiveDateTime>,
+    pub deleted_at: Option<NaiveDateTime>,
+    pub original_id: Option<String>,
+    pub tags: Vec<Tag>,
 }

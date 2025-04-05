@@ -83,7 +83,7 @@ const ItemMenu = (
           )}
           {!!onDelete && (
             <Fragment>
-              <div className="my-0.5 border-t border-slate-700/50"></div>
+              {!!onEdit && <div className="my-0.5 border-t border-slate-700/50"></div>}
               <div className="py-0.5">
                 <button
                   onClick={handleDeleteClick}

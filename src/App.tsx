@@ -4,16 +4,16 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { platform } from '@tauri-apps/plugin-os';
 
-import Navbar from "@components/layouts/Navbar.tsx";
-import Header from "@components/layouts/Header.tsx";
-import BookPage from "@pages/BookPage.tsx";
-import AuthorPage from "@pages/AuthorPage.tsx";
-import SearchPage from "@pages/SearchPage.tsx";
-import FavouritesPage from "@pages/FavouritesPage.tsx";
-import RandomQuoteBox from "@components/RandomQuoteBox.tsx";
-import { useToast } from "@context/ToastContext.tsx";
+import Navbar from "@components/layouts/Navbar";
+import Header from "@components/layouts/Header";
+import BookPage from "@pages/BookPage";
+import AuthorPage from "@pages/AuthorPage";
+import SearchPage from "@pages/SearchPage";
+import FavouritesPage from "@pages/FavouritesPage";
+import RandomQuoteBox from "@components/RandomQuoteBox";
+import { useToast } from "@context/ToastContext";
 
-import { useWindowState } from "@hooks/useWindowState.js";
+    import { useWindowState } from "@hooks/useWindowState";
 import Logger from "@utils/logger";
 import { errorToString } from "@utils/index";
 import {
@@ -26,7 +26,8 @@ import {
   PageState,
   StarredQuote,
   SearchResults,
-  Chapter
+  Chapter,
+  QuoteWithTags
 } from "@customTypes/index.ts";
 
 const logger = Logger.getInstance();
@@ -41,10 +42,13 @@ function App() {
 
   const { addToast } = useToast();
 
+  // UI
+  const [navbarCollapsed, setNavbarCollapsed] = useState(false);
+
   // Fields from db
   const [books, setBooks] = useState<Book[]>([]);
   const [authors, setAuthors] = useState<Author[]>([]);
-  const [quotes, setQuotes] = useState<Quote[]>([]);
+  const [quotes, setQuotes] = useState<QuoteWithTags[]>([]);
   const [starredQuotes, setStarredQuotes] = useState<Quote[]>([]);
 
   // Navbar selection
@@ -231,7 +235,7 @@ function App() {
   }, [canGoForward, currentHistoryIndex, history, applyPageState]);
 
   async function fetchBooksAndAuthors() {
-    const data: BooksAuthors = await invoke("fetch_books_authors");
+    const data: BooksAuthors = await invoke("get_books_with_authors");
     setBooks(data.books);
     setAuthors(data.authors);
     initialLoadComplete.current = true;
@@ -239,17 +243,17 @@ function App() {
 
   async function fetchQuotes() {
     if (!selectedBook) return;
-    const data = await invoke("fetch_all_quotes", {
+    const data = await invoke("get_book_quotes", {
       bookId: selectedBook.id,
       sortBy,
       sortOrder
     });
-    setQuotes(data as Quote[]);
+    setQuotes(data as QuoteWithTags[]);
   }
 
   async function fetchBooksByAuthor() {
     if (!selectedAuthor) return;
-    const books = await invoke("fetch_books_by_author", { authorId: selectedAuthor.id });
+    const books = await invoke("get_books_by_author", { authorId: selectedAuthor.id });
     setSelectedAuthorBooks(books as Book[]);
   }
 
@@ -266,13 +270,13 @@ function App() {
   }
 
   async function fetchBookNotes(bookId: string) {
-    const notes = await invoke("fetch_book_notes", { bookId });
+    const notes = await invoke("get_book_notes", { bookId });
     setBookNotes(notes as Note[]);
   }
 
   async function fetchBookChapters() {
     if (!selectedBook) return;
-    const chapters = await invoke("fetch_book_chapters", { bookId: selectedBook.id });
+    const chapters = await invoke("get_book_chapters", { bookId: selectedBook.id });
     setBookChapters(chapters as Chapter[]);
   }
 
@@ -720,7 +724,7 @@ function App() {
         book={selectedBook}
         author={selectedBookAuthor as Author}
         chapters={bookChapters}
-        quotes={quotes}
+        quotesWithTags={quotes}
         notes={bookNotes}
         navigateToAuthor={navigateToAuthor}
         createNewQuote={createNewQuote}
@@ -763,7 +767,7 @@ function App() {
         currentPlatform === "macos" && [
           "has-blur-effects",
           !windowState.isFullScreen &&
-          "frame rounded-[10px] border border-transparent"
+          "border border-transparent"
         ]
       )}
     >
@@ -775,6 +779,8 @@ function App() {
           property={isBooksSelected ? "title" : "name"}
           onSelection={onNavbarSelection}
           selected={isBooksSelected ? selectedBook : selectedAuthor}
+          collapsed={navbarCollapsed}
+          setCollapsed={setNavbarCollapsed}
           onCategoryChange={(category) => setSelectedOption(category)}
         />
 
@@ -796,6 +802,8 @@ function App() {
             setSearch={setSearch}
             setSearchResults={setSearchResults}
             onReloadButtonClick={handleAppReload}
+            navbarCollapsed={navbarCollapsed}
+            setNavbarCollapsed={setNavbarCollapsed}
           />
 
           {/* Content area */}

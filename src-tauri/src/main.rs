@@ -152,28 +152,43 @@ async fn main() {
             litforge_notes_lib::commands::import_from_kobo,
             litforge_notes_lib::commands::import_from_kindle,
             // Fetch
-            litforge_notes_lib::commands::fetch_books_authors,
-            litforge_notes_lib::commands::fetch_all_quotes,
-            litforge_notes_lib::commands::fetch_books_by_author,
-            litforge_notes_lib::commands::fetch_book_notes,
-            litforge_notes_lib::commands::fetch_book_chapters,
-            // CRUD
+            // Tags
+            litforge_notes_lib::commands::get_tags,
+            litforge_notes_lib::commands::get_quotes_by_tag,
+            litforge_notes_lib::commands::create_tag,
+            litforge_notes_lib::commands::delete_tag,
+            litforge_notes_lib::commands::add_quote_tag,
+            litforge_notes_lib::commands::delete_quote_tag,
+            litforge_notes_lib::commands::get_quote_tags,
+            litforge_notes_lib::commands::get_tags_by_book_id,
+            // Authors
             litforge_notes_lib::commands::create_author,
             litforge_notes_lib::commands::update_author,
             litforge_notes_lib::commands::delete_author,
+            // Books
+            litforge_notes_lib::commands::get_books_by_author,
+            litforge_notes_lib::commands::get_books_with_authors,
             litforge_notes_lib::commands::create_book,
             litforge_notes_lib::commands::update_book,
             litforge_notes_lib::commands::delete_book,
             litforge_notes_lib::commands::create_book_with_author,
+            // Quotes
+            litforge_notes_lib::commands::get_book_quotes,
             litforge_notes_lib::commands::create_quote,
             litforge_notes_lib::commands::update_quote,
             litforge_notes_lib::commands::delete_quote,
-            litforge_notes_lib::commands::create_note,
-            litforge_notes_lib::commands::update_note,
+            // Chapters
+            litforge_notes_lib::commands::get_book_chapters,
+            // Starred
             litforge_notes_lib::commands::toggle_quote_starred,
             litforge_notes_lib::commands::set_quote_starred,
-            litforge_notes_lib::commands::get_random_quote,
             litforge_notes_lib::commands::get_starred_quotes,
+            // Random
+            litforge_notes_lib::commands::get_random_quote,
+            // Notes
+            litforge_notes_lib::commands::get_book_notes,
+            litforge_notes_lib::commands::create_note,
+            litforge_notes_lib::commands::update_note,
             // Search
             litforge_notes_lib::commands::search_quotes,
             litforge_notes_lib::commands::search_books_by_title,

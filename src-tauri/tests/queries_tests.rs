@@ -1,11 +1,14 @@
 use chrono::Utc;
-use litforge_notes_lib::models::{Author, Book, Chapter, Note, Quote};
+use litforge_notes_lib::models::{Author, Book, Chapter, Note, Quote, Tag};
 use litforge_notes_lib::queries;
 use sqlx::SqlitePool;
 use std::time::{SystemTime, UNIX_EPOCH};
 use uuid::Uuid;
+use rand::Rng;
+
 const STARRED_QUOTES_COUNT: usize = 3;
 const CHAPTERS_COUNT: usize = 3;
+const TAGS_COUNT: usize = 3;
 
 fn generate_random_string(length: usize) -> String {
     let n = SystemTime::now()
@@ -18,6 +21,19 @@ fn generate_random_string(length: usize) -> String {
     }
     s
 }
+
+fn generate_random_rgb() -> String {
+    let mut rng = rand::rng();
+    
+    // Generate random values for red, green, and blue (0-255)
+    let r = rng.random_range(0..=255);
+    let g = rng.random_range(0..=255);
+    let b = rng.random_range(0..=255);
+    
+    // Format as hexadecimal string with leading zeros if needed
+    format!("#{:02X}{:02X}{:02X}", r, g, b)
+}
+
 #[derive(Debug, Clone)]
 struct TestData {
     author: Author,
@@ -35,8 +51,7 @@ async fn init_db(pool: &SqlitePool) -> Result<TestData, sqlx::Error> {
         Some(author.id.clone()),
         Some(generate_random_string(10)),
         pool,
-    )
-    .await?;
+    ).await?;
 
     // Chapters
     let mut chapters = Vec::new();
@@ -57,6 +72,17 @@ async fn init_db(pool: &SqlitePool) -> Result<TestData, sqlx::Error> {
         )
         .await?;
         chapters.push(chapter);
+    }
+
+    // Tags
+    let mut tags = Vec::new();
+    for i in 0..TAGS_COUNT {
+        let tag = queries::insert_tag(&Tag {
+            id: Uuid::new_v4().to_string(),
+            name: format!("Tag {}", i),
+            color: Some(generate_random_rgb()),
+        }, pool).await?;
+        tags.push(tag);
     }
 
     let now = Utc::now().naive_utc();

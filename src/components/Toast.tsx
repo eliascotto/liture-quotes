@@ -40,7 +40,7 @@ const Toast = ({
         onClick={onClose}
         className="ml-2 text-slate-400 hover:text-slate-300 transition-colors duration-200 text-sm focus:outline-none"
       >
-        ×
+        <XMarkIcon data-testid="xmark-icon" className="h-3.5 w-3.5" />
       </button>
     </div>
   );

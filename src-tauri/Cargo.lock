@@ -2326,6 +2326,7 @@ dependencies = [
  "log",
  "objc",
  "once_cell",
+ "rand 0.9.0",
  "regex",
  "serde",
  "serde_json",
@@ -2338,6 +2339,7 @@ dependencies = [
  "tauri-plugin-dialog",
  "tauri-plugin-log",
  "tauri-plugin-os",
+ "thiserror 2.0.12",
  "tokio",
  "uuid",
 ]

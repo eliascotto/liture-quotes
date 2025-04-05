@@ -7,7 +7,7 @@ type SearchPageProps = {
   authors: Author[],
   search: string,
   searchResults: {
-    quotes: QuoteFts[],
+    quotes: QuoteFts[] | Quote[],
     books: Book[],
     authors: Author[]
   },

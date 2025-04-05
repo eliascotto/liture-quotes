@@ -7,9 +7,11 @@ mod utils;
 
 use chrono::Utc;
 use models::*;
-use uuid::Uuid;
+use regex::Regex;
+use once_cell::sync::Lazy;
 use tauri::AppHandle;
 use tokio;
+use uuid::Uuid;
 
 // Create a separate module for the Tauri commands
 pub mod commands {
@@ -18,7 +20,7 @@ pub mod commands {
 
     //
     // Import
-    // 
+    //
 
     #[tauri::command]
     pub async fn import_from_ibooks(app: AppHandle) -> bool {
@@ -58,7 +60,7 @@ pub mod commands {
     //
 
     #[tauri::command]
-    pub async fn fetch_books_authors() -> Result<Library, String> {
+    pub async fn get_books_with_authors() -> Result<Library, String> {
         let pool = get_pool();
         let books = queries::get_books(pool)
             .await
@@ -72,33 +74,33 @@ pub mod commands {
     }
 
     #[tauri::command]
-    pub async fn fetch_books_by_author(author_id: String) -> Result<Vec<Book>, String> {
+    pub async fn get_books_by_author(author_id: String) -> Result<Vec<Book>, String> {
         queries::get_all_books_by_author(author_id, get_pool())
             .await
             .map_err(|e| format!("Error fetching books {}", e))
     }
 
     #[tauri::command]
-    pub async fn fetch_all_quotes(
+    pub async fn get_book_quotes(
         book_id: &str,
         sort_by: Option<&str>,
         sort_order: Option<&str>,
-    ) -> Result<Vec<Quote>, String> {
+    ) -> Result<Vec<QuoteWithTags>, String> {
         queries::get_all_quotes_by_book_id(book_id, sort_by, sort_order, get_pool())
             .await
             .map_err(|e| format!("Error fetching notes {}", e))
     }
 
     #[tauri::command]
-    pub async fn fetch_book_chapters(book_id: &str) -> Result<Vec<Chapter>, String> {
+    pub async fn get_book_chapters(book_id: &str) -> Result<Vec<Chapter>, String> {
         queries::get_chapters_by_book(book_id, get_pool())
             .await
             .map_err(|e| format!("Error fetching book chapters {}", e))
     }
 
     #[tauri::command]
-    pub async fn fetch_book_notes(book_id: &str) -> Result<Vec<Note>, String> {
-        queries::fetch_notes_by_book(book_id, get_pool())
+    pub async fn get_book_notes(book_id: &str) -> Result<Vec<Note>, String> {
+        queries::get_notes_by_book(book_id, get_pool())
             .await
             .map_err(|e| format!("Error fetching book notes {}", e))
     }
@@ -175,9 +177,10 @@ pub mod commands {
         let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
 
         // Insert the book
-        let book = queries::insert_book_with_defaults(title.to_string(), Some(author_id), None, &mut *tx)
-            .await
-            .map_err(|e| format!("Error creating book: {}", e))?;
+        let book =
+            queries::insert_book_with_defaults(title.to_string(), Some(author_id), None, &mut *tx)
+                .await
+                .map_err(|e| format!("Error creating book: {}", e))?;
 
         tx.commit().await.map_err(|e| e.to_string())?;
         Ok(book)
@@ -197,9 +200,10 @@ pub mod commands {
                 .map_err(|e| format!("Error creating author: {}", e))?,
         };
 
-        let book = queries::insert_book_with_defaults(title.to_string(), Some(author.id), None, &mut *tx)
-            .await
-            .map_err(|e| format!("Error creating book: {}", e))?;
+        let book =
+            queries::insert_book_with_defaults(title.to_string(), Some(author.id), None, &mut *tx)
+                .await
+                .map_err(|e| format!("Error creating book: {}", e))?;
 
         tx.commit().await.map_err(|e| e.to_string())?;
         Ok(book)
@@ -402,6 +406,74 @@ pub mod commands {
         sort_order: Option<&str>,
     ) -> Result<Vec<StarredQuote>, String> {
         queries::get_starred_quotes(sort_by, sort_order, get_pool())
+            .await
+            .map_err(|e| e.to_string())
+    }
+
+    #[tauri::command]
+    pub async fn get_tags() -> Result<Vec<Tag>, String> {
+        queries::get_tags(get_pool())
+            .await
+            .map_err(|e| e.to_string())
+    }
+
+    #[tauri::command]
+    pub async fn get_quotes_by_tag(tag_id: &str) -> Result<Vec<Quote>, String> {
+        queries::get_quotes_by_tag(tag_id, get_pool())
+            .await
+            .map_err(|e| e.to_string())
+    }
+
+    static HEX_COLOR_REGEX: Lazy<Regex> =
+        Lazy::new(|| regex::Regex::new(r"^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$").unwrap());
+
+    #[tauri::command]
+    pub async fn create_tag(name: &str, color: &str) -> Result<Tag, String> {
+        if !HEX_COLOR_REGEX.is_match(color) {
+            return Err(format!("Invalid color {color}"));
+        }
+
+        let tag = Tag {
+            id: Uuid::new_v4().to_string(),
+            name: name.to_string(),
+            color: Some(color.to_string()),
+        };
+        queries::insert_tag(&tag, get_pool())
+            .await
+            .map_err(|e| e.to_string())
+    }
+
+    #[tauri::command]
+    pub async fn delete_tag(tag_id: &str) -> Result<(), String> {
+        queries::delete_tag(tag_id, get_pool())
+            .await
+            .map_err(|e| e.to_string())
+    }
+
+    #[tauri::command]
+    pub async fn add_quote_tag(quote_id: &str, tag_id: &str) -> Result<(), String> {
+        queries::insert_quote_tag(quote_id, tag_id, get_pool())
+            .await
+            .map_err(|e| e.to_string())
+    }
+
+    #[tauri::command]
+    pub async fn delete_quote_tag(quote_id: &str, tag_id: &str) -> Result<(), String> {
+        queries::delete_quote_tag(quote_id, tag_id, get_pool())
+            .await
+            .map_err(|e| e.to_string())
+    }
+
+    #[tauri::command]
+    pub async fn get_quote_tags(quote_id: &str) -> Result<Vec<Tag>, String> {
+        queries::get_quote_tags(quote_id, get_pool())
+            .await
+            .map_err(|e| e.to_string())
+    }
+
+    #[tauri::command]
+    pub async fn get_tags_by_book_id(book_id: &str) -> Result<Vec<Tag>, String> {
+        queries::get_tags_by_book_id(book_id, get_pool())
             .await
             .map_err(|e| e.to_string())
     }

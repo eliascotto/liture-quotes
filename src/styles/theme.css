@@ -1,8 +1,9 @@
 .theme-default {
   /* Base */
-  --radius: 0.375rem;
   --font-sans: -apple-system, BlinkMacSystemFont, "avenir next", avenir, "segoe ui", "helvetica neue",
       helvetica, Cantarell, Ubuntu, roboto, noto, arial, sans-serif;
+
+  /* Colors */
 
   /* Light theme (default) */
   --background: oklch(0.984 0.003 247.858);  /* slate-50 */
@@ -26,6 +27,13 @@
   --destructive: oklch(0.704 0.191 22.216);  /* red-400 */
   --destructive-foreground: oklch(0.985 0 0);  /* white */
   
+  /* Inputs */
+  --input-focus-border-color: Highlight;
+  --input-focus-outline: 1px solid Canvas;
+  --input-unfocused-border-color: transparent;
+  --input-disabled-border-color: transparent;
+  --input-hover-border-color: black;
+  
   /* Borders and inputs */
   --border: oklch(0.704 0.04 256.788);       /* slate-400 */
   --input: oklch(0.869 0.022 252.894);       /* slate-300 */
@@ -48,47 +56,6 @@
   --overlay-alpha: oklch(0.2 0 0 / 50%);
 
   @media (prefers-color-scheme: dark) {
-    /* Dark theme */
-    --background: oklch(0.279 0.041 260.031);  /* slate-800 */
-    --foreground: oklch(0.985 0 0);            /* white */
-    --card: oklch(0.208 0.042 265.755);        /* slate-900 */
-    --card-foreground: oklch(0.869 0.022 252.894);  /* slate-300 */
-    --popover: oklch(0.208 0.042 265.755);     /* slate-900 */
-    --popover-foreground: oklch(0.869 0.022 252.894);  /* slate-300 */
     
-    /* Brand colors */
-    --primary: oklch(0.789 0.154 211.53);      /* cyan-400 */
-    --primary-foreground: oklch(0.129 0.042 264.695);  /* slate-950 */
-    --secondary: oklch(0.372 0.044 257.287);   /* slate-700 */
-    --secondary-foreground: oklch(0.869 0.022 252.894);  /* slate-300 */
-    
-    /* UI Elements */
-    --muted: oklch(0.372 0.044 257.287);       /* slate-700 */
-    --muted-foreground: oklch(0.704 0.04 256.788);  /* slate-400 */
-    --accent: oklch(0.372 0.044 257.287);      /* slate-700 */
-    --accent-foreground: oklch(0.869 0.022 252.894);  /* slate-300 */
-    --destructive: oklch(0.704 0.191 22.216);  /* red-400 */
-    --destructive-foreground: oklch(0.869 0.022 252.894);  /* slate-300 */
-    
-    /* Borders and inputs */
-    --border: oklch(0.372 0.044 257.287);      /* slate-700 */
-    --input: oklch(0.372 0.044 257.287);       /* slate-700 */
-    --ring: oklch(0.789 0.154 211.53);         /* cyan-400 */
-    
-    /* Status colors */
-    --success: oklch(0.792 0.209 151.711);     /* green-400 */
-    --warning: oklch(0.852 0.199 91.936);      /* yellow-400 */
-    --info: oklch(0.789 0.154 211.53);         /* cyan-400 */
-    --error: oklch(0.704 0.191 22.216);        /* red-400 */
-    
-    /* Sidebar specific */
-    --sidebar: oklch(0.208 0.042 265.755);     /* slate-900 */
-    --sidebar-foreground: oklch(0.869 0.022 252.894);  /* slate-300 */
-    --sidebar-muted: oklch(0.554 0.046 257.417);  /* slate-500 */
-    --sidebar-border: oklch(0.372 0.044 257.287);  /* slate-700 */
-    
-    /* Opacity variants */
-    --background-alpha: oklch(0.15 0 0 / 80%);
-    --overlay-alpha: oklch(0.95 0.01 0 / 50%);
   }
 }

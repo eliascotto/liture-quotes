@@ -8,6 +8,9 @@ import ArrowsCircle from "@components/icons/ArrowsCircle";
 import StarStroke from "@components/icons/StartStroke";
 import { errorToString } from "@utils/index";
 import Logger from "@utils/logger";
+import SidebarLeft from "@components/icons/SidebarLeft";
+import clsx from "clsx";
+import { useEffect, useState } from "react";
 
 const logger = Logger.getInstance();
 
@@ -21,6 +24,8 @@ type HeaderProps = {
   isBooksSelected: boolean,
   selectedAuthor: Author | null,
   showingStarred: boolean,
+  navbarCollapsed: boolean,
+  setNavbarCollapsed: (collapsed: boolean) => void,
   setShowingStarred: (showing: boolean) => void,
   setSearch: (search: string) => void,
   setSearchResults: (results: any) => void,
@@ -38,12 +43,23 @@ function Header({
   isBooksSelected,
   selectedAuthor,
   showingStarred,
+  navbarCollapsed,
+  setNavbarCollapsed,
   setShowingStarred,
   setSearch,
   setSearchResults,
   onSearchExit,
   onReloadButtonClick,
 }: HeaderProps) {
+  const [collapseButtonVisible, setCollapseButtonVisible] = useState(false);
+
+  useEffect(() => {
+    if (navbarCollapsed) {
+      setTimeout(() => setCollapseButtonVisible(true), 100);
+    } else {
+      setCollapseButtonVisible(false);
+    }
+  }, [navbarCollapsed]);
 
   const handleImportIBooks = async () => {
     try {
@@ -74,11 +90,23 @@ function Header({
 
   return (
     <header
-      className="z-20 border-b border-slate-700/50 bg-slate-900 min-h-12
-            flex flex-row py-2.5 px-4 w-full items-center justify-between gap-4 shadow-md"
+      className={clsx(
+        "z-20 border-slate-700/50 bg-slate-900 min-h-12",
+        "flex flex-row py-2.5 px-4 w-full items-center justify-between gap-4 shadow-md",
+        {
+          "border-b": !navbarCollapsed,
+        }
+      )}
       data-tauri-drag-region
     >
-      <div className="flex flex-row items-center gap-4">
+      <div className={clsx("flex flex-row items-center gap-4", {
+        "ml-[64px]": navbarCollapsed,
+      })}>
+        {collapseButtonVisible && (
+          <HeaderButton onClick={() => setNavbarCollapsed(false)}>
+            <SidebarLeft className="h-4 w-4" />
+          </HeaderButton>
+        )}
         <NavigationControls
           canGoBack={canGoBack}
           canGoForward={canGoForward}

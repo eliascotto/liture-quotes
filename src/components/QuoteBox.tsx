@@ -8,8 +8,9 @@ import TrashIcon from "@icons/Trash";
 import CopyIcon from "@icons/Copy";
 import Tooltip from "@components/Tooltip";
 import EditableNoteBox from "@components/EditableQuoteBox";
-import { Note, Quote, QuoteFts } from "src/types/index";
+import { Note, Quote, QuoteFts, Tag } from "src/types/index";
 import DotsVertical from "./icons/DotsVertical";
+import TagFill from "./icons/TagFill";
 
 type DropdownMenuProps = {
   isOpen: boolean,
@@ -85,6 +86,7 @@ function DropdownMenu({
 
 type QuoteBoxProps = {
   quote: Quote | QuoteFts,
+  tags: Tag[],
   note?: Note | null,
   onStarClick: () => void,
   onClick: (e: ReactMouseEvent) => void,
@@ -95,7 +97,7 @@ type QuoteBoxProps = {
 }
 
 function QuoteBox({
-  quote, note, onStarClick, onClick, selected, onEdit, onRemove, onNoteEdit,
+  quote, tags, note, onStarClick, onClick, selected, onEdit, onRemove, onNoteEdit,
 }: QuoteBoxProps) {
   const [editable, setEditable] = useState(false);
   const [noteEditable, setNoteEditable] = useState(false);
@@ -103,10 +105,8 @@ function QuoteBox({
   const [mouseOver, setMouseOver] = useState(false);
   const quoteRef = useRef(null);
 
-  const classBase = "text-slate-300 py-1.5 pl-4 pr-5 whitespace-pre-line transition-all duration-200 border-l-2 border-slate-700/90";
-  const selectedClass = `${classBase} bg-gradient-to-r from-slate-800/70 to-slate-800/80 shadow-md`;
-
   const empty = quote.content?.trim() === '';
+  const hasTags = tags.length > 0;
 
   const handleClick = useCallback((e: ReactMouseEvent) => {
     if (e.detail === 1) {
@@ -182,6 +182,15 @@ function QuoteBox({
           </div>
         </Tooltip>
       </div>
+      {hasTags && (
+        <div className="absolute top-[10px] cursor-pointer text-red-500">
+          <Tooltip content={tags.map((tag) => tag.name).join(", ")} usePortal>
+            <div className="text-slate-400">
+              <TagFill />
+            </div>
+          </Tooltip>
+        </div>
+      )}
 
       <div className="select-none">
         {/* Quote */}
@@ -195,9 +204,11 @@ function QuoteBox({
           <div
             className={clsx(
               "relative select-none",
-              selected ? selectedClass : classBase,
+              "text-slate-300 py-[8px] pl-4 pr-5 whitespace-pre-line transition-all duration-200 border border-l-2 border-l-slate-700/90",
+              "hover:bg-slate-800/70",
+              selected && "bg-gradient-to-r from-slate-800/70 to-slate-800/80  shadow-md",
+              selected ? "border-slate-600/70 rounded-sm" : "border-transparent",
               empty && "text-opacity-30 cursor-default",
-              "hover:bg-slate-800/70"
             )}
             onClick={(e: ReactMouseEvent) => handleClick(e)}
             onContextMenu={(e: ReactMouseEvent) => handleContextMenu(e)}
