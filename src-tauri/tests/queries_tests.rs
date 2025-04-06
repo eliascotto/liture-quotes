@@ -171,6 +171,7 @@ async fn test_get_starred_quotes(pool: SqlitePool) {
         .await
         .unwrap();
     assert_eq!(quotes.len(), STARRED_QUOTES_COUNT);
+    assert_eq!(quotes[0].tags.len(), TAGS_COUNT);
 }
 
 #[sqlx::test(migrations = "../migrations")]

@@ -45,7 +45,9 @@ const FloatingMenu = ({
     placement,
     middleware: [
       offset(4), // Distance from reference element
-      flip(), // Flip to opposite side if no space
+      flip({
+        padding: 4,
+      }), // Flip to opposite side if no space
       shift(), // Shift along the axis if needed
     ],
     whileElementsMounted: autoUpdate, // Updates position on scroll/resize

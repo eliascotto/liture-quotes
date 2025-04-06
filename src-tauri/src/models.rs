@@ -140,3 +140,17 @@ pub struct QuoteWithTags {
     pub original_id: Option<String>,
     pub tags: Vec<Tag>,
 }
+
+#[derive(Debug, serde::Serialize, serde::Deserialize, Clone, sqlx::FromRow)]
+pub struct StarredQuoteWithTags {
+    pub id: String,
+    pub book_id: Option<String>,
+    pub book_title: Option<String>,
+    pub author_id: Option<String>,
+    pub author_name: Option<String>,
+    pub content: Option<String>,
+    pub starred: Option<i64>,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
+    pub tags: Vec<Tag>,
+}

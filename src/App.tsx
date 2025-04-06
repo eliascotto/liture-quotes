@@ -12,13 +12,14 @@ import SearchPage from "@pages/SearchPage";
 import FavouritesPage from "@pages/FavouritesPage";
 import RandomQuoteBox from "@components/RandomQuoteBox";
 import { useToast } from "@context/ToastContext";
+import { useTagStore } from "@stores/tags";
 
-    import { useWindowState } from "@hooks/useWindowState";
+import { useWindowState } from "@hooks/useWindowState";
 import Logger from "@utils/logger";
 import { errorToString } from "@utils/index";
 import {
   NewBookData,
-  Author, 
+  Author,
   Book,
   BooksAuthors,
   Note,
@@ -27,8 +28,8 @@ import {
   StarredQuote,
   SearchResults,
   Chapter,
-  QuoteWithTags
 } from "@customTypes/index.ts";
+import { useQuoteStore } from "@stores/quotes";
 
 const logger = Logger.getInstance();
 
@@ -48,8 +49,10 @@ function App() {
   // Fields from db
   const [books, setBooks] = useState<Book[]>([]);
   const [authors, setAuthors] = useState<Author[]>([]);
-  const [quotes, setQuotes] = useState<QuoteWithTags[]>([]);
   const [starredQuotes, setStarredQuotes] = useState<Quote[]>([]);
+
+  // Quotes
+  const quoteStore = useQuoteStore();
 
   // Navbar selection
   const [selectedOption, setSelectedOption] = useState("Books");
@@ -66,9 +69,6 @@ function App() {
   // Current book
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [selectedBookAuthor, setSelectedBookAuthor] = useState<Author | null>(null);
-
-  const [sortBy, setSortBy] = useState<string>("date_modified");
-  const [sortOrder, setSortOrder] = useState<"ASC" | "DESC">("DESC");
 
   const [bookNotes, setBookNotes] = useState<Note[]>([]);
   const [bookChapters, setBookChapters] = useState<Chapter[]>([]);
@@ -88,6 +88,9 @@ function App() {
 
   const [sortByFavourite, setSortByFavourite] = useState<string>("date_modified");
   const [sortOrderFavourite, setSortOrderFavourite] = useState<"ASC" | "DESC">("DESC");
+
+  // Tags
+  const tagStore = useTagStore();
 
   // Get current page state
   const getCurrentPageState = useCallback((): PageState | null => {
@@ -131,6 +134,7 @@ function App() {
         setSelectedOption("Books");
         if (pageState.data && typeof pageState.data !== 'string') {
           setSelectedBook(pageState.data as Book);
+          quoteStore.setSelectedBook(pageState.data as Book);
         }
         setSearch(null);
         break;
@@ -241,16 +245,6 @@ function App() {
     initialLoadComplete.current = true;
   }
 
-  async function fetchQuotes() {
-    if (!selectedBook) return;
-    const data = await invoke("get_book_quotes", {
-      bookId: selectedBook.id,
-      sortBy,
-      sortOrder
-    });
-    setQuotes(data as QuoteWithTags[]);
-  }
-
   async function fetchBooksByAuthor() {
     if (!selectedAuthor) return;
     const books = await invoke("get_books_by_author", { authorId: selectedAuthor.id });
@@ -304,6 +298,7 @@ function App() {
       await fetchBooksAndAuthors();
       setSelectedOption("Books");
       setSelectedBook(newBook as Book);
+      quoteStore.setSelectedBook(newBook as Book);
       return true;
     } catch (error) {
       console.error("Error creating book:", error);
@@ -318,6 +313,7 @@ function App() {
       await fetchBooksAndAuthors();
       setSelectedOption("Books");
       setSelectedBook(newBook as Book);
+      quoteStore.setSelectedBook(newBook as Book);
       return true;
     } catch (error) {
       logger.error("Error creating book with author:", error);
@@ -355,8 +351,8 @@ function App() {
     console.log("Updating quote:", quote);
     try {
       await invoke("update_quote", { quote: quote });
-      await fetchQuotes();
-      await fetchStarredQuotes();
+      quoteStore.fetchQuotes();
+      quoteStore.fetchStarredQuotes();
     } catch {
       console.error("Error updating quote");
     }
@@ -378,8 +374,8 @@ function App() {
     console.log("Toggling favourite quote:", quote.id);
     try {
       await invoke("toggle_quote_starred", { quoteId: quote.id });
-      await fetchQuotes();
-      await fetchStarredQuotes();
+      quoteStore.fetchQuotes();
+      quoteStore.fetchStarredQuotes();
     } catch {
       console.error("Error updating quote");
     }
@@ -388,28 +384,16 @@ function App() {
   async function deleteQuote(quote: Quote) {
     try {
       await invoke("delete_quote", { quoteId: quote.id });
-      await fetchQuotes();
+      quoteStore.fetchQuotes();
     } catch {
       console.error("Error removing quote");
-    }
-  }
-
-  async function createNewQuote(bookId: string, content = "New quote") {
-    try {
-      let newQuote: Quote = await invoke("create_quote", {
-        bookId,
-        content,
-      });
-      await fetchQuotes();
-    } catch (error) {
-      console.error("Error adding quote:", error);
-      alert(`Error adding quote: ${errorToString(error)}`);
     }
   }
 
   function onAuthorBookSelect(book: Book) {
     setSelectedOption("Books");
     setSelectedBook(book);
+    quoteStore.setSelectedBook(book);
   }
 
   function onSearchExit() {
@@ -424,6 +408,7 @@ function App() {
   function clearNavigation() {
     setShowingFavourites(false);
     setSelectedBook(null);
+    quoteStore.setSelectedBook(null);
     setSelectedAuthor(null);
     setSearch(null);
   }
@@ -432,6 +417,7 @@ function App() {
     clearNavigation();
     if (isBooksSelected) {
       setSelectedBook(item as Book);
+      quoteStore.setSelectedBook(item as Book);
     } else {
       setSelectedAuthor(item as Author);
     }
@@ -446,6 +432,7 @@ function App() {
     if (book) {
       setSelectedOption("Books");
       setSelectedBook(book);
+      quoteStore.setSelectedBook(book);
       setSearch(null); // Exit search mode
     }
   }
@@ -470,6 +457,7 @@ function App() {
       // If we're on the book page that was deleted, navigate back to the books list
       if (selectedBook && selectedBook.id === bookId) {
         setSelectedBook(null);
+        quoteStore.setSelectedBook(null);
       }
 
       // Clean up history by removing entries for the deleted book
@@ -503,6 +491,7 @@ function App() {
           if (books.length > 0) {
             setSelectedOption("Books");
             setSelectedBook(books[0]);
+            quoteStore.setSelectedBook(books[0]);
           } else if (authors.length > 0) {
             setSelectedOption("Authors");
             setSelectedAuthor(authors[0]);
@@ -533,6 +522,7 @@ function App() {
       // If we're on a book page whose author was deleted, navigate back to the books list
       if (selectedBook && selectedBook.author_id === authorId) {
         setSelectedBook(null);
+        quoteStore.setSelectedBook(null);
       }
 
       // Clean up history by removing entries for the deleted author and its books
@@ -580,6 +570,7 @@ function App() {
           } else if (books.length > 0) {
             setSelectedOption("Books");
             setSelectedBook(books[0]);
+            quoteStore.setSelectedBook(books[0]);
           }
           setCurrentHistoryIndex(0);
         } else {
@@ -596,6 +587,7 @@ function App() {
       await invoke("update_book", { book });
       await fetchBooksAndAuthors();
       setSelectedBook(book);
+      quoteStore.setSelectedBook(book);
     } catch (error) {
       console.error("Error updating book:", error);
     }
@@ -604,15 +596,17 @@ function App() {
   function handleAppReload() {
     console.log("Reloading app");
     setSelectedBook(null);
+    quoteStore.setSelectedBook(null);
     setSelectedAuthor(null);
     fetchBooksAndAuthors();
-    fetchStarredQuotes();
+    quoteStore.fetchStarredQuotes();
   }
 
   // App startup loading
   useEffect(() => {
     fetchBooksAndAuthors();
-    fetchStarredQuotes();
+    quoteStore.fetchStarredQuotes();
+    tagStore.fetchTags();
   }, []);
 
   useEffect(() => {
@@ -624,7 +618,7 @@ function App() {
     const importSuccessListener = listen("import-success", (event: { payload: { message: string } }) => {
       addToast(event.payload.message, "success");
       fetchBooksAndAuthors();
-      fetchStarredQuotes();
+      quoteStore.fetchStarredQuotes();
     });
 
     const importErrorListener = listen("import-error", (event: { payload: { message: string } }) => {
@@ -637,25 +631,25 @@ function App() {
       importErrorListener.then((unlisten) => unlisten());
     };
   }, []);
-  
+
   useEffect(() => {
     if (selectedBook) {
-      fetchQuotes();
+      quoteStore.fetchQuotes();
       fetchBookNotes(selectedBook.id);
       fetchBookChapters();
     }
-  }, [sortBy, sortOrder]);
+  }, [quoteStore.sortBy, quoteStore.sortOrder]);
 
   useEffect(() => {
     if (showingFavourites) {
-      fetchStarredQuotes();
+      quoteStore.fetchStarredQuotes();
     }
   }, [showingFavourites]);
 
   // Fetch book quote, notes when book changes
   useEffect(() => {
     if (selectedBook) {
-      fetchQuotes();
+      quoteStore.fetchQuotes();
       fetchBookNotes(selectedBook.id);
       fetchBookChapters();
 
@@ -684,15 +678,8 @@ function App() {
   if (showingFavourites) {
     currentPage = (
       <FavouritesPage
-        quotes={starredQuotes}
-        sortByItems={sortByFavourite}
-        setSortByItems={setSortByFavourite}
-        sortOrderItems={sortOrderFavourite}
-        setSortOrderItems={setSortOrderFavourite}
-        updateQuote={updateQuote}
         onStarClick={toggleFavouriteQuote}
-        reloadFavourites={fetchStarredQuotes}
-        removeQuote={deleteQuote}
+        reloadFavourites={quoteStore.fetchStarredQuotes}
         navigateToBook={(bookId) => {
           clearNavigation();
           const book = books.find(b => b.id === bookId);
@@ -724,20 +711,12 @@ function App() {
         book={selectedBook}
         author={selectedBookAuthor as Author}
         chapters={bookChapters}
-        quotesWithTags={quotes}
         notes={bookNotes}
         navigateToAuthor={navigateToAuthor}
-        createNewQuote={createNewQuote}
-        updateQuote={updateQuote}
-        deleteQuote={deleteQuote}
         updateNote={updateNote}
         toggleFavouriteQuote={toggleFavouriteQuote}
         onDeleteBook={deleteBook}
         updateBook={updateBook}
-        sortBy={sortBy}
-        sortOrder={sortOrder}
-        setSortBy={setSortBy}
-        setSortOrder={setSortOrder}
       />
     )
   } else if (!isBooksSelected && selectedAuthor) {

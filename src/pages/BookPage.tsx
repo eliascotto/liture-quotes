@@ -9,6 +9,7 @@ import BookHeader from "@components/BookHeader";
 import PlusIcon from '@icons/Plus';
 import DetailsIcon from '@icons/Details';
 import { Book, Quote, Author, Note, Chapter, QuoteWithTags } from "@customTypes/index";
+import { useQuoteStore } from "@stores/quotes";
 
 const QUOTES_GAP = "gap-y-1";
 
@@ -16,31 +17,24 @@ type QuoteWithNote = QuoteWithTags & { note: Note | null };
 
 interface BookPageProps {
   book: Book;
-  quotesWithTags: QuoteWithTags[];
   author: Author;
   notes: Note[];
   chapters: Chapter[];
-  sortBy: string;
-  sortOrder: "ASC" | "DESC";
-  setSortBy: (sortBy: string) => void;
-  setSortOrder: (sortOrder: "ASC" | "DESC") => void;
   navigateToAuthor: (authorId: string) => void;
-  createNewQuote: (bookId: string, content: string) => void;
   toggleFavouriteQuote: (quote: Quote) => void;
-  updateQuote: (quote: Quote) => void;
-  deleteQuote: (quote: Quote) => void;
   onDeleteBook: (bookId: string) => void;
   updateBook: (book: Book) => void;
   updateNote: (noteId: string, content: string) => void;
 }
 
 function BookPage({
-  book, quotesWithTags, author, notes, chapters,
-  sortBy, sortOrder, setSortBy, setSortOrder,
+  book, author, notes, chapters,
   navigateToAuthor,
-  createNewQuote, toggleFavouriteQuote, updateQuote, deleteQuote,
+  toggleFavouriteQuote,
   onDeleteBook, updateBook, updateNote,
 }: BookPageProps) {
+  const quoteStore = useQuoteStore();
+
   const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [newQuote, setNewQuote] = useState<Quote | null>(null);
@@ -51,13 +45,13 @@ function BookPage({
   const sortByFields = ["date_modified", "date_created", "chapter_progress"];
 
   const handleSortChange = (field: string, order: "ASC" | "DESC") => {
-    setSortBy(field);
-    setSortOrder(order);
+    quoteStore.setSortBy(field);
+    quoteStore.setSortOrder(order);
   };
 
   const handleRemoveQuote = async (quote: Quote) => {
     setSelectedQuote(null);
-    deleteQuote(quote);
+    quoteStore.deleteQuote(quote);
   };
 
   const handleCreateQuote = () => {
@@ -82,7 +76,7 @@ function BookPage({
 
   const handleNewQuoteSaving = (content: string) => {
     setNewQuote(null);
-    createNewQuote(book.id, content);
+    quoteStore.addQuote(content);
   };
 
   const handleTitleClick = (e: MouseEventHandler<HTMLHeadingElement>) => {
@@ -115,7 +109,7 @@ function BookPage({
           setSelectedQuote(quote);
         }}
         onStarClick={() => toggleFavouriteQuote(quote)}
-        onEdit={(content) => updateQuote({ ...quote, content })}
+        onEdit={(content) => quoteStore.updateQuote({ ...quote, content })}
         onRemove={() => handleRemoveQuote(quote)}
         onNoteEdit={updateNote}
       />
@@ -123,23 +117,23 @@ function BookPage({
   }
 
   const getQuotesWithNotes = (): QuoteWithNote[] => {
-    return quotesWithTags.map((quoteWithTags) => ({
-      ...quoteWithTags,
-      note: notes.find((note) => note.quote_id === quoteWithTags.id) || null,
+    return quoteStore.quotes.map((quote) => ({
+      ...quote,
+      note: notes.find((note) => note.quote_id === quote.id) || null,
     }));
   };
 
   const renderChapterQuotes = () => {
     if (!showChapters) return renderQuotes(getQuotesWithNotes());
 
-    const quoteByChapter = quotesWithTags.reduce((acc, quoteWithTags) => {
-      const chapter = chapters.find((c) => c.id === quoteWithTags.chapter_id);
+    const quoteByChapter = quoteStore.quotes.reduce((acc, quote) => {
+      const chapter = chapters.find((c) => c.id === quote.chapter_id);
       if (chapter) {
         acc[chapter.id] = [
           ...(acc[chapter.id] || []), 
           {
-            ...quoteWithTags,
-            note: notes.find((n) => n.quote_id === quoteWithTags.id) || null
+            ...quote,
+            note: notes.find((n) => n.quote_id === quote.id) || null
           }
         ];
       }
@@ -206,8 +200,8 @@ function BookPage({
 
           {/* Sort menu */}
           <SortMenu
-            sortBy={sortBy}
-            sortOrder={sortOrder}
+            sortBy={quoteStore.sortBy}
+            sortOrder={quoteStore.sortOrder}
             sortByFields={sortByFields}
             onSortChange={handleSortChange}
           />
@@ -234,7 +228,7 @@ function BookPage({
           {book && book.title}
         </div>
         <div className="text-xs text-slate-400">
-          Quotes: <span className="text-cyan-400 font-medium">{quotesWithTags.length}</span>
+          Quotes: <span className="text-cyan-400 font-medium">{quoteStore.quotes.length}</span>
         </div>
       </div>
     </div>

@@ -1,37 +1,26 @@
 import { useState, useEffect } from "react";
 import QuoteBox from "@components/QuoteBox";
 import DualSortMenu from "@components/DualSortMenu";
-import { Quote, StarredQuote } from "@customTypes/index";
+import { Quote, StarredQuote, StarredQuoteWithTags } from "@customTypes/index";
 import { convertStarredQuoteToQuote } from "@customTypes/convert";
+import { useQuoteStore } from "@stores/quotes";
 
 type FavouritesPageProps = {
-  quotes: StarredQuote[],
-  sortByItems: string,
-  sortOrderItems: "ASC" | "DESC",
-  setSortByItems: (field: string) => void,
-  setSortOrderItems: (order: "ASC" | "DESC") => void,
   navigateToBook: (bookId: string) => void,
-  updateQuote: (quote: Quote) => void,
   onStarClick: (quote: StarredQuote) => void,
-  removeQuote: (quote: Quote) => void,
   reloadFavourites: (sortBy: string, sortOrder: "ASC" | "DESC") => void
 }
 
-function FavouritesPage({ 
-  quotes,
-  sortByItems,
-  sortOrderItems,
-  setSortByItems,
-  setSortOrderItems,
+function FavouritesPage({
   navigateToBook,
-  updateQuote,
   onStarClick,
-  removeQuote,
   reloadFavourites,
-}: FavouritesPageProps) 
-{
-  const [selectedQuote, setSelectedQuote] = useState<StarredQuote | null>(null);
+}: FavouritesPageProps) {
+  const quoteStore = useQuoteStore();
 
+  const [selectedQuote, setSelectedQuote] = useState<StarredQuoteWithTags | null>(null);
+
+  // Secondary sort
   const [sortByBook, setSortByBook] = useState<string>("book");
   const [sortOrderBook, setSortOrderBook] = useState<"ASC" | "DESC">("DESC");
   const sortLabels = {
@@ -44,9 +33,9 @@ function FavouritesPage({
   };
 
   // Group quotes by book
-  const quotesByBook = quotes.reduce((
-    acc: Record<string, { title: string, author: string, quotes: StarredQuote[] }>,
-    quote: StarredQuote) => {
+  const quotesByBook = quoteStore.starredQuotes.reduce((
+    acc: Record<string, { title: string, author: string, quotes: StarredQuoteWithTags[] }>,
+    quote: StarredQuoteWithTags) => {
     if (!!quote.book_id) {
       if (!acc[quote.book_id]) {
         acc[quote.book_id] = {
@@ -64,7 +53,7 @@ function FavouritesPage({
   const sortedBooks = Object.values(quotesByBook).sort((a, b) => {
     const aValue = sortByBook === "book" ? a.title : a.author;
     const bValue = sortByBook === "book" ? b.title : b.author;
-    
+
     if (sortOrderBook === "ASC") {
       return aValue.localeCompare(bValue);
     } else {
@@ -72,9 +61,17 @@ function FavouritesPage({
     }
   });
 
+  const updateQuote = (quote: StarredQuoteWithTags) => {
+    quoteStore.updateQuote(quote);
+  }
+
+  const removeQuote = (quote: StarredQuoteWithTags) => {
+    quoteStore.deleteQuote(quote);
+  }
+
   useEffect(() => {
-    reloadFavourites(sortByItems, sortOrderItems);
-  }, [sortByItems, sortOrderItems]);
+    reloadFavourites(quoteStore.sortByStarred, quoteStore.sortOrderStarred);
+  }, [quoteStore.sortByStarred, quoteStore.sortOrderStarred]);
 
   return (
     <div className="flex-1 flex flex-col items-center w-full h-full" onClick={() => setSelectedQuote(null)}>
@@ -85,13 +82,13 @@ function FavouritesPage({
           </h1>
           <div className="flex gap-2">
             <DualSortMenu
-              primarySort={{ field: sortByItems, order: sortOrderItems }}
+              primarySort={{ field: quoteStore.sortByStarred, order: quoteStore.sortOrderStarred }}
               secondarySort={{ field: sortByBook, order: sortOrderBook }}
               sortByFields={sortByFields}
               sortLabels={sortLabels}
               onPrimarySortChange={(field, order) => {
-                setSortByItems(field);
-                setSortOrderItems(order as "ASC" | "DESC");
+                quoteStore.setSortByStarred(field);
+                quoteStore.setSortOrderStarred(order as "ASC" | "DESC");
               }}
               onSecondarySortChange={(field, order) => {
                 setSortByBook(field);
@@ -116,21 +113,22 @@ function FavouritesPage({
                   </button>
                   <span className="text-sm text-slate-500">by {book.author}</span>
                 </div>
-                
+
                 {/* Quotes */}
                 <div className="flex flex-col gap-4 pl-4 border-slate-700/30">
                   {book.quotes.map((quote) => (
                     <QuoteBox
                       key={quote.id}
                       quote={convertStarredQuoteToQuote(quote)}
+                      tags={quote.tags}
                       selected={selectedQuote?.id === quote.id}
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedQuote(quote);
                       }}
-                      onEdit={(content) => updateQuote(convertStarredQuoteToQuote({ ...quote, content }))}
+                      onEdit={(content) => updateQuote({ ...quote, content })}
                       onStarClick={() => onStarClick(quote)}
-                      onRemove={() => removeQuote(convertStarredQuoteToQuote(quote))}
+                      onRemove={() => removeQuote(quote)}
                     />
                   ))}
                 </div>

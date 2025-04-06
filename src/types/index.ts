@@ -87,6 +87,10 @@ export interface QuoteWithTags extends Quote {
   tags: Tag[];
 }
 
+export interface StarredQuoteWithTags extends StarredQuote {
+  tags: Tag[];
+}
+
 export interface QuoteFts {
   id: string;
   content: string | null;

@@ -404,7 +404,7 @@ pub mod commands {
     pub async fn get_starred_quotes(
         sort_by: Option<&str>,
         sort_order: Option<&str>,
-    ) -> Result<Vec<StarredQuote>, String> {
+    ) -> Result<Vec<StarredQuoteWithTags>, String> {
         queries::get_starred_quotes(sort_by, sort_order, get_pool())
             .await
             .map_err(|e| e.to_string())

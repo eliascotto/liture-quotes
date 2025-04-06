@@ -9,8 +9,8 @@ import CopyIcon from "@icons/Copy";
 import Tooltip from "@components/Tooltip";
 import EditableNoteBox from "@components/EditableQuoteBox";
 import { Note, Quote, QuoteFts, Tag } from "src/types/index";
-import DotsVertical from "./icons/DotsVertical";
-import TagFill from "./icons/TagFill";
+import DotsVertical from "@icons/DotsVertical";
+import TagsMenu from "@components/TagsMenu";
 
 type DropdownMenuProps = {
   isOpen: boolean,
@@ -171,6 +171,7 @@ function QuoteBox({
         className="absolute top-[8px] -left-[22.5px] cursor-pointer flex flex-col items-center gap-1"
         onClick={() => onStarClick()}
       >
+        {/* Star icon button */}
         <Tooltip content={quote.starred ? "Unstar Quote" : "Star Quote"} usePortal>
           <div className={clsx({
             "text-yellow-500": !!quote.starred,
@@ -181,13 +182,15 @@ function QuoteBox({
           </div>
         </Tooltip>
       </div>
+
+      {/* Tags menu */}
       {hasTags && (
         <div className="absolute top-[4px] -right-[30px] cursor-pointer gap-1">
           <Tooltip content="Edit tags" usePortal delay={{ open: 1000 }}>
-            <div className="flex flex-row items-center gap-0.5 hover:fill-slate-500 fill-slate-600 text-slate-600 hover:text-slate-500">
-              <TagFill className="w-3.5 h-3.5" />
-              <span className="text-xs font-semibold">{tags.length}</span>
-            </div>
+            <TagsMenu 
+              tags={tags} 
+              quoteId={quote.id}
+            />
           </Tooltip>
         </div>
       )}
