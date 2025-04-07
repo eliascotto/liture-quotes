@@ -1,41 +1,60 @@
 import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
-import { Book, Quote, QuoteWithTags, StarredQuoteWithTags } from '@customTypes/index';
+import { Book, Quote, QuoteWithTags, QuoteWithTagsRedux } from '@customTypes/index';
 import Logger from '@utils/logger';
 
 interface QuoteStore {
   // Properties
   quotes: QuoteWithTags[];
-  starredQuotes: StarredQuoteWithTags[];
+  quotesByTag: QuoteWithTagsRedux[];
+  starredQuotes: QuoteWithTagsRedux[];
+  selectedQuote: QuoteWithTags | Quote | null;
+  selectedBook: Book | null;
+
   sortBy: string;
   sortOrder: "ASC" | "DESC";
   sortByStarred: string;
   sortOrderStarred: "ASC" | "DESC";
-  selectedBook: Book | null;
+  sortByTag: string;
+  sortOrderTag: "ASC" | "DESC";
+
   // Setters
+  setSelectedQuote: (quote: QuoteWithTags | null) => void;
   setSortBy: (sortBy: string) => void;
   setSortOrder: (sortOrder: "ASC" | "DESC") => void;
   setSortByStarred: (sortBy: string) => void;
   setSortOrderStarred: (sortOrder: "ASC" | "DESC") => void;
+  setSortByTag: (sortBy: string) => void;
+  setSortOrderTag: (sortOrder: "ASC" | "DESC") => void;
   setSelectedBook: (book: Book | null) => void;
+
   // Actions
   fetchQuotes: () => Promise<void>;
   fetchStarredQuotes: () => Promise<void>;
+  fetchQuotesByTag: (tagId: string) => Promise<void>;
   addQuote: (content: string) => Promise<void>;
-  updateQuote: (quote: Quote | QuoteWithTags | StarredQuoteWithTags) => Promise<void>;
-  deleteQuote: (quote: Quote | QuoteWithTags | StarredQuoteWithTags) => Promise<void>;
+  updateQuote: (quote: Quote | QuoteWithTags | QuoteWithTagsRedux) => Promise<void>;
+  deleteQuote: (quote: Quote | QuoteWithTags | QuoteWithTagsRedux) => Promise<void>;
 }
 
 const logger = Logger.getInstance();
 
 export const useQuoteStore = create<QuoteStore>((set, get) => ({
   quotes: [],
+  quotesByTag: [],
   starredQuotes: [],
+  selectedQuote: null,
   sortBy: 'date_modified',
   sortOrder: 'DESC',
   sortByStarred: 'date_modified',
   sortOrderStarred: 'DESC',
+  sortByTag: 'date_modified',
+  sortOrderTag: 'DESC',
   selectedBook: null,
+
+  setSelectedQuote: (quote: QuoteWithTags | null) => {
+    set({ selectedQuote: quote });
+  },
 
   setSortBy: (sortBy: string) => {
     set({ sortBy });
@@ -53,6 +72,14 @@ export const useQuoteStore = create<QuoteStore>((set, get) => ({
     set({ sortOrderStarred: sortOrder });
   },
 
+  setSortByTag: (sortBy: string) => {
+    set({ sortByTag: sortBy });
+  },
+
+  setSortOrderTag: (sortOrder: "ASC" | "DESC") => {
+    set({ sortOrderTag: sortOrder });
+  },
+
   setSelectedBook: (book: Book | null) => {
     set({ selectedBook: book });
 
@@ -62,9 +89,10 @@ export const useQuoteStore = create<QuoteStore>((set, get) => ({
   },
 
   fetchQuotes: async () => {
+    if (!get().selectedBook) return;
     const quotes = await invoke('get_book_quotes', {
-      bookId: get().selectedBook?.id, 
-      sortBy: get().sortBy, 
+      bookId: get().selectedBook?.id,
+      sortBy: get().sortBy,
       sortOrder: get().sortOrder
     });
     set({ quotes: quotes as QuoteWithTags[] });
@@ -75,7 +103,16 @@ export const useQuoteStore = create<QuoteStore>((set, get) => ({
       sortBy: get().sortByStarred,
       sortOrder: get().sortOrderStarred
     });
-    set({ starredQuotes: starredQuotes as StarredQuoteWithTags[] });
+    set({ starredQuotes: starredQuotes as QuoteWithTagsRedux[] });
+  },
+
+  fetchQuotesByTag: async (tagId: string) => {
+    const quotes = await invoke('get_quotes_by_tag', { 
+      tagId, 
+      sortBy: get().sortByTag,
+      sortOrder: get().sortOrderTag 
+    });
+    set({ quotesByTag: quotes as QuoteWithTagsRedux[] });
   },
 
   addQuote: async (content: string) => {
@@ -88,16 +125,16 @@ export const useQuoteStore = create<QuoteStore>((set, get) => ({
     }
   },
 
-  updateQuote: async (quote: Quote | QuoteWithTags | StarredQuoteWithTags) => {
+  updateQuote: async (quote: Quote | QuoteWithTags | QuoteWithTagsRedux) => {
     try {
       await invoke('update_quote', { quote });
-      get().fetchQuotes();  
+      get().fetchQuotes();
     } catch (error) {
       logger.error("Error updating quote:", error);
     }
   },
 
-  deleteQuote: async (quote: Quote | QuoteWithTags | StarredQuoteWithTags) => {
+  deleteQuote: async (quote: Quote | QuoteWithTags | QuoteWithTagsRedux) => {
     try {
       await invoke('delete_quote', { quoteId: quote.id });
       get().fetchQuotes();

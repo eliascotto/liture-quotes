@@ -20,7 +20,7 @@ export default defineConfig({
       '@utils': path.resolve(__dirname, './src/utils'),
       '@context': path.resolve(__dirname, './src/context'),
       '@customTypes': path.resolve(__dirname, './src/types'),
-      '@pages': path.resolve(__dirname, './src/pages'),
+      '@screens': path.resolve(__dirname, './src/screens'),
       '@stores': path.resolve(__dirname, './src/stores'),
     },
   },

@@ -1,34 +1,45 @@
 import { useState, useEffect, useRef, MouseEvent, UIEvent } from "react";
 import clsx from "clsx";
-import BookIcon from "@icons/BookIcon";
-import UsersIcon from "@icons/UsersIcon";
 import Tooltip from "@components/Tooltip";
 import { cleanText } from "@utils/index";
-import SidebarLeft from "@components/icons/SidebarLeft";
+import SidebarRight from "@components/icons/SidebarRight";
+import { useSecondarySidebarStore, useAppStore } from "@stores/index";
+import SidebarLeft from "./icons/SidebarLeft";
 
-const MIN_WIDTH = 180;
-const MAX_WIDTH = 400;
-const DEFAULT_WIDTH = 240;
-
-type NavbarProps = {
+type SecondarySidebarProps = {
   property: string,
   items: any[],
-  itemType: string,
   selected: any,
-  collapsed: boolean,
-  setCollapsed: (collapsed: boolean) => void,
-  onCategoryChange: (category: string) => void,
   onSelection: (item: any) => void,
 }
 
-function Navbar({
-  property, items, itemType, selected, collapsed, setCollapsed, onCategoryChange, onSelection
-}: NavbarProps) {
-  const [width, setWidth] = useState(DEFAULT_WIDTH);
-  const [lastWidth, setLastWidth] = useState(DEFAULT_WIDTH);
-  const [isResizing, setIsResizing] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isEmpty, setIsEmpty] = useState(false);
+function SecondarySidebar({
+  property,
+  items,
+  selected,
+  onSelection
+}: SecondarySidebarProps) {
+  const {
+    isOpen,
+    setIsOpen,
+    width,
+    setWidth,
+    lastWidth,
+    setLastWidth,
+    isResizing,
+    setIsResizing,
+    isScrolled,
+    setIsScrolled,
+    isEmpty,
+    setIsEmpty,
+    fullyExpanded,
+    setFullyExpanded,
+    MIN_WIDTH,
+    MAX_WIDTH,
+  } = useSecondarySidebarStore();
+
+  const appStore = useAppStore();
+
   const navbarRef = useRef(null);
   const scrollContainerRef = useRef(null);
 
@@ -43,6 +54,13 @@ function Navbar({
     setIsResizing(true);
   };
 
+  const handleSidebarCollapse = () => {
+    setLastWidth(width);
+    setIsOpen(false);
+    setFullyExpanded(false);
+    setTimeout(() => setWidth(0));
+  };
+
   useEffect(() => {
     setIsEmpty(items.length === 0);
   }, [items]);
@@ -52,8 +70,8 @@ function Navbar({
     const handleMouseMove: any = (e: MouseEvent) => {
       if (!isResizing) return;
 
-      // Calculate new width based on mouse position
-      const newWidth = e.clientX;
+      // Calculate new width based on mouse position relative to window width
+      const newWidth = window.innerWidth - e.clientX;
 
       // Set min and max constraints
       if (newWidth >= MIN_WIDTH && newWidth <= MAX_WIDTH) {
@@ -78,29 +96,26 @@ function Navbar({
 
   // Handle the navbar collapsing and uncollapsing animation
   useEffect(() => {
-    if (collapsed) {
-      setLastWidth(width);
-      setTimeout(() => setWidth(0));
+    if (!isOpen) {
+      
     } else {
       setWidth(lastWidth); // Instantly restore to default width when uncollapsing
+      setTimeout(() => setFullyExpanded(true), 100);
     }
-  }, [collapsed]);
-
-  const isBooks = property === "title";
+  }, [isOpen]);
 
   return (
     <div
       ref={navbarRef}
       className={clsx(
-        "relative h-full border-r border-slate-700/30 bg-slate-900 select-none transition-width duration-50 ease-linear",
-        {
-          "border-r-0": collapsed,
-        }
+        "relative h-full border-l border-slate-700/30 bg-slate-900 select-none transition-all ease-linear",
+        !isOpen && "border-l-0",
+        fullyExpanded ? "duration-10" : "duration-100",
       )}
       style={{
         width: `${width}px`,
-        // Avoid min-width when collapser for smooth animation
-        ...(!collapsed ? { minWidth: `${MIN_WIDTH}px` } : {}),
+        // Avoid min-width when collapsed for smooth open-close animation
+        ...(fullyExpanded && { minWidth: `${MIN_WIDTH}px` }),
         maxWidth: `${MAX_WIDTH}px`,
       }}
     >
@@ -117,48 +132,14 @@ function Navbar({
           )}
           data-tauri-drag-region
         >
-          <div className="flex items-center ml-[74px]">
+          {/* Sidebar Collapse Button */}
+          <div className="flex items-center ml-2">
             <button
-              onClick={() => setCollapsed(true)}
+              onClick={handleSidebarCollapse}
               className="px-1.5 py-1.5 text-slate-400 hover:text-cyan-500 hover:bg-slate-700/20 rounded-md transition-all duration-200"
             >
-              <SidebarLeft className="w-4 h-4" />
+              <SidebarLeft className="w-4 h-4 rotate-180" />
             </button>
-          </div>
-          <div className="flex w-full justify-end items-center" data-tauri-drag-region>
-            {!collapsed && (
-              <div className="flex space-x-1 select-none">
-                {/* Books Icon */}
-                <button
-                  onClick={() => onCategoryChange("Books")}
-                className={clsx(
-                  "px-1.5 py-1 rounded-md transition-all duration-200",
-                  {
-                    "text-cyan-500 bg-slate-700/10": isBooks,
-                    "text-slate-400 hover:text-cyan-300 hover:bg-slate-700/20": !isBooks,
-                  }
-                )}
-                title="Books"
-              >
-                <BookIcon />
-              </button>
-
-              {/* Authors Icon */}
-              <button
-                onClick={() => onCategoryChange("Authors")}
-                className={clsx(
-                  "px-1.5 py-1 rounded-md transition-all duration-200",
-                  {
-                    "text-cyan-500 bg-slate-700/10": !isBooks,
-                    "text-slate-400 hover:text-cyan-300 hover:bg-slate-700/20": isBooks,
-                  }
-                )}
-                title="Authors"
-              >
-                <UsersIcon />
-                </button>
-              </div>
-            )}
           </div>
         </div>
 
@@ -170,7 +151,7 @@ function Navbar({
         >
           {isEmpty && (
             <div className="flex-1 flex items-center justify-center h-full select-auto">
-              <div className="text-slate-500 italic text-sm">No {itemType}s to show</div>
+              <div className="text-slate-500 italic text-sm">No items to show</div>
             </div>
           )}
           {!isEmpty && (
@@ -183,6 +164,7 @@ function Navbar({
                 if (isEmpty) {
                   return (
                     <li
+                      key={`secondary-navbar-item-${item.id}-empty`}
                       className={clsx(
                         "cursor-pointer min-h-[32px] py-1.5 px-1.5 text-sm italic font-medium truncate rounded transition-all duration-200 hover:bg-slate-700/20 select-none",
                         isSelected ? "text-cyan-400 bg-slate-700/30" : "text-slate-600 hover:text-white"
@@ -195,7 +177,7 @@ function Navbar({
 
                 return (
                   <Tooltip
-                    key={`navbar-item-${item.id}`}
+                    key={`secondary-navbar-item-${item.id}`}
                     content={cleanedText}
                     usePortal={true}
                   >
@@ -217,7 +199,7 @@ function Navbar({
 
       {/* Resize handle */}
       <div
-        className={`absolute top-0 right-0 w-1 h-full cursor-col-resize z-10 transition-all duration-200 ${isResizing
+        className={`absolute top-0 left-0 w-1 h-full cursor-col-resize z-10 transition-all duration-200 ${isResizing
           ? 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.6)]'
           : 'hover:bg-cyan-400/50 hover:shadow-[0_0_5px_rgba(34,211,238,0.4)]'
           }`}
@@ -227,4 +209,4 @@ function Navbar({
   );
 }
 
-export default Navbar;
+export default SecondarySidebar; 

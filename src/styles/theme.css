@@ -1,61 +1,154 @@
-.theme-default {
-  /* Base */
-  --font-sans: -apple-system, BlinkMacSystemFont, "avenir next", avenir, "segoe ui", "helvetica neue",
-      helvetica, Cantarell, Ubuntu, roboto, noto, arial, sans-serif;
+/************************
+  Light theme (default)
 
-  /* Colors */
+  References: 
+    - https://tailwindcss.com/docs/theme
+    - https://github.com/shadcn-ui/ui/blob/main/apps/v4/app/themes.css
+*************************/
+.theme-default 
+{
+  /************************
+    Typography
+  *************************/
 
-  /* Light theme (default) */
-  --background: oklch(0.984 0.003 247.858);  /* slate-50 */
-  --foreground: oklch(0.208 0.042 265.755);  /* slate-900 */
-  --card: oklch(0.968 0.007 247.896);        /* slate-100 */
-  --card-foreground: oklch(0.208 0.042 265.755);  /* slate-900 */
-  --popover: oklch(0.968 0.007 247.896);     /* slate-100 */
-  --popover-foreground: oklch(0.208 0.042 265.755);  /* slate-900 */
-  
-  /* Brand colors */
-  --primary: oklch(0.789 0.154 211.53);      /* cyan-400 */
-  --primary-foreground: oklch(0.985 0 0);    /* white */
-  --secondary: oklch(0.609 0.126 221.723);   /* cyan-600 */
-  --secondary-foreground: oklch(0.985 0 0);  /* white */
-  
-  /* UI Elements */
-  --muted: oklch(0.869 0.022 252.894);       /* slate-300 */
-  --muted-foreground: oklch(0.554 0.046 257.417);  /* slate-500 */
-  --accent: oklch(0.704 0.04 256.788);       /* slate-400 */
-  --accent-foreground: oklch(0.208 0.042 265.755);  /* slate-900 */
-  --destructive: oklch(0.704 0.191 22.216);  /* red-400 */
-  --destructive-foreground: oklch(0.985 0 0);  /* white */
-  
-  /* Inputs */
+  --font-family-base: -apple-system, BlinkMacSystemFont, "avenir next", avenir, "segoe ui", "helvetica neue",
+    helvetica, Cantarell, Ubuntu, roboto, noto, arial, sans-serif;
+
+  /************************
+    Base colors
+  *************************/
+
+  /* --color-slate-50: oklch(0.984 0.003 247.858);
+  --color-slate-100: oklch(0.968 0.007 247.896);
+  --color-slate-200: oklch(0.929 0.013 255.508);
+  --color-slate-300: oklch(0.869 0.022 252.894);
+  --color-slate-400: oklch(0.704 0.04 256.788);
+  --color-slate-500: oklch(0.554 0.046 257.417);
+  --color-slate-600: oklch(0.446 0.043 257.281);
+  --color-slate-700: oklch(0.372 0.044 257.287);
+  --color-slate-800: oklch(0.279 0.041 260.031);
+  --color-slate-900: oklch(0.208 0.042 265.755);
+  --color-slate-950: oklch(0.129 0.042 264.695); */
+
+  /* slate-50 */
+  --background: oklch(0.279 0.041 260.031);
+  /* slate-900 */
+  --foreground: oklch(0.208 0.042 265.755);
+
+  /************************
+    Brand colors
+  *************************/
+
+  /* cyan-400 */
+  --brand-primary: oklch(0.789 0.154 211.53);
+  /* white */
+  --brand-primary-foreground: oklch(0.985 0 0);
+  /* cyan-600 */
+  --brand-secondary: oklch(0.609 0.126 221.723);
+  /* white */
+  --brand-secondary-foreground: oklch(0.985 0 0);
+
+  /************************
+    Borders and inputs
+  *************************/
+
+  /* slate-400 */
+  --border: oklch(0.704 0.04 256.788);
+  /* slate-300 */
+  --input: oklch(0.869 0.022 252.894);
+  /* cyan-400 */
+  --ring: oklch(0.789 0.154 211.53);
+
+  /* Status colors */
+  /* green-400 */
+  --success: oklch(0.792 0.209 151.711);
+  /* yellow-400 */
+  --warning: oklch(0.852 0.199 91.936);
+  /* cyan-400 */
+  --info: oklch(0.789 0.154 211.53);
+  /* red-400 */
+  --error: oklch(0.704 0.191 22.216);
+
+  /************************
+    UI Elements
+  *************************/
+
+  /* slate-300 */
+  --muted: oklch(0.869 0.022 252.894);
+  /* slate-500 */
+  --muted-foreground: oklch(0.554 0.046 257.417);
+  /* slate-400 */
+  --accent: oklch(0.704 0.04 256.788);
+  /* slate-900 */
+  --accent-foreground: oklch(0.208 0.042 265.755);
+  /* red-400 */
+  --destructive: oklch(0.704 0.191 22.216);
+  /* white */
+  --destructive-foreground: oklch(0.985 0 0);
+
+  /*--------------
+    Main
+  --------------*/
+
+  /* slate-500 */
+  --main-background: oklch(0.279 0.041 260.031);
+  --main-background-opacity: 0.9;
+  /* slate-900 */
+  --main-foreground: oklch(0.208 0.042 265.755);
+
+  /*--------------
+    Menus
+  --------------*/
+
+  /* slate-800 */
+  --menu-background: oklch(0.279 0.041 260.031);
+  /* slate-900 */
+  --menu-foreground: oklch(0.208 0.042 265.755);
+
+  /*--------------
+    Cards
+  --------------*/
+
+  /* slate-100 */
+  --card: oklch(0.968 0.007 247.896);
+  /* slate-900 */
+  --card-foreground: oklch(0.208 0.042 265.755);
+
+  /*--------------
+    Popovers
+  --------------*/
+
+  /* slate-100 */
+  --popover: oklch(0.968 0.007 247.896);
+  /* slate-900 */
+  --popover-foreground: oklch(0.208 0.042 265.755);
+
+
+
+  /************************
+    Inputs
+  *************************/
+
   --input-focus-border-color: Highlight;
   --input-focus-outline: 1px solid Canvas;
   --input-unfocused-border-color: transparent;
   --input-disabled-border-color: transparent;
   --input-hover-border-color: black;
-  
-  /* Borders and inputs */
-  --border: oklch(0.704 0.04 256.788);       /* slate-400 */
-  --input: oklch(0.869 0.022 252.894);       /* slate-300 */
-  --ring: oklch(0.789 0.154 211.53);         /* cyan-400 */
-  
-  /* Status colors */
-  --success: oklch(0.792 0.209 151.711);     /* green-400 */
-  --warning: oklch(0.852 0.199 91.936);      /* yellow-400 */
-  --info: oklch(0.789 0.154 211.53);         /* cyan-400 */
-  --error: oklch(0.704 0.191 22.216);        /* red-400 */
-  
-  /* Sidebar specific */
-  --sidebar: oklch(0.929 0.013 255.508);     /* slate-200 */
-  --sidebar-foreground: oklch(0.208 0.042 265.755);  /* slate-900 */
-  --sidebar-muted: oklch(0.704 0.04 256.788);  /* slate-400 */
-  --sidebar-border: oklch(0.869 0.022 252.894);  /* slate-300 */
-  
-  /* Opacity variants */
-  --background-alpha: oklch(0.98 0 0 / 80%);
-  --overlay-alpha: oklch(0.2 0 0 / 50%);
 
-  @media (prefers-color-scheme: dark) {
-    
-  }
+  /************************
+    Sidebar specific colors
+  *************************/
+
+  /* slate-200 */
+  --sidebar: oklch(0.929 0.013 255.508);
+  /* slate-900 */
+  --sidebar-foreground: oklch(0.208 0.042 265.755);
+  /* slate-400 */
+  --sidebar-muted: oklch(0.704 0.04 256.788);
+  /* slate-300 */
+  --sidebar-border: oklch(0.869 0.022 252.894);
+}
+
+.theme-default-dark {
+
 }

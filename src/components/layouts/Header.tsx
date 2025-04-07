@@ -11,6 +11,7 @@ import Logger from "@utils/logger";
 import SidebarLeft from "@components/icons/SidebarLeft";
 import clsx from "clsx";
 import { useEffect, useState } from "react";
+import { usePrimarySidebarStore } from "@stores/index";
 
 const logger = Logger.getInstance();
 
@@ -24,8 +25,6 @@ type HeaderProps = {
   isBooksSelected: boolean,
   selectedAuthor: Author | null,
   showingStarred: boolean,
-  navbarCollapsed: boolean,
-  setNavbarCollapsed: (collapsed: boolean) => void,
   setShowingStarred: (showing: boolean) => void,
   setSearch: (search: string) => void,
   setSearchResults: (results: any) => void,
@@ -43,23 +42,23 @@ function Header({
   isBooksSelected,
   selectedAuthor,
   showingStarred,
-  navbarCollapsed,
-  setNavbarCollapsed,
   setShowingStarred,
   setSearch,
   setSearchResults,
   onSearchExit,
   onReloadButtonClick,
 }: HeaderProps) {
-  const [collapseButtonVisible, setCollapseButtonVisible] = useState(false);
+  const primarySidebarStore = usePrimarySidebarStore();
+
+  const [expandSidebarButtonVisible, setExpandSidebarButtonVisible] = useState(false);
 
   useEffect(() => {
-    if (navbarCollapsed) {
-      setTimeout(() => setCollapseButtonVisible(true), 50);
+    if (!primarySidebarStore.isOpen) {
+      setTimeout(() => setExpandSidebarButtonVisible(true), 50);
     } else {
-      setCollapseButtonVisible(false);
+      setExpandSidebarButtonVisible(false);
     }
-  }, [navbarCollapsed]);
+  }, [primarySidebarStore.isOpen]);
 
   const handleImportIBooks = async () => {
     try {
@@ -94,16 +93,16 @@ function Header({
         "z-20 border-slate-700/50 bg-slate-900 min-h-12",
         "flex flex-row py-2.5 px-4 w-full items-center justify-between gap-4 shadow-md",
         {
-          "border-b": !navbarCollapsed,
+          "border-b": primarySidebarStore.isOpen,
         }
       )}
       data-tauri-drag-region
     >
       <div className={clsx("flex flex-row items-center gap-4", {
-        "ml-[64px]": navbarCollapsed,
+        "ml-[64px]": !primarySidebarStore.isOpen,
       })}>
-        {collapseButtonVisible && (
-          <HeaderButton onClick={() => setNavbarCollapsed(false)}>
+        {expandSidebarButtonVisible && (
+          <HeaderButton onClick={() => primarySidebarStore.setIsOpen(true)}>
             <SidebarLeft className="h-4 w-4" />
           </HeaderButton>
         )}

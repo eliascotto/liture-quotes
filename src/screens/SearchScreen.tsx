@@ -2,7 +2,7 @@ import { useState } from "react";
 import QuoteBox from "@components/QuoteBox";
 import { Book, Author, Quote, QuoteFts } from "@customTypes/index.ts";
 
-type SearchPageProps = {
+type SearchScreenProps = {
   books: Book[],
   authors: Author[],
   search: string,
@@ -18,7 +18,7 @@ type SearchPageProps = {
   removeQuote: (quote: Quote) => void
 }
 
-function SearchPage(props: SearchPageProps) {
+function SearchScreen(props: SearchScreenProps) {
   const [selectedQuote, setSelectedQuote] = useState<QuoteFts | null>(null);
 
   // Find book and author for a note
@@ -193,4 +193,4 @@ function SearchPage(props: SearchPageProps) {
   );
 }
 
-export default SearchPage;
+export default SearchScreen;

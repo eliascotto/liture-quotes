@@ -46,7 +46,7 @@ export interface Chapter {
   volume_index: number | null;
 }
 
-export interface StarredQuote {
+export interface QuoteRedux {
   id: string;
   content: string | null;
   book_id: string | null;
@@ -87,7 +87,7 @@ export interface QuoteWithTags extends Quote {
   tags: Tag[];
 }
 
-export interface StarredQuoteWithTags extends StarredQuote {
+export interface QuoteWithTagsRedux extends QuoteRedux {
   tags: Tag[];
 }
 
@@ -142,8 +142,8 @@ export interface SearchResults {
 }
 
 export interface PageState {
-  type: 'book' | 'author' | 'search' | 'starred';
-  data: Book | Author | { term: string, results: SearchResults } | string | null;
+  type: 'book' | 'author' | 'search' | 'starred' | 'tag';
+  data: Book | Author | Tag | { term: string, results: SearchResults } | string | null;
 }
 
 // Used to receive books and authors from the backend

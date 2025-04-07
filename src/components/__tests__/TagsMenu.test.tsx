@@ -25,8 +25,7 @@ describe('TagsMenu', () => {
     render(
       <TagsMenu
         tags={mockTags}
-        onAddTag={mockOnAddTag}
-        onRemoveTag={mockOnRemoveTag}
+        quoteId="1"
       />
     );
 
@@ -38,8 +37,7 @@ describe('TagsMenu', () => {
     render(
       <TagsMenu
         tags={mockTags}
-        onAddTag={mockOnAddTag}
-        onRemoveTag={mockOnRemoveTag}
+        quoteId="1"
       />
     );
 
@@ -56,8 +54,7 @@ describe('TagsMenu', () => {
     render(
       <TagsMenu
         tags={[]}
-        onAddTag={mockOnAddTag}
-        onRemoveTag={mockOnRemoveTag}
+        quoteId="1"
       />
     );
 
@@ -71,8 +68,7 @@ describe('TagsMenu', () => {
     render(
       <TagsMenu
         tags={mockTags}
-        onAddTag={mockOnAddTag}
-        onRemoveTag={mockOnRemoveTag}
+        quoteId="1"
       />
     );
 
@@ -92,8 +88,7 @@ describe('TagsMenu', () => {
     render(
       <TagsMenu
         tags={mockTags}
-        onAddTag={mockOnAddTag}
-        onRemoveTag={mockOnRemoveTag}
+        quoteId="1"
       />
     );
 
@@ -113,8 +108,7 @@ describe('TagsMenu', () => {
     render(
       <TagsMenu
         tags={mockTags}
-        onAddTag={mockOnAddTag}
-        onRemoveTag={mockOnRemoveTag}
+        quoteId="1"
       />
     );
 
@@ -136,6 +130,7 @@ describe('TagsMenu', () => {
     render(
       <TagsMenu
         tags={mockTags}
+        quoteId="1"
         className="custom-class"
       />
     );

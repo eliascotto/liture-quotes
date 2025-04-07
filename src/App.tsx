@@ -4,12 +4,12 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { platform } from '@tauri-apps/plugin-os';
 
-import Navbar from "@components/layouts/Navbar";
+import PrimarySidebar from "@components/PrimarySidebar";
 import Header from "@components/layouts/Header";
-import BookPage from "@pages/BookPage";
-import AuthorPage from "@pages/AuthorPage";
-import SearchPage from "@pages/SearchPage";
-import FavouritesPage from "@pages/FavouritesPage";
+import BookScreen from "@screens/BookScreen";
+import AuthorScreen from "@screens/AuthorScreen";
+import SearchScreen from "@screens/SearchScreen";
+import FavouritesScreen from "@screens/FavouritesScreen";
 import RandomQuoteBox from "@components/RandomQuoteBox";
 import { useToast } from "@context/ToastContext";
 import { useTagStore } from "@stores/tags";
@@ -25,11 +25,13 @@ import {
   Note,
   Quote,
   PageState,
-  StarredQuote,
+  QuoteRedux,
   SearchResults,
   Chapter,
+  Tag
 } from "@customTypes/index.ts";
-import { useQuoteStore } from "@stores/quotes";
+import { useQuoteStore, useAppStore } from "@stores/index";
+import TagScreen from "@screens/TagScreen";
 
 const logger = Logger.getInstance();
 
@@ -41,22 +43,17 @@ function App() {
   const currentPlatform = platform();
   const windowState = useWindowState();
 
-  const { addToast } = useToast();
+  // App 
+  const appStore = useAppStore();
 
-  // UI
-  const [navbarCollapsed, setNavbarCollapsed] = useState(false);
+  const { addToast } = useToast();
 
   // Fields from db
   const [books, setBooks] = useState<Book[]>([]);
   const [authors, setAuthors] = useState<Author[]>([]);
-  const [starredQuotes, setStarredQuotes] = useState<Quote[]>([]);
 
   // Quotes
   const quoteStore = useQuoteStore();
-
-  // Navbar selection
-  const [selectedOption, setSelectedOption] = useState("Books");
-  const isBooksSelected = selectedOption === "Books";
 
   // Search
   const [search, setSearch] = useState<string | null>(null);
@@ -83,40 +80,40 @@ function App() {
   const isNavigating = useRef(false);
   const initialLoadComplete = useRef(false);
 
-  // Favourites page
-  const [showingFavourites, setShowingFavourites] = useState(false);
-
-  const [sortByFavourite, setSortByFavourite] = useState<string>("date_modified");
-  const [sortOrderFavourite, setSortOrderFavourite] = useState<"ASC" | "DESC">("DESC");
-
   // Tags
   const tagStore = useTagStore();
 
   // Get current page state
+  // TODO: move this management to the app store
   const getCurrentPageState = useCallback((): PageState | null => {
-    if (showingFavourites) {
+    if (appStore.currentScreen === 'favourites') {
       return {
         type: 'starred',
         data: null
+      };
+    } else if (appStore.currentScreen === 'tag') {
+      return {
+        type: 'tag',
+        data: tagStore.selectedTag,
       };
     } else if (search) {
       return {
         type: 'search',
         data: { term: search, results: searchResults }
       };
-    } else if (isBooksSelected && selectedBook) {
+    } else if (appStore.sidebarSelectedOption === 'books' && selectedBook) {
       return {
         type: 'book',
         data: selectedBook
       };
-    } else if (!isBooksSelected && selectedAuthor) {
+    } else if (appStore.sidebarSelectedOption === 'authors' && selectedAuthor) {
       return {
         type: 'author',
         data: selectedAuthor
       };
     }
     return null;
-  }, [search, searchResults, isBooksSelected, selectedBook, selectedAuthor, showingFavourites]);
+  }, [search, searchResults, appStore.sidebarSelectedOption, selectedBook, selectedAuthor, appStore.currentScreen]);
 
   // Apply a page state from history
   const applyPageState = useCallback((pageState: PageState) => {
@@ -126,12 +123,17 @@ function App() {
 
     switch (pageState.type) {
       case 'starred':
-        setShowingFavourites(true);
+        appStore.setCurrentScreen('favourites');
+        setSearch(null);
+        break;
+      case 'tag':
+        appStore.setCurrentScreen('tag');
+        tagStore.setSelectedTag(pageState.data as Tag);
         setSearch(null);
         break;
       case 'book':
-        setShowingFavourites(false);
-        setSelectedOption("Books");
+        appStore.setCurrentScreen(null);
+        appStore.setSidebarSelectedOption("books");
         if (pageState.data && typeof pageState.data !== 'string') {
           setSelectedBook(pageState.data as Book);
           quoteStore.setSelectedBook(pageState.data as Book);
@@ -139,15 +141,15 @@ function App() {
         setSearch(null);
         break;
       case 'author':
-        setShowingFavourites(false);
-        setSelectedOption("Authors");
+        appStore.setCurrentScreen(null);
+        appStore.setSidebarSelectedOption("authors");
         if (pageState.data && typeof pageState.data !== 'string') {
           setSelectedAuthor(pageState.data as Author);
         }
         setSearch(null);
         break;
       case 'search':
-        setShowingFavourites(false);
+        appStore.setCurrentScreen(null);
         if (pageState.data && typeof pageState.data === 'object' && 'term' in pageState.data) {
           const searchData = pageState.data as { term: string, results: SearchResults };
           setSearch(searchData.term);
@@ -199,6 +201,8 @@ function App() {
           break;
         case 'starred':
           return; // For starred pages, just check the type which we already did
+        case 'tag':
+          return; // For tag pages, just check the type which we already did
       }
     }
 
@@ -251,18 +255,6 @@ function App() {
     setSelectedAuthorBooks(books as Book[]);
   }
 
-  async function fetchStarredQuotes(sortBy?: string, sortOrder?: string) {
-    try {
-      const notes = await invoke("get_starred_quotes", {
-        sortBy: sortBy || sortByFavourite,
-        sortOrder: sortOrder || sortOrderFavourite
-      });
-      setStarredQuotes(notes as Quote[]);
-    } catch (error) {
-      console.error("Error fetching starred quotes:", error);
-    }
-  }
-
   async function fetchBookNotes(bookId: string) {
     const notes = await invoke("get_book_notes", { bookId });
     setBookNotes(notes as Note[]);
@@ -280,7 +272,7 @@ function App() {
 
       if (setSelected) {
         await fetchBooksAndAuthors();
-        setSelectedOption("Authors");
+        appStore.setSidebarSelectedOption("authors");
         setSelectedAuthor(newAuthor as Author);
       }
       return newAuthor;
@@ -296,7 +288,7 @@ function App() {
       console.log("Adding book:", title, authorId);
       const newBook = await invoke("create_book", { title, authorId });
       await fetchBooksAndAuthors();
-      setSelectedOption("Books");
+      appStore.setSidebarSelectedOption("books");
       setSelectedBook(newBook as Book);
       quoteStore.setSelectedBook(newBook as Book);
       return true;
@@ -311,7 +303,7 @@ function App() {
     try {
       const newBook = await invoke("create_book_with_author", { title, authorName });
       await fetchBooksAndAuthors();
-      setSelectedOption("Books");
+      appStore.setSidebarSelectedOption("books");
       setSelectedBook(newBook as Book);
       quoteStore.setSelectedBook(newBook as Book);
       return true;
@@ -370,7 +362,7 @@ function App() {
     }
   }
 
-  async function toggleFavouriteQuote(quote: StarredQuote | Quote) {
+  async function toggleFavouriteQuote(quote: QuoteRedux | Quote) {
     console.log("Toggling favourite quote:", quote.id);
     try {
       await invoke("toggle_quote_starred", { quoteId: quote.id });
@@ -391,7 +383,7 @@ function App() {
   }
 
   function onAuthorBookSelect(book: Book) {
-    setSelectedOption("Books");
+    appStore.setSidebarSelectedOption("books");
     setSelectedBook(book);
     quoteStore.setSelectedBook(book);
   }
@@ -406,7 +398,7 @@ function App() {
   }
 
   function clearNavigation() {
-    setShowingFavourites(false);
+    appStore.setCurrentScreen(null);
     setSelectedBook(null);
     quoteStore.setSelectedBook(null);
     setSelectedAuthor(null);
@@ -415,7 +407,7 @@ function App() {
 
   function onNavbarSelection(item: Book | Author) {
     clearNavigation();
-    if (isBooksSelected) {
+    if (appStore.sidebarSelectedOption === 'books') {
       setSelectedBook(item as Book);
       quoteStore.setSelectedBook(item as Book);
     } else {
@@ -424,13 +416,17 @@ function App() {
   }
 
   function onFavouritesButtonClick() {
-    setShowingFavourites(!showingFavourites);
+    if (appStore.currentScreen === 'favourites') {
+      appStore.setCurrentScreen(null);
+    } else {
+      appStore.setCurrentScreen('favourites');
+    }
   }
 
   function navigateToBook(bookId: string) {
     const book = books.find(b => b.id === bookId);
     if (book) {
-      setSelectedOption("Books");
+      appStore.setSidebarSelectedOption("books");
       setSelectedBook(book);
       quoteStore.setSelectedBook(book);
       setSearch(null); // Exit search mode
@@ -440,7 +436,7 @@ function App() {
   function navigateToAuthor(authorId: string) {
     const author = authors.find(a => a.id === authorId);
     if (author) {
-      setSelectedOption("Authors");
+      appStore.setSidebarSelectedOption("authors");
       setSelectedAuthor(author);
       setSearch(null); // Exit search mode
     }
@@ -489,11 +485,11 @@ function App() {
         if (newHistory.length > 0) {
           // Navigate to the first author or book in the list
           if (books.length > 0) {
-            setSelectedOption("Books");
+            appStore.setSidebarSelectedOption("books");
             setSelectedBook(books[0]);
             quoteStore.setSelectedBook(books[0]);
           } else if (authors.length > 0) {
-            setSelectedOption("Authors");
+            appStore.setSidebarSelectedOption("authors");
             setSelectedAuthor(authors[0]);
           }
           setCurrentHistoryIndex(0);
@@ -565,10 +561,10 @@ function App() {
         if (newHistory.length > 0) {
           // Navigate to the first author or book in the list
           if (authors.length > 0) {
-            setSelectedOption("Authors");
+            appStore.setSidebarSelectedOption("authors");
             setSelectedAuthor(authors[0]);
           } else if (books.length > 0) {
-            setSelectedOption("Books");
+            appStore.setSidebarSelectedOption("books");
             setSelectedBook(books[0]);
             quoteStore.setSelectedBook(books[0]);
           }
@@ -641,10 +637,10 @@ function App() {
   }, [quoteStore.sortBy, quoteStore.sortOrder]);
 
   useEffect(() => {
-    if (showingFavourites) {
+    if (appStore.currentScreen === 'favourites') {
       quoteStore.fetchStarredQuotes();
     }
-  }, [showingFavourites]);
+  }, [appStore.currentScreen]);
 
   // Fetch book quote, notes when book changes
   useEffect(() => {
@@ -674,26 +670,32 @@ function App() {
     }
   }, [getCurrentPageState, addToHistory]);
 
-  let currentPage;
-  if (showingFavourites) {
-    currentPage = (
-      <FavouritesPage
+  let mainContent;
+  if (appStore.currentScreen === 'favourites') {
+    mainContent = (
+      <FavouritesScreen
         onStarClick={toggleFavouriteQuote}
-        reloadFavourites={quoteStore.fetchStarredQuotes}
         navigateToBook={(bookId) => {
           clearNavigation();
           const book = books.find(b => b.id === bookId);
           if (book) {
-            setShowingFavourites(false);
-            setSelectedOption("Books");
+            appStore.setCurrentScreen(null);
+            appStore.setSidebarSelectedOption("books");
             setSelectedBook(book);
           }
         }}
       />
     );
+  } else if (appStore.currentScreen === 'tag') {
+    mainContent = (
+      <TagScreen
+        navigateToBook={navigateToBook}
+        onStarClick={toggleFavouriteQuote}
+      />
+    )
   } else if (search) {
-    currentPage = (
-      <SearchPage
+    mainContent = (
+      <SearchScreen
         search={search}
         books={books}
         authors={authors}
@@ -705,9 +707,9 @@ function App() {
         navigateToAuthor={navigateToAuthor}
       />
     )
-  } else if (isBooksSelected && selectedBook) {
-    currentPage = (
-      <BookPage
+  } else if (appStore.sidebarSelectedOption === 'books' && selectedBook) {
+    mainContent = (
+      <BookScreen
         book={selectedBook}
         author={selectedBookAuthor as Author}
         chapters={bookChapters}
@@ -719,9 +721,9 @@ function App() {
         updateBook={updateBook}
       />
     )
-  } else if (!isBooksSelected && selectedAuthor) {
-    currentPage = (
-      <AuthorPage
+  } else if (appStore.sidebarSelectedOption === 'authors' && selectedAuthor) {
+    mainContent = (
+      <AuthorScreen
         author={selectedAuthor}
         books={selectedAuthorBooks}
         onBookSelect={onAuthorBookSelect}
@@ -730,7 +732,7 @@ function App() {
     )
   } else {
     // Display a random quote when nothing is selected
-    currentPage = (
+    mainContent = (
       <RandomQuoteBox
         navigateToBook={navigateToBook}
         navigateToAuthor={navigateToAuthor}
@@ -752,23 +754,19 @@ function App() {
     >
       <div className="flex flex-row w-full h-full overflow-hidden">
         {/* Sidebar - Full height */}
-        <Navbar
-          items={isBooksSelected ? books : authors}
-          itemType={isBooksSelected ? "book" : "author"}
-          property={isBooksSelected ? "title" : "name"}
+        <PrimarySidebar
+          items={appStore.sidebarSelectedOption === 'books' ? books : authors}
+          property={appStore.sidebarSelectedOption === 'books' ? "title" : "name"}
           onSelection={onNavbarSelection}
-          selected={isBooksSelected ? selectedBook : selectedAuthor}
-          collapsed={navbarCollapsed}
-          setCollapsed={setNavbarCollapsed}
-          onCategoryChange={(category) => setSelectedOption(category)}
+          selected={appStore.sidebarSelectedOption === 'books' ? selectedBook : selectedAuthor}
         />
 
         {/* Main content area with header */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Header only for the right part */}
           <Header
-            showingStarred={showingFavourites}
-            isBooksSelected={isBooksSelected}
+            showingStarred={appStore.currentScreen === 'favourites'}
+            isBooksSelected={appStore.sidebarSelectedOption === 'books'}
             selectedAuthor={selectedAuthor}
             setShowingStarred={onFavouritesButtonClick}
             onAddButtonClick={onAddButtonClick}
@@ -781,13 +779,24 @@ function App() {
             setSearch={setSearch}
             setSearchResults={setSearchResults}
             onReloadButtonClick={handleAppReload}
-            navbarCollapsed={navbarCollapsed}
-            setNavbarCollapsed={setNavbarCollapsed}
           />
 
-          {/* Content area */}
-          <div className="flex-1 overflow-hidden bg-gradient-to-b from-slate-800/90 to-slate-900/90 backdrop-blur-sm">
-            {currentPage}
+          <div className="flex flex-row w-full h-full overflow-hidden">
+            {/* Main content area */}
+            <div className="flex-1 overflow-hidden bg-gradient-to-b from-slate-800/90 to-slate-900/90 backdrop-blur-sm">
+              <div className="flex-1 flex flex-col items-center w-full h-full">
+                {mainContent}
+              </div>
+              
+            </div>
+
+            {/* Sidebar secondary */}
+            {/* <SecondarySidebar
+              items={appStore.currentView === 'books' ? books : authors}
+              property={appStore.currentView === 'books' ? "title" : "name"}
+              onSelection={onNavbarSelection}
+              selected={appStore.currentView === 'books' ? selectedBook : selectedAuthor}
+            /> */}
           </div>
         </div>
       </div>

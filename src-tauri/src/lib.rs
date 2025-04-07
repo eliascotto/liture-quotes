@@ -404,7 +404,7 @@ pub mod commands {
     pub async fn get_starred_quotes(
         sort_by: Option<&str>,
         sort_order: Option<&str>,
-    ) -> Result<Vec<StarredQuoteWithTags>, String> {
+    ) -> Result<Vec<QuoteWithTagsRedux>, String> {
         queries::get_starred_quotes(sort_by, sort_order, get_pool())
             .await
             .map_err(|e| e.to_string())
@@ -418,8 +418,12 @@ pub mod commands {
     }
 
     #[tauri::command]
-    pub async fn get_quotes_by_tag(tag_id: &str) -> Result<Vec<Quote>, String> {
-        queries::get_quotes_by_tag(tag_id, get_pool())
+    pub async fn get_quotes_by_tag(
+        tag_id: &str,
+        sort_by: Option<&str>,
+        sort_order: Option<&str>,
+    ) -> Result<Vec<QuoteWithTagsRedux>, String> {
+        queries::get_quotes_by_tag(tag_id, sort_by, sort_order, get_pool())
             .await
             .map_err(|e| e.to_string())
     }

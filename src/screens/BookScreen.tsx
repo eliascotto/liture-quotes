@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, Fragment, MouseEvent as MouseEventHandler, KeyboardEvent, useMemo } from "react";
+import { useState, useRef, MouseEvent as MouseEventHandler, useCallback, useEffect } from "react";
 import clsx from "clsx";
 import QuoteBox from "@components/QuoteBox";
 import SortMenu from '@components/SortMenu.tsx';
@@ -15,7 +15,7 @@ const QUOTES_GAP = "gap-y-1";
 
 type QuoteWithNote = QuoteWithTags & { note: Note | null };
 
-interface BookPageProps {
+interface BookScreenProps {
   book: Book;
   author: Author;
   notes: Note[];
@@ -27,18 +27,17 @@ interface BookPageProps {
   updateNote: (noteId: string, content: string) => void;
 }
 
-function BookPage({
+function BookScreen({
   book, author, notes, chapters,
   navigateToAuthor,
   toggleFavouriteQuote,
   onDeleteBook, updateBook, updateNote,
-}: BookPageProps) {
+}: BookScreenProps) {
   const quoteStore = useQuoteStore();
-
-  const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
+  const pageContainerRef = useRef<HTMLDivElement | null>(null);
+  const quotesContainerRef = useRef<HTMLDivElement | null>(null);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [newQuote, setNewQuote] = useState<Quote | null>(null);
-
   const [showNotes, setShowNotes] = useState(true);
   const [showChapters, setShowChapters] = useState(false);
 
@@ -50,7 +49,7 @@ function BookPage({
   };
 
   const handleRemoveQuote = async (quote: Quote) => {
-    setSelectedQuote(null);
+    quoteStore.setSelectedQuote(null);
     quoteStore.deleteQuote(quote);
   };
 
@@ -92,9 +91,27 @@ function BookPage({
     setIsEditingTitle(false);
   };
 
-  const handleTitleCancel = () => {
+  const handleTitleCancel = useCallback(() => {
     setIsEditingTitle(false);
-  };
+  }, []);
+
+  // ----------------- Effects
+
+  useEffect(() => {
+    // Handle click outside
+    function handleClickOutside(event: MouseEvent) {
+      if (quotesContainerRef.current && !(quotesContainerRef.current as HTMLElement).contains(event.target as Node)) {
+        quoteStore.setSelectedQuote(null);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  //------------------ Render
 
   const renderQuotes = (quotes: QuoteWithNote[]) => {
     return quotes.map((quote) => (
@@ -103,15 +120,16 @@ function BookPage({
         quote={quote}
         tags={quote.tags}
         note={showNotes ? quote.note : null}
-        selected={!!selectedQuote && !!selectedQuote.id && selectedQuote.id === quote.id}
+        selected={!!quoteStore.selectedQuote && !!quoteStore.selectedQuote.id && quoteStore.selectedQuote.id === quote.id}
         onClick={(e) => {
           e.stopPropagation();
-          setSelectedQuote(quote);
+          quoteStore.setSelectedQuote(quote);
         }}
         onStarClick={() => toggleFavouriteQuote(quote)}
         onEdit={(content) => quoteStore.updateQuote({ ...quote, content })}
         onRemove={() => handleRemoveQuote(quote)}
         onNoteEdit={updateNote}
+        scrollContainerRef={pageContainerRef}
       />
     ))
   }
@@ -120,7 +138,7 @@ function BookPage({
     return quoteStore.quotes.map((quote) => ({
       ...quote,
       note: notes.find((note) => note.quote_id === quote.id) || null,
-    }));
+    } as QuoteWithNote));
   };
 
   const renderChapterQuotes = () => {
@@ -130,11 +148,11 @@ function BookPage({
       const chapter = chapters.find((c) => c.id === quote.chapter_id);
       if (chapter) {
         acc[chapter.id] = [
-          ...(acc[chapter.id] || []), 
-          {
+          ...(acc[chapter.id] || []),
+          ({
             ...quote,
             note: notes.find((n) => n.quote_id === quote.id) || null
-          }
+          } as QuoteWithNote)
         ];
       }
       return acc;
@@ -151,74 +169,80 @@ function BookPage({
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center w-full h-full" onClick={() => setSelectedQuote(null)}>
-      <div className="flex-1 flex flex-col overflow-y-auto overscroll-none w-full max-w-6xl px-10 lg:px-14 xl:px-20 py-6 min-h-0">
-        <BookHeader
-          book={book}
-          author={author}
-          isEditingTitle={isEditingTitle}
-          setIsEditingTitle={setIsEditingTitle}
-          handleTitleSave={handleTitleSave}
-          handleTitleCancel={handleTitleCancel}
-          handleTitleClick={handleTitleClick}
-          navigateToAuthor={navigateToAuthor}
-          onDeleteBook={onDeleteBook}
-        />
+    <>
+      <div
+        ref={pageContainerRef}
+        className="flex-1 flex flex-col overflow-y-auto overscroll-none w-full px-10 lg:px-14 xl:px-20 py-6 min-h-0"
+      >
+        <div
+          
+          className="flex flex-col h-full w-full xl:max-w-5xl 2xl:max-w-6xl mx-auto">
+          <BookHeader
+            book={book}
+            author={author}
+            isEditingTitle={isEditingTitle}
+            setIsEditingTitle={setIsEditingTitle}
+            handleTitleSave={handleTitleSave}
+            handleTitleCancel={handleTitleCancel}
+            handleTitleClick={handleTitleClick}
+            navigateToAuthor={navigateToAuthor}
+            onDeleteBook={onDeleteBook}
+          />
+          <div className="flex justify-between items-center mb-2">
+            {/* Header left */}
+            <div className="flex items-center space-x-1">
+              <Tooltip content="Add new quote">
+                <button
+                  onClick={handleCreateQuote}
+                  className="px-1.5 py-1.5 rounded-md text-slate-300 hover:bg-slate-700/90 transition-colors duration-200 flex items-center space-x-1"
+                >
+                  <PlusIcon />
+                </button>
+              </Tooltip>
+              {notes.length > 0 && (
+                <Tooltip content="Toggle show notes">
+                  <button
+                    onClick={() => setShowNotes(!showNotes)}
+                    className="px-1.5 py-1.5 rounded-md text-slate-300 hover:bg-slate-700/90 transition-colors duration-200 flex items-center space-x-1"
+                  >
+                    <ChatBubble className={clsx("h-4 w-4", showNotes && "text-cyan-400")} />
+                  </button>
+                </Tooltip>
+              )}
+              {chapters.length > 0 && (
+                <Tooltip content="Toggle show chapters">
+                  <button
+                    onClick={() => setShowChapters(!showChapters)}
+                    className="px-1.5 py-1.5 rounded-md text-slate-300 hover:bg-slate-700/90 transition-colors duration-200 flex items-center space-x-1"
+                  >
+                    <DetailsIcon className={clsx("h-4 w-4", showChapters && "text-cyan-400")} />
+                  </button>
+                </Tooltip>
+              )}
+            </div>
 
-        <div className="flex justify-between items-center mb-2">
-          {/* Header left */}
-          <div className="flex items-center space-x-1">
-            <Tooltip content="Add new quote">
-              <button
-                onClick={handleCreateQuote}
-                className="px-1.5 py-1.5 rounded-md text-slate-300 hover:bg-slate-700/90 transition-colors duration-200 flex items-center space-x-1"
-              >
-                <PlusIcon />
-              </button>
-            </Tooltip>
-            {notes.length > 0 && (
-              <Tooltip content="Toggle show notes">
-                <button
-                  onClick={() => setShowNotes(!showNotes)}
-                  className="px-1.5 py-1.5 rounded-md text-slate-300 hover:bg-slate-700/90 transition-colors duration-200 flex items-center space-x-1"
-                >
-                  <ChatBubble className={clsx("h-4 w-4", showNotes && "text-cyan-400")} />
-                </button>
-              </Tooltip>
-            )}
-            {chapters.length > 0 && (
-              <Tooltip content="Toggle show chapters">
-                <button
-                  onClick={() => setShowChapters(!showChapters)}
-                  className="px-1.5 py-1.5 rounded-md text-slate-300 hover:bg-slate-700/90 transition-colors duration-200 flex items-center space-x-1"
-                >
-                  <DetailsIcon className={clsx("h-4 w-4", showChapters && "text-cyan-400")} />
-                </button>
-              </Tooltip>
-            )}
+            {/* Sort menu */}
+            <SortMenu
+              sortBy={quoteStore.sortBy}
+              sortOrder={quoteStore.sortOrder}
+              sortByFields={sortByFields}
+              onSortChange={handleSortChange}
+            />
           </div>
 
-          {/* Sort menu */}
-          <SortMenu
-            sortBy={quoteStore.sortBy}
-            sortOrder={quoteStore.sortOrder}
-            sortByFields={sortByFields}
-            onSortChange={handleSortChange}
-          />
-        </div>
+          <div ref={quotesContainerRef} className={`flex flex-col ${QUOTES_GAP} select-none`}>
+            {/* Create new quote form, don't create quote until save is clicked */}
+            {newQuote && (
+              <EditableNoteBox
+                item={newQuote}
+                onSave={handleNewQuoteSaving}
+                onCancel={() => setNewQuote(null)}
+                placeholder="Type your quote here..."
+              />
+            )}
 
-        <div className={`flex flex-col ${QUOTES_GAP} select-none`}>
-          {/* Create new quote form, don't create quote until save is clicked */}
-          {newQuote && (
-            <EditableNoteBox
-              item={newQuote}
-              onSave={handleNewQuoteSaving}
-              onCancel={() => setNewQuote(null)}
-              placeholder="Type your quote here..."
-            />
-          )}
-
-          <>{renderChapterQuotes()}</>
+            <>{renderChapterQuotes()}</>
+          </div>
         </div>
       </div>
 
@@ -231,8 +255,8 @@ function BookPage({
           Quotes: <span className="text-cyan-400 font-medium">{quoteStore.quotes.length}</span>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
-export default BookPage;
+export default BookScreen;

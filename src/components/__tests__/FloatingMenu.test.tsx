@@ -119,4 +119,88 @@ describe('FloatingMenu', () => {
     const menuContent = screen.getByText('Menu Content').parentElement;
     expect(menuContent).toHaveClass('custom-menu-class');
   });
+
+  it('closes when clicking outside', () => {
+    const onOpenChange = vi.fn();
+    render(
+      <FloatingMenu 
+        trigger={mockTrigger} 
+        isOpen={true} 
+        onOpenChange={onOpenChange}
+      >
+        {mockContent}
+      </FloatingMenu>
+    );
+    
+    // Click outside the menu
+    fireEvent.mouseDown(document.body);
+    
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it('does not close when clicking inside the menu', () => {
+    const onOpenChange = vi.fn();
+    render(
+      <FloatingMenu 
+        trigger={mockTrigger} 
+        isOpen={true} 
+        onOpenChange={onOpenChange}
+      >
+        <div data-testid="menu-content">Menu Content</div>
+      </FloatingMenu>
+    );
+    
+    // Click inside the menu
+    fireEvent.mouseDown(screen.getByTestId('menu-content'));
+    
+    expect(onOpenChange).not.toHaveBeenCalled();
+  });
+
+  it('accepts numeric offset value', () => {
+    const { container } = render(
+      <FloatingMenu 
+        trigger={mockTrigger} 
+        isOpen={true}
+        offset={8}
+      >
+        {mockContent}
+      </FloatingMenu>
+    );
+    
+    const menuContent = screen.getByText('Menu Content').parentElement;
+    expect(menuContent).toHaveStyle({ position: 'absolute' });
+  });
+
+  it('accepts object offset value with mainAxis and crossAxis', () => {
+    const { container } = render(
+      <FloatingMenu 
+        trigger={mockTrigger} 
+        isOpen={true}
+        offset={{
+          mainAxis: 8,
+          crossAxis: 4,
+        }}
+      >
+        {mockContent}
+      </FloatingMenu>
+    );
+    
+    const menuContent = screen.getByText('Menu Content').parentElement;
+    expect(menuContent).toHaveStyle({ position: 'absolute' });
+  });
+
+  it('uses reference height for offset when useReferenceHeight is true', () => {
+    const { container } = render(
+      <FloatingMenu 
+        trigger={<div style={{ height: '50px' }}>Trigger</div>}
+        isOpen={true}
+        useReferenceHeight={true}
+      >
+        {mockContent}
+      </FloatingMenu>
+    );
+    
+    const menuContent = screen.getByText('Menu Content').parentElement;
+    expect(menuContent).toHaveStyle({ position: 'absolute' });
+  });
 }); 

@@ -1,4 +1,4 @@
-import { Tag } from '@customTypes/index';
+import { Tag, Quote } from '@customTypes/index';
 import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
 import Logger from '@utils/logger';
@@ -21,8 +21,13 @@ const TAG_COLORS = [
 ]
 
 interface TagStore {
+  // Properties
   tags: Tag[];
   tagColors: string[];
+  selectedTag: Tag | null;
+  // Setters
+  setSelectedTag: (tag: Tag | null) => void;
+  // Actions
   fetchTags: () => Promise<void>;
   addTag: (tagName: string) => Promise<Tag>;
   addTagToQuote: (quoteId: string, tagId: string) => Promise<void>;
@@ -32,6 +37,12 @@ interface TagStore {
 export const useTagStore = create<TagStore>((set, get) => ({
   tags: [],
   tagColors: TAG_COLORS,
+  selectedTag: null,
+  quotesByTag: {},
+
+  setSelectedTag: (tag: Tag | null) => {
+    set({ selectedTag: tag });
+  },
 
   fetchTags: async () => {
     const tags = await invoke("get_tags");

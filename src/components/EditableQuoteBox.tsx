@@ -1,9 +1,13 @@
 import { useState, useRef, useEffect, MouseEvent } from "react";
 import Tooltip from "@components/Tooltip";
-import { Quote, QuoteFts, Note } from "src/types/index";
+import { Quote, QuoteFts, Note, Tag } from "src/types/index";
+import clsx from "clsx";
+import { useTagStore, useAppStore } from "@stores/index";
+import TagComponent from "./Tag";
 
 type EditableQuoteBoxProps = {
   item: Quote | QuoteFts | Note,
+  tags?: Tag[],
   onSave: (content: string) => void,
   onCancel: () => void,
   placeholder?: string,
@@ -11,8 +15,11 @@ type EditableQuoteBoxProps = {
 }
 
 export default function EditableQuoteBox({
-  item: quote, onSave, onCancel, placeholder = "New quote", info
+  item: quote, tags, onSave, onCancel, placeholder = "New quote", info
 }: EditableQuoteBoxProps) {
+  const { setSelectedTag } = useTagStore();
+  const { setCurrentScreen } = useAppStore();
+
   const [currentText, setCurrentText] = useState(quote.content);
   const textareaRef = useRef(null);
   const editableBoxRef = useRef(null);
@@ -49,6 +56,11 @@ export default function EditableQuoteBox({
     }
   };
 
+  const handleTagClick = (tag: Tag) => {
+    setSelectedTag(tag);
+    setCurrentScreen("tag");
+  };
+
   return (
     <div
       ref={editableBoxRef}
@@ -65,9 +77,21 @@ export default function EditableQuoteBox({
         placeholder={placeholder}
       />
       <div className="flex justify-between items-center mt-0 border-t border-slate-700/30 pt-2 mt-1">
-        <div className="text-xs italic text-slate-500">
-          {info || ""}
-        </div>
+        {tags && tags.length > 0 ? (
+          <div className="flex flex-wrap gap-1">
+            {tags.map((tag) => (
+              <TagComponent
+                key={tag.id}
+                tag={tag}
+                onClick={() => handleTagClick(tag)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-xs italic text-slate-500">
+            {info}
+          </div>
+        )}
         <div className="flex justify-end">
           <Tooltip content="Cancel quote" shortcut="Esc">
             <button
@@ -87,6 +111,6 @@ export default function EditableQuoteBox({
           </Tooltip>
         </div>
       </div>
-    </div>
+    </div >
   );
 }

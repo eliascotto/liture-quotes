@@ -142,7 +142,7 @@ pub struct QuoteWithTags {
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, Clone, sqlx::FromRow)]
-pub struct StarredQuoteWithTags {
+pub struct QuoteWithTagsRedux {
     pub id: String,
     pub book_id: Option<String>,
     pub book_title: Option<String>,

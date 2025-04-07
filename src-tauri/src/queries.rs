@@ -695,7 +695,7 @@ pub async fn get_starred_quotes<'e, E>(
     sort_by: Option<&str>,
     sort_order: Option<&str>,
     executor: E,
-) -> Result<Vec<StarredQuoteWithTags>, sqlx::Error>
+) -> Result<Vec<QuoteWithTagsRedux>, sqlx::Error>
 where
     E: Executor<'e, Database = Sqlite>,
 {
@@ -743,7 +743,7 @@ where
             let tags_json: String = row.get("tags_json");
             let tags: Vec<Tag> = serde_json::from_str(&tags_json).unwrap_or_default();
 
-            StarredQuoteWithTags {
+            QuoteWithTagsRedux {
                 id: row.get("id"),
                 content: row.get("content"),
                 book_id: row.get("book_id"),
@@ -922,18 +922,77 @@ where
     Ok(())
 }
 
-pub async fn get_quotes_by_tag<'e, E>(tag_id: &str, executor: E) -> Result<Vec<Quote>, sqlx::Error>
+pub async fn get_quotes_by_tag<'e, E>(
+    tag_id: &str,
+    sort_by: Option<&str>,
+    sort_order: Option<&str>,
+    executor: E,
+) -> Result<Vec<QuoteWithTagsRedux>, sqlx::Error>
 where
     E: Executor<'e, Database = Sqlite>,
 {
-    sqlx::query_as::<_, Quote>(
-        "SELECT q.* FROM quote q
-        JOIN quote_tag qt ON q.id = qt.quote_id
-        WHERE qt.tag_id = ?",
-    )
-    .bind(tag_id)
+    let (order_clause, sort_by_clause) = extract_order_clauses(sort_by, sort_order);
+    
+    let sql = format!(
+        "
+        SELECT 
+            q.id,
+            q.content,
+            q.book_id,
+            b.title AS book_title,
+            b.author_id,
+            a.name AS author_name,
+            q.starred,
+            q.created_at,
+            q.updated_at,
+            json_group_array(
+                json_object(
+                    'id', t.id,
+                    'name', t.name,
+                    'color', t.color
+                )
+            ) AS tags_json
+        FROM quote q
+        JOIN book b ON q.book_id = b.id
+        JOIN author a ON b.author_id = a.id
+        LEFT JOIN quote_tag qt ON q.id = qt.quote_id
+        LEFT JOIN tag t ON qt.tag_id = t.id
+        WHERE qt.tag_id = ?
+          AND q.deleted_at IS NULL
+          AND b.deleted_at IS NULL
+          AND a.deleted_at IS NULL
+        GROUP BY q.id
+        ORDER BY q.{} {}
+        ",
+        sort_by_clause, order_clause
+    );
+
+    let rows = sqlx::query(&sql)
     .fetch_all(executor)
-    .await
+    .await?;
+
+    let quotes = rows
+        .iter()
+        .map(|row| {
+            let tags_json: String = row.get("tags_json");
+            let tags: Vec<Tag> = serde_json::from_str(&tags_json).unwrap_or_default();
+
+            QuoteWithTagsRedux {
+                id: row.get("id"),
+                content: row.get("content"),
+                book_id: row.get("book_id"),
+                book_title: row.get("book_title"),
+                author_id: row.get("author_id"),
+                author_name: row.get("author_name"),
+                starred: row.get("starred"),
+                created_at: row.get("created_at"),
+                updated_at: row.get("updated_at"),
+                tags,
+            }
+        })
+        .collect();
+
+    Ok(quotes)
 }
 
 pub async fn get_tags_by_book_id<'e, E>(book_id: &str, executor: E) -> Result<Vec<Tag>, sqlx::Error>

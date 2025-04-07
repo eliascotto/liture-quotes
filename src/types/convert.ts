@@ -1,13 +1,13 @@
 import * as types from "./index";
 
-export function convertQuoteToStarredQuote(quote: types.Quote): types.StarredQuote {
+export function convertQuoteToStarredQuote(quote: types.Quote): types.QuoteRedux {
   return {
     ...quote,
     content: quote.content,
   };
 }
 
-export function convertStarredQuoteToQuote(starredQuote: types.StarredQuote): types.Quote {
+export function convertStarredQuoteToQuote(starredQuote: types.QuoteRedux): types.Quote {
   return {
     ...starredQuote,
     content: starredQuote.content,
