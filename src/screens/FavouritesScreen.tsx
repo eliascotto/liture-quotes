@@ -136,24 +136,24 @@ function FavouritesScreen({
 
         {Object.entries(quotesByBook).length > 0 ? (
           <div className="flex flex-col space-y-8">
-            {sortedQuotes.map((quote) => (
-              <div key={quote.title} className="flex flex-col gap-4">
+            {sortedQuotes.map((book) => (
+              <div key={book.title} className="flex flex-col gap-4">
                 {/* Book title and author */}
                 <div className="flex items-baseline gap-3">
-                  <Tooltip content={quote.title} usePortal>
+                  <Tooltip content={book.title} usePortal>
                     <button
-                      onClick={() => navigateToBook(quote.id)}
-                      className="text-lg font-medium text-slate-200 hover:text-cyan-400 transition-colors duration-200 truncate max-w-4xl cursor-pointer"
+                      onClick={() => navigateToBook(book.id)}
+                      className="text-lg font-medium text-slate-200 hover:text-cyan-400 transition-colors duration-200 truncate max-w-[90%] cursor-pointer truncate text-ellipsis"
                     >
-                      {cleanText(quote.title)}
+                      {cleanText(book.title)}
                     </button>
                   </Tooltip>
-                  <span className="text-sm text-slate-500">by {cleanText(quote.author)}</span>
+                  <span className="text-sm text-slate-500">by {cleanText(book.author)}</span>
                 </div>
 
                 {/* Quotes */}
                 <div ref={quotesContainerRef} className="flex flex-col gap-4 pl-4 border-slate-700/30">
-                  {quote.quotes.map((quote) => (
+                  {book.quotes.map((quote) => (
                     <QuoteBox
                       key={quote.id}
                       quote={convertStarredQuoteToQuote(quote)}
