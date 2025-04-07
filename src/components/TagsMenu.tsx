@@ -4,7 +4,7 @@ import TagFill from './icons/TagFill';
 import clsx from 'clsx';
 import { Tag } from '../types';
 import XMarkIcon from './icons/XMark';
-import { useQuoteStore, useTagStore } from '@stores/index';
+import { useAppStore, useQuoteStore, useTagStore } from '@stores/index';
 import Logger from '@utils/logger';
 import { useStateWithLabel } from '@utils/debug';
 
@@ -25,6 +25,7 @@ const TagsMenu = ({
   className,
   onOpenChange,
 }: TagsMenuProps) => {
+  const appStore = useAppStore();
   const tagStore = useTagStore();
   const quoteStore = useQuoteStore();
 
@@ -55,11 +56,19 @@ const TagsMenu = ({
   const addTagToQuote = async (tagId: string) => {
     await tagStore.addTagToQuote(quoteId, tagId);
     quoteStore.fetchQuotes();
+
+    if (appStore.currentScreen === 'tag') {
+      quoteStore.fetchQuotesByTag(null);
+    }
   };
 
   const onRemoveTag = async (tagId: string) => {
     await tagStore.deleteTagFromQuote(quoteId, tagId);
     quoteStore.fetchQuotes();
+
+    if (appStore.currentScreen === 'tag') {
+      quoteStore.fetchQuotesByTag(null);
+    }
   };
 
   const handleAddTag = (e: React.FormEvent) => {
@@ -78,6 +87,10 @@ const TagsMenu = ({
     }
     onOpenChange?.(open);
   };
+
+  const handleNewTagClick = (tagId: string) => {
+    addTagToQuote(tagId);
+  }
 
   const trigger = (
     <div className="flex flex-row items-center gap-0.5 hover:fill-slate-500 fill-slate-600 text-slate-600 hover:text-slate-500">
@@ -147,7 +160,7 @@ const TagsMenu = ({
             {filteredTags.map((tag) => (
               <div
                 key={tag.id}
-                onClick={() => addTagToQuote(tag.id)}
+                onClick={() => handleNewTagClick(tag.id)}
                 className="group flex items-center justify-between px-2 py-1 hover:bg-slate-700/50 cursor-pointer"
               >
                 <span className="text-[13px] text-slate-300">{tag.name}</span>

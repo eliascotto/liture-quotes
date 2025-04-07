@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, MouseEvent } from "react";
 import Tooltip from "@components/Tooltip";
 import { Quote, QuoteFts, Note, Tag } from "src/types/index";
 import clsx from "clsx";
-import { useTagStore, useAppStore } from "@stores/index";
+import { useTagStore, useAppStore, useQuoteStore } from "@stores/index";
 import TagComponent from "./Tag";
 
 type EditableQuoteBoxProps = {
@@ -18,6 +18,7 @@ export default function EditableQuoteBox({
   item: quote, tags, onSave, onCancel, placeholder = "New quote", info
 }: EditableQuoteBoxProps) {
   const { setSelectedTag } = useTagStore();
+  const { fetchQuotesByTag } = useQuoteStore();
   const { setCurrentScreen } = useAppStore();
 
   const [currentText, setCurrentText] = useState(quote.content);
@@ -59,6 +60,7 @@ export default function EditableQuoteBox({
   const handleTagClick = (tag: Tag) => {
     setSelectedTag(tag);
     setCurrentScreen("tag");
+    fetchQuotesByTag(tag.id);
   };
 
   return (

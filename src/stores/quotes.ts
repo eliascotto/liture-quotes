@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
 import { Book, Quote, QuoteWithTags, QuoteWithTagsRedux } from '@customTypes/index';
 import Logger from '@utils/logger';
+import { useAppStore } from '@stores/index';
+import { useTagStore } from '@stores/tags';
 
 interface QuoteStore {
   // Properties
@@ -31,10 +33,11 @@ interface QuoteStore {
   // Actions
   fetchQuotes: () => Promise<void>;
   fetchStarredQuotes: () => Promise<void>;
-  fetchQuotesByTag: (tagId: string) => Promise<void>;
+  fetchQuotesByTag: (tagId: string | undefined | null) => Promise<void>;
   addQuote: (content: string) => Promise<void>;
   updateQuote: (quote: Quote | QuoteWithTags | QuoteWithTagsRedux) => Promise<void>;
   deleteQuote: (quote: Quote | QuoteWithTags | QuoteWithTagsRedux) => Promise<void>;
+  toggleFavouriteQuote: (quoteId: string) => Promise<void>;
 }
 
 const logger = Logger.getInstance();
@@ -106,11 +109,13 @@ export const useQuoteStore = create<QuoteStore>((set, get) => ({
     set({ starredQuotes: starredQuotes as QuoteWithTagsRedux[] });
   },
 
-  fetchQuotesByTag: async (tagId: string) => {
-    const quotes = await invoke('get_quotes_by_tag', { 
-      tagId, 
+  fetchQuotesByTag: async (tagId: string | undefined | null) => {
+    let selectedTagId = tagId ?? useTagStore.getState().selectedTag?.id;
+
+    const quotes = await invoke('get_quotes_by_tag', {
+      tagId: selectedTagId,
       sortBy: get().sortByTag,
-      sortOrder: get().sortOrderTag 
+      sortOrder: get().sortOrderTag
     });
     set({ quotesByTag: quotes as QuoteWithTagsRedux[] });
   },
@@ -128,6 +133,11 @@ export const useQuoteStore = create<QuoteStore>((set, get) => ({
   updateQuote: async (quote: Quote | QuoteWithTags | QuoteWithTagsRedux) => {
     try {
       await invoke('update_quote', { quote });
+
+      if (useAppStore.getState().currentScreen === 'tag') {
+        get().fetchQuotesByTag(null);
+      }
+
       get().fetchQuotes();
     } catch (error) {
       logger.error("Error updating quote:", error);
@@ -142,4 +152,19 @@ export const useQuoteStore = create<QuoteStore>((set, get) => ({
       logger.error("Error deleting quote:", error);
     }
   },
+
+  toggleFavouriteQuote: async (quoteId: string) => {
+    try {
+      await invoke('toggle_quote_starred', { quoteId });
+
+      if (useAppStore.getState().currentScreen === 'tag') {
+        get().fetchQuotesByTag(null);
+      }
+
+      get().fetchQuotes();
+      get().fetchStarredQuotes();
+    } catch (error) {
+      logger.error("Error toggling favourite quote:", error);
+    }
+  }
 }));

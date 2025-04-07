@@ -16,12 +16,10 @@ type ReducedQuote = {
 
 type FavouritesScreenProps = {
   navigateToBook: (bookId: string) => void,
-  onStarClick: (quote: QuoteRedux) => void,
 }
 
 function FavouritesScreen({
   navigateToBook,
-  onStarClick,
 }: FavouritesScreenProps) {
   const quoteStore = useQuoteStore();
 
@@ -51,6 +49,10 @@ function FavouritesScreen({
 
   const removeQuote = (quote: QuoteWithTagsRedux) => {
     quoteStore.deleteQuote(quote);
+  }
+
+  const handleStarClick = (quote: QuoteWithTagsRedux) => {
+    quoteStore.toggleFavouriteQuote(quote.id);
   }
 
   // ----------------- Effects
@@ -162,7 +164,7 @@ function FavouritesScreen({
                         setSelectedQuote(quote);
                       }}
                       onEdit={(content) => updateQuote({ ...quote, content })}
-                      onStarClick={() => onStarClick(quote)}
+                      onStarClick={() => handleStarClick(quote)}
                       onRemove={() => removeQuote(quote)}
                       scrollContainerRef={scrollContainerRef}
                     />

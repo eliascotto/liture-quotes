@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import QuoteBox from "@components/QuoteBox";
 import DualSortMenu from "@components/DualSortMenu";
-import { Quote, QuoteRedux, QuoteWithTagsRedux } from "@customTypes/index";
+import { QuoteWithTagsRedux } from "@customTypes/index";
 import { convertStarredQuoteToQuote } from "@customTypes/convert";
 import { useQuoteStore } from "@stores/quotes";
 import { useTagStore } from "@stores/tags";
@@ -16,15 +16,12 @@ type ReducedQuote = {
   quotes: QuoteWithTagsRedux[];
 }
 
-
 type TagScreenProps = {
   navigateToBook: (bookId: string) => void,
-  onStarClick: (quote: QuoteRedux) => void,
 }
 
 function TagScreen({
   navigateToBook,
-  onStarClick,
 }: TagScreenProps) {
   const quoteStore = useQuoteStore();
   const tagStore = useTagStore();
@@ -55,6 +52,10 @@ function TagScreen({
 
   const removeQuote = (quote: QuoteWithTagsRedux) => {
     quoteStore.deleteQuote(quote);
+  }
+
+  const handleStarClick = (quote: QuoteWithTagsRedux) => {
+    quoteStore.toggleFavouriteQuote(quote.id);
   }
 
   // ----------------- Effects
@@ -104,6 +105,14 @@ function TagScreen({
     };
   }, []);
 
+  useEffect(() => {
+    if (tagStore.selectedTag) {
+      quoteStore.fetchQuotesByTag(tagStore.selectedTag.id);
+    }
+  }, [quoteStore.sortByTag, quoteStore.sortOrderTag]);
+
+  //----------------- Render
+
   if (!tagStore.selectedTag) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center w-full h-full">
@@ -112,8 +121,6 @@ function TagScreen({
     );
   }
 
-  //----------------- Render
-
   return (
     <div className="flex-1 flex flex-col items-center w-full h-full" onClick={() => setSelectedQuote(null)}>
       <div ref={scrollContainerRef} className="flex-1 flex flex-col overflow-y-auto overscroll-none w-full max-w-6xl px-10 lg:px-14 xl:px-20 py-6 min-h-0">
@@ -121,7 +128,7 @@ function TagScreen({
           <h1 className="flex flex-row items-center gap-2 text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
             Quotes tagged with 
             <div className="inline-block">
-              <TagComponent tag={tagStore.selectedTag} size="lg" />
+              <TagComponent tag={tagStore.selectedTag} size="lg" noCursor />
             </div>
           </h1>
           <div className="flex gap-2">
@@ -131,8 +138,8 @@ function TagScreen({
               sortByFields={sortByFields}
               sortLabels={sortLabels}
               onPrimarySortChange={(field, order) => {
-                quoteStore.setSortByStarred(field);
-                quoteStore.setSortOrderStarred(order as "ASC" | "DESC");
+                quoteStore.setSortByTag(field);
+                quoteStore.setSortOrderTag(order as "ASC" | "DESC");
               }}
               onSecondarySortChange={(field, order) => {
                 setSortBySecondary(field);
@@ -172,7 +179,7 @@ function TagScreen({
                         setSelectedQuote(quote);
                       }}
                       onEdit={(content) => updateQuote({ ...quote, content })}
-                      onStarClick={() => onStarClick(quote)}
+                      onStarClick={() => handleStarClick(quote)}
                       onRemove={() => removeQuote(quote)}
                       scrollContainerRef={scrollContainerRef}
                     />

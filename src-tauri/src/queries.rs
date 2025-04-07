@@ -957,10 +957,15 @@ where
         JOIN author a ON b.author_id = a.id
         LEFT JOIN quote_tag qt ON q.id = qt.quote_id
         LEFT JOIN tag t ON qt.tag_id = t.id
-        WHERE qt.tag_id = ?
-          AND q.deleted_at IS NULL
-          AND b.deleted_at IS NULL
-          AND a.deleted_at IS NULL
+        WHERE q.id IN (
+            SELECT q2.id
+            FROM quote q2
+            JOIN quote_tag qt2 ON q2.id = qt2.quote_id
+            WHERE qt2.tag_id = ?
+        )
+        AND q.deleted_at IS NULL
+        AND b.deleted_at IS NULL
+        AND a.deleted_at IS NULL
         GROUP BY q.id
         ORDER BY q.{} {}
         ",
@@ -968,8 +973,9 @@ where
     );
 
     let rows = sqlx::query(&sql)
-    .fetch_all(executor)
-    .await?;
+        .bind(tag_id)
+        .fetch_all(executor)
+        .await?;
 
     let quotes = rows
         .iter()

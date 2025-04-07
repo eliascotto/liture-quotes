@@ -365,9 +365,7 @@ function App() {
   async function toggleFavouriteQuote(quote: QuoteRedux | Quote) {
     console.log("Toggling favourite quote:", quote.id);
     try {
-      await invoke("toggle_quote_starred", { quoteId: quote.id });
-      quoteStore.fetchQuotes();
-      quoteStore.fetchStarredQuotes();
+      quoteStore.toggleFavouriteQuote(quote.id);
     } catch {
       console.error("Error updating quote");
     }
@@ -674,7 +672,6 @@ function App() {
   if (appStore.currentScreen === 'favourites') {
     mainContent = (
       <FavouritesScreen
-        onStarClick={toggleFavouriteQuote}
         navigateToBook={(bookId) => {
           clearNavigation();
           const book = books.find(b => b.id === bookId);
@@ -690,7 +687,6 @@ function App() {
     mainContent = (
       <TagScreen
         navigateToBook={navigateToBook}
-        onStarClick={toggleFavouriteQuote}
       />
     )
   } else if (search) {

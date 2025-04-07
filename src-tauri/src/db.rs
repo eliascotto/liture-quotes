@@ -145,7 +145,7 @@ async fn init_db_with_defaults(pool: &SqlitePool) -> Result<(), DbInitError> {
         }
     };
 
-    for i in 0..10 {
+    for _i in 0..10 {
         let _ = match queries::insert_quote_lite(
             "A reader lives a thousand lives before he dies... The man who never reads lives only one.".to_string(),
             Some(book.id.clone()),

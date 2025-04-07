@@ -6,16 +6,18 @@ type TagProps = {
   tag: Tag;
   className?: string;
   size?: 'sm' | 'lg';
+  noCursor?: boolean;
   onRemove?: () => void;
   onClick?: () => void;
 }
 
-function TagComponent({ tag, onRemove, onClick, className, size = 'sm' }: TagProps) {
+function TagComponent({ tag, onRemove, onClick, className, size = 'sm', noCursor = false }: TagProps) {
   return (
     <div
       className={clsx(
         "flex flex-row items-center px-2 py-0.5 bg-slate-700/50 rounded-md font-medium text-slate-400",
-        "hover:bg-slate-600/70 hover:text-slate-300 cursor-pointer",
+        "hover:bg-slate-600/70 hover:text-slate-300",
+        noCursor ? "cursor-default" : "cursor-pointer",
         className,
         size === 'sm' && "text-xs",
         size === 'lg' && "text-lg",
