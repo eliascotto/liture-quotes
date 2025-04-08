@@ -1,7 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use litforge_notes_lib::menu;
+use liture_notes_lib::menu;
 use objc::{msg_send, sel, sel_impl};
 use std::env;
 use tauri::{Manager, Runtime, WindowEvent};
@@ -113,7 +113,7 @@ async fn main() {
 
             // Spawn a new task to initialize the database pool
             tauri::async_runtime::spawn(async move {
-                litforge_notes_lib::db::init_pool(app_handle)
+                liture_notes_lib::db::init_pool(app_handle)
                     .await
                     .expect("Failed to initialize database pool");
             });
@@ -148,53 +148,53 @@ async fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             // Import
-            litforge_notes_lib::commands::import_from_ibooks,
-            litforge_notes_lib::commands::import_from_kobo,
-            litforge_notes_lib::commands::import_from_kindle,
+            liture_notes_lib::commands::import_from_ibooks,
+            liture_notes_lib::commands::import_from_kobo,
+            liture_notes_lib::commands::import_from_kindle,
             // Fetch
             // Tags
-            litforge_notes_lib::commands::get_tags,
-            litforge_notes_lib::commands::get_quotes_by_tag,
-            litforge_notes_lib::commands::create_tag,
-            litforge_notes_lib::commands::delete_tag,
-            litforge_notes_lib::commands::add_quote_tag,
-            litforge_notes_lib::commands::delete_quote_tag,
-            litforge_notes_lib::commands::get_quote_tags,
-            litforge_notes_lib::commands::get_tags_by_book_id,
+            liture_notes_lib::commands::get_tags,
+            liture_notes_lib::commands::get_quotes_by_tag,
+            liture_notes_lib::commands::create_tag,
+            liture_notes_lib::commands::delete_tag,
+            liture_notes_lib::commands::add_quote_tag,
+            liture_notes_lib::commands::delete_quote_tag,
+            liture_notes_lib::commands::get_quote_tags,
+            liture_notes_lib::commands::get_tags_by_book_id,
             // Authors
-            litforge_notes_lib::commands::create_author,
-            litforge_notes_lib::commands::update_author,
-            litforge_notes_lib::commands::delete_author,
+            liture_notes_lib::commands::create_author,
+            liture_notes_lib::commands::update_author,
+            liture_notes_lib::commands::delete_author,
             // Books
-            litforge_notes_lib::commands::get_books_by_author,
-            litforge_notes_lib::commands::get_books_with_authors,
-            litforge_notes_lib::commands::create_book,
-            litforge_notes_lib::commands::update_book,
-            litforge_notes_lib::commands::delete_book,
-            litforge_notes_lib::commands::create_book_with_author,
+            liture_notes_lib::commands::get_books_by_author,
+            liture_notes_lib::commands::get_books_with_authors,
+            liture_notes_lib::commands::create_book,
+            liture_notes_lib::commands::update_book,
+            liture_notes_lib::commands::delete_book,
+            liture_notes_lib::commands::create_book_with_author,
             // Quotes
-            litforge_notes_lib::commands::get_book_quotes,
-            litforge_notes_lib::commands::create_quote,
-            litforge_notes_lib::commands::update_quote,
-            litforge_notes_lib::commands::delete_quote,
+            liture_notes_lib::commands::get_book_quotes,
+            liture_notes_lib::commands::create_quote,
+            liture_notes_lib::commands::update_quote,
+            liture_notes_lib::commands::delete_quote,
             // Chapters
-            litforge_notes_lib::commands::get_book_chapters,
+            liture_notes_lib::commands::get_book_chapters,
             // Starred
-            litforge_notes_lib::commands::toggle_quote_starred,
-            litforge_notes_lib::commands::set_quote_starred,
-            litforge_notes_lib::commands::get_starred_quotes,
+            liture_notes_lib::commands::toggle_quote_starred,
+            liture_notes_lib::commands::set_quote_starred,
+            liture_notes_lib::commands::get_starred_quotes,
             // Random
-            litforge_notes_lib::commands::get_random_quote,
+            liture_notes_lib::commands::get_random_quote,
             // Notes
-            litforge_notes_lib::commands::get_book_notes,
-            litforge_notes_lib::commands::create_note,
-            litforge_notes_lib::commands::update_note,
+            liture_notes_lib::commands::get_book_notes,
+            liture_notes_lib::commands::create_note,
+            liture_notes_lib::commands::update_note,
             // Search
-            litforge_notes_lib::commands::search_quotes,
-            litforge_notes_lib::commands::search_books_by_title,
-            litforge_notes_lib::commands::search_authors_by_name,
-            litforge_notes_lib::commands::search_quotes_by_book_title,
-            litforge_notes_lib::commands::search_quotes_by_author_name,
+            liture_notes_lib::commands::search_quotes,
+            liture_notes_lib::commands::search_books_by_title,
+            liture_notes_lib::commands::search_authors_by_name,
+            liture_notes_lib::commands::search_quotes_by_book_title,
+            liture_notes_lib::commands::search_quotes_by_author_name,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -77,7 +77,7 @@ const FloatingMenu = ({
         const crossAxis = offsetValue.crossAxis ?? 0;
 
         return {
-          mainAxis: isTop ? -state.rects.reference.height - mainAxis : mainAxis,
+          mainAxis: isTop ? -state.rects.reference.height - mainAxis : -state.rects.reference.height - mainAxis,
           crossAxis,
         };
       }),

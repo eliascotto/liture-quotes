@@ -1,9 +1,11 @@
-import React, { useEffect } from 'react';
-import FloatingMenu from './FloatingMenu';
-import CopyIcon from './icons/Copy';
-import EditIcon from './icons/Edit';
-import StarIcon from './icons/Star';
-import TrashIcon from './icons/Trash';
+import { useEffect } from 'react';
+import clsx from 'clsx';
+import FloatingMenu from '@components/FloatingMenu';
+import CopyIcon from '@icons/Copy';
+import EditIcon from '@icons/Edit';
+import StarIcon from '@icons/Star';
+import TrashIcon from '@icons/Trash';
+import DotsVertical from '@icons/DotsVertical';
 
 export type QuoteDropdownMenuProps = {
   isOpen: boolean;
@@ -14,7 +16,6 @@ export type QuoteDropdownMenuProps = {
   onRemove: () => void;
   isStarred: boolean;
   withIcons?: boolean;
-  trigger: React.ReactNode;
   offset?: number;
   /** The element to watch for scroll events. Defaults to window */
   scrollContainer?: HTMLElement | null;
@@ -30,7 +31,6 @@ export function QuoteDropdownMenu({
   onRemove,
   isStarred,
   withIcons = false,
-  trigger,
   scrollContainer = null,
   onTagsOptionClick,
 }: QuoteDropdownMenuProps) {
@@ -50,11 +50,20 @@ export function QuoteDropdownMenu({
     };
   }, [isOpen, onOpenChange, scrollContainer]);
 
+  const verticalDotsButton = (
+    <div className="absolute top-0 right-0 rounded-sm p-0.5 pt-1.5">
+      <DotsVertical className={clsx(
+        "h-5 w-5 hover:text-slate-400",
+        isOpen ? "text-slate-400" : "text-slate-500",
+      )} />
+    </div>
+  );
+
   return (
     <FloatingMenu
       isOpen={isOpen}
       onOpenChange={onOpenChange}
-      trigger={trigger}
+      trigger={verticalDotsButton}
       placement="bottom-end"
       menuClassName="w-32 py-0.5 backdrop-blur-sm"
       offsetValue={{ mainAxis: 0, crossAxis: 20 }}

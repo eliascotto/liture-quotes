@@ -105,15 +105,6 @@ function QuoteBox({
     }
   }, [editable]);
 
-  const verticalDotsButton = (
-    <div className="absolute top-0 right-0 rounded-sm p-0.5 pt-1.5">
-      <DotsVertical className={clsx(
-        "h-5 w-5 hover:text-slate-400",
-        menuOpen ? "text-slate-400" : "text-slate-500",
-      )} />
-    </div>
-  );
-
   return (
     <div className="relative my-2 group select-none" ref={quoteRef}>
       <div
@@ -134,7 +125,7 @@ function QuoteBox({
 
       {/* Tags menu */}
       {(hasTags || tagsMenuOpen) && (
-        <div className="absolute top-[4px] -right-[30px] cursor-pointer gap-1">
+        <div className="absolute top-[5px] -right-[30px] cursor-pointer gap-1">
           <Tooltip content="Edit tags" usePortal delay={{ open: 1000 }}>
             <TagsMenu
               isOpen={tagsMenuOpen}
@@ -178,7 +169,6 @@ function QuoteBox({
             {/* Quote context menu */}
             {(mouseOver || selected) && (
               <QuoteDropdownMenu
-                trigger={verticalDotsButton}
                 offset={0}
                 isOpen={menuOpen}
                 onOpenChange={setMenuOpen}

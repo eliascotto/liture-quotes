@@ -1,6 +1,6 @@
 use chrono::Utc;
-use litforge_notes_lib::models::{Author, Book, Chapter, Note, Quote, Tag};
-use litforge_notes_lib::queries;
+use liture_notes_lib::models::{Author, Book, Chapter, Note, Quote, Tag};
+use liture_notes_lib::queries;
 use sqlx::SqlitePool;
 use std::time::{SystemTime, UNIX_EPOCH};
 use uuid::Uuid;

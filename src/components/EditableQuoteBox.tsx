@@ -1,7 +1,6 @@
-import { useState, useRef, useEffect, MouseEvent } from "react";
+import { useState, useRef, useEffect } from "react";
 import Tooltip from "@components/Tooltip";
 import { Quote, QuoteFts, Note, Tag } from "src/types/index";
-import clsx from "clsx";
 import { useTagStore, useAppStore, useQuoteStore } from "@stores/index";
 import TagComponent from "./Tag";
 
@@ -37,7 +36,7 @@ export default function EditableQuoteBox({
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [onCancel]);
+  }, []);
 
   useEffect(() => {
     // adjustTextareaHeight
