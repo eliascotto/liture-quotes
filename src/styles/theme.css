@@ -162,13 +162,15 @@
   --sidebar-resize-handle-shadow-active: 0 0 8px rgba(34,211,238,0.6);
 
   /*--------------
-    Cards
+    Search
   --------------*/
 
-  /* slate-100 */
-  --card: oklch(0.968 0.007 247.896);
-  /* slate-900 */
-  --card-foreground: oklch(0.208 0.042 265.755);
+  /* slate-700 */
+  --search-background: oklch(0.372 0.044 257.287/0.3);
+  /* slate-300 */
+  --search-foreground: oklch(0.869 0.022 252.894);
+  /* slate-600 */
+  --search-border: oklch(0.446 0.043 257.281 / 0.7);
 
   /*--------------
     Popovers
@@ -216,10 +218,25 @@
   /* slate-600 */
   --quote-box-border: oklch(0.446 0.043 257.281 / 0.7);
 
+  /*--------------
+    Tags
+  --------------*/
+
   /* slate-600 */
   --tag-fill: oklch(0.446 0.043 257.281);
   /* slate-500 */
   --tag-fill-hover: oklch(0.554 0.046 257.417);
+
+
+  /*--------------
+    Footer
+  --------------*/
+
+  /* slate-900 */
+  --footer-background: oklch(0.208 0.042 265.755);
+  /* slate-700 */
+  --footer-border: oklch(0.372 0.044 257.287 / 0.3);
+  
 }
 
 .theme-default-dark {
@@ -253,6 +270,10 @@
   --color-menu-border: var(--menu-border);
   --color-menu-hover: var(--menu-hover);
 
+  --color-search: var(--search-background);
+  --color-search-foreground: var(--search-foreground);
+  --color-search-border: var(--search-border);
+
   --color-header: var(--header-background);
   --color-header-foreground: var(--header-foreground);
   --color-header-border: var(--header-border);
@@ -285,6 +306,9 @@
 
   --color-tag-fill: var(--tag-fill);
   --color-tag-fill-hover: var(--tag-fill-hover);
+
+  --color-footer: var(--footer-background);
+  --color-footer-border: var(--footer-border);
 
   --text-size-menu: var(--menu-text-size);
   

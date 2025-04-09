@@ -73,7 +73,7 @@ function SearchBox({ onSearch, onExit }: SearchBoxProps) {
       </div>
       <input
         className={clsx(
-          "bg-sidebar border border-sidebar-border text-sidebar-foreground py-1.5 rounded-md",
+          "bg-search border border-search-border text-search-foreground py-1.5 rounded-md",
           "pl-10 pr-8 text-sm w-64 focus:outline-none",
           "focus:ring-1 focus:ring-brand-primary/70 focus:border-brand-primary/70",
           "transition-all duration-200 placeholder:text-sidebar-item-empty select-none",

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import QuoteBox from "@components/QuoteBox";
 import { Book, Author, Quote, QuoteFts } from "@customTypes/index.ts";
+import Footer from "@components/Footer";
 
 type SearchScreenProps = {
   books: Book[],
@@ -22,7 +23,7 @@ function SearchScreen(props: SearchScreenProps) {
   const [selectedQuote, setSelectedQuote] = useState<QuoteFts | null>(null);
 
   // Find book and author for a note
-  const getBookAndAuthor = (quote: QuoteFts) => {
+  const getBookAndAuthor = (quote: QuoteFts | Quote) => {
     const book = props.books.find(b => b.id === quote.book_id);
     const author = book ? props.authors.find(a => a.id === book.author_id) : null;
     return { book, author };
@@ -160,11 +161,11 @@ function SearchScreen(props: SearchScreenProps) {
                       selected={!!selectedQuote && quote.id === selectedQuote?.id}
                       onClick={(e) => {
                         e.stopPropagation();
-                        setSelectedQuote(quote);
+                        setSelectedQuote(quote as QuoteFts);
                       }}
-                      onStarClick={() => props.starQuote(quote)}
-                      onEdit={(content) => props.updateQuote({ ...quote, content })}
-                      onRemove={() => props.removeQuote(quote)}
+                      onStarClick={() => props.starQuote(quote as Quote)}
+                      onEdit={(content) => props.updateQuote({ ...quote, content } as Quote)}
+                      onRemove={() => props.removeQuote(quote as Quote)}
                     />
                   </div>
                 );
@@ -181,14 +182,11 @@ function SearchScreen(props: SearchScreenProps) {
         )}
       </div>
 
-      <div className="sticky bottom-0 flex flex-row w-full h-8 items-center justify-between px-6 shadow-md bg-slate-900/80 border-t border-slate-700/30 backdrop-blur-sm z-10">
-        <div className="text-xs text-slate-400">
-          Search: {props.search}
-        </div>
-        <div className="text-xs text-slate-400">
-          Results: <span className="text-cyan-400 font-medium">{totalResults}</span>
-        </div>
-      </div>
+      <Footer
+        leftContent={`Search: ${props.search}`}
+        dataType="Results"
+        dataCount={totalResults}
+      />
     </div>
   );
 }

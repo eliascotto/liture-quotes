@@ -3,6 +3,7 @@ import ItemMenu from '@components/ItemMenu.tsx';
 import Tooltip from '@components/Tooltip.tsx';
 import { Author, Book } from 'src/types/index.tsx';
 import { cleanText } from '@utils/index';
+import Footer from '@components/Footer';
 
 function AuthorScreen({
   author, books, onDeleteAuthor, onBookSelect
@@ -64,14 +65,11 @@ function AuthorScreen({
         </div>
       </div>
 
-      <div className="sticky bottom-0 flex flex-row w-full h-8 items-center justify-between px-6 shadow-md bg-slate-900/80 border-t border-slate-700/30 backdrop-blur-sm z-10">
-        <div className="text-xs text-foreground">
-          {author.name}
-        </div>
-        <div className="text-xs text-foreground">
-          Books: <span className="text-brand-primary font-medium">{books.length}</span>
-        </div>
-      </div>
+      <Footer
+        leftContent={author.name}
+        dataType="Books"
+        dataCount={books.length}
+      />
     </>
   );
 }

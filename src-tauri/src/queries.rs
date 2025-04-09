@@ -1,5 +1,5 @@
 use crate::models::*;
-use sqlx::{Executor, Row, Sqlite, SqlitePool};
+use sqlx::{Executor, Row, Sqlite};
 use uuid::Uuid;
 
 /// Format the order and sort by clauses for db queries with sorting.
