@@ -610,6 +610,7 @@ function App() {
 
   // App startup loading
   useEffect(() => {
+    addToast("Loading books and authors...");
     fetchBooksAndAuthors();
     quoteStore.fetchStarredQuotes();
     tagStore.fetchTags();

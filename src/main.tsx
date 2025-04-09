@@ -13,7 +13,7 @@ const detach = await attachConsole();
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <DialogProvider>
-      <ToastProvider>
+      <ToastProvider timeout={5000}>
         <App />
       </ToastProvider>
     </DialogProvider>
