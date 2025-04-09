@@ -93,7 +93,10 @@ const TagsMenu = ({
   }
 
   const trigger = (
-    <div className="flex flex-row items-center gap-0.5 hover:fill-slate-500 fill-slate-600 text-slate-600 hover:text-slate-500">
+    <div className={clsx(
+      "flex flex-row items-center gap-0.5 hover:fill-tag-fill-hover fill-tag-fill",
+      "text-tag-fill hover:text-tag-fill-hover"
+    )}>
       <TagFill className="w-3.5 h-3.5" />
       <span className="text-xs font-semibold">{tags.length}</span>
     </div>
@@ -126,9 +129,9 @@ const TagsMenu = ({
               }}
               placeholder="Find or create a tag..."
               className={clsx(
-                "w-full bg-slate-700/50 text-sm rounded-md px-2 py-1",
-                "border border-slate-600/50",
-                "placeholder:text-slate-500",
+                "w-full bg-input text-sm rounded-md px-2 py-1",
+                "border border-input-border",
+                "placeholder:text-input-placeholder",
                 "focus:outline-none focus:ring-1 focus:ring-cyan-500",
               )}
             />
@@ -139,12 +142,12 @@ const TagsMenu = ({
         {tags.length > 0 && (
           <div className="mt-1 overflow-y-auto flex flex-row flex-wrap gap-1 px-2.5 pt-1">
             {tags.map((tag) => (
-              <div key={tag.id} className="px-1.5 py-0.5 bg-slate-700/50 rounded-md flex items-center justify-between gap-1.5">
+              <div key={tag.id} className="px-1.5 py-0.5 bg-menu-hover rounded-md flex items-center justify-between gap-1.5">
                 <div className="size-2 rounded-full" style={{ backgroundColor: tag.color }}></div>
-                <span className="text-[13px] text-slate-300">{tag.name}</span>
+                <span className="text-[13px] text-input-foreground">{tag.name}</span>
                 <button
                   onClick={() => onRemoveTag(tag.id)}
-                  className="text-slate-400 hover:text-slate-300 transition-opacity cursor-pointer"
+                  className="text-input-foreground hover:text-input-foreground transition-opacity cursor-pointer"
                   >
                     <XMarkIcon className="w-3 h-3" />
                 </button>

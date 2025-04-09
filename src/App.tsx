@@ -32,6 +32,7 @@ import {
 } from "@customTypes/index.ts";
 import { useQuoteStore, useAppStore } from "@stores/index";
 import TagScreen from "@screens/TagScreen";
+import TagsScreen from "@screens/TagsScreen";
 
 const logger = Logger.getInstance();
 
@@ -96,6 +97,11 @@ function App() {
         type: 'tag',
         data: tagStore.selectedTag,
       };
+    } else if (appStore.currentScreen === 'tags') {
+      return {
+        type: 'tags',
+        data: null
+      };
     } else if (search) {
       return {
         type: 'search',
@@ -129,6 +135,10 @@ function App() {
       case 'tag':
         appStore.setCurrentScreen('tag');
         tagStore.setSelectedTag(pageState.data as Tag);
+        setSearch(null);
+        break;
+      case 'tags':
+        appStore.setCurrentScreen('tags');
         setSearch(null);
         break;
       case 'book':
@@ -203,6 +213,8 @@ function App() {
           return; // For starred pages, just check the type which we already did
         case 'tag':
           return; // For tag pages, just check the type which we already did
+        case 'tags':
+          return; // For tags pages, just check the type which we already did
       }
     }
 
@@ -443,7 +455,7 @@ function App() {
   // Function to delete a book
   const deleteBook = async (bookId: string) => {
     try {
-      await invoke('set_book_deleted', { bookId });
+      await invoke('delete_book', { bookId });
 
       // Refresh all data to ensure both books and authors lists are updated
       await fetchBooksAndAuthors();
@@ -503,7 +515,7 @@ function App() {
   // Function to delete an author
   const deleteAuthor = async (authorId: string) => {
     try {
-      await invoke('set_author_deleted', { authorId });
+      await invoke('delete_author', { authorId });
 
       // Refresh all data to ensure both authors and books lists are updated
       await fetchBooksAndAuthors();
@@ -683,6 +695,10 @@ function App() {
         }}
       />
     );
+  } else if (appStore.currentScreen === 'tags') {
+    mainContent = (
+      <TagsScreen />
+    );
   } else if (appStore.currentScreen === 'tag') {
     mainContent = (
       <TagScreen
@@ -779,11 +795,13 @@ function App() {
 
           <div className="flex flex-row w-full h-full overflow-hidden">
             {/* Main content area */}
-            <div className="flex-1 overflow-hidden bg-gradient-to-b from-slate-800/90 to-slate-900/90 backdrop-blur-sm">
+            <div
+              className="flex-1 overflow-hidden backdrop-blur-sm"
+              style={{ background: 'var(--main-background)' }}>
               <div className="flex-1 flex flex-col items-center w-full h-full">
                 {mainContent}
               </div>
-              
+
             </div>
 
             {/* Sidebar secondary */}

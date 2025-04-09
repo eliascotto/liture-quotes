@@ -14,7 +14,7 @@ function AuthorScreen({
       <div className="flex-1 flex flex-col overflow-y-auto overscroll-none w-full px-10 lg:px-14 xl:px-20 py-6 min-h-0">
         <div className="flex flex-col h-full w-full xl:max-w-5xl 2xl:max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-700/30">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
+            <h1 className="text-2xl font-bold text-title">
               {cleanText(author.name)}
             </h1>
             <ItemMenu

@@ -56,8 +56,8 @@ const ItemMenu = (
         onClick={toggleMenu}
         className={clsx(
           "p-1 rounded-md",
-          "hover:bg-slate-700/90 transition-colors",
-          isMenuOpen ? "bg-slate-700/90" : "bg-transparent"
+          "hover:bg-background/90 transition-colors",
+          isMenuOpen ? "bg-background/90" : "bg-transparent"
         )}
         aria-label="Menu"
       >
@@ -67,15 +67,15 @@ const ItemMenu = (
       {isMenuOpen && (
         <div
           className={clsx(
-            "absolute right-0 mt-0.5 py-0.5 w-32 rounded-md bg-slate-800 z-10",
-            "border border-slate-700/50 shadow-lg ring-1 ring-black/5",
+            "absolute right-0 mt-0.5 py-0.5 w-32 rounded-md bg-menu-background z-10",
+            "border border-menu-border shadow-lg ring-1 ring-black/5",
           )}
         >
           {!!onEdit && (
             <div className="py-0.5">
               <button
                 onClick={handleEditClick}
-                className="w-full text-left px-3 py-1.5 text-sm hover:bg-slate-700 transition-colors"
+                className="w-full text-left px-3 py-1.5 text-sm hover:bg-background transition-colors"
               >
                 Edit {itemType}
               </button>
@@ -83,11 +83,11 @@ const ItemMenu = (
           )}
           {!!onDelete && (
             <Fragment>
-              {!!onEdit && <div className="my-0.5 border-t border-slate-700/50"></div>}
+              {!!onEdit && <div className="my-0.5 border-t border-menu-border"></div>}
               <div className="py-0.5">
                 <button
                   onClick={handleDeleteClick}
-                  className="w-full text-left px-3 py-1.5 text-sm text-red-400 hover:bg-slate-700 transition-colors"
+                  className="w-full text-left px-3 py-1.5 text-sm text-destructive hover:bg-background transition-colors"
                 >
                   Delete {itemType}
                 </button>

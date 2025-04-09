@@ -30,10 +30,14 @@
   --color-slate-900: oklch(0.208 0.042 265.755);
   --color-slate-950: oklch(0.129 0.042 264.695); */
 
-  /* slate-50 */
+  /* slate-700 */
   --background: oklch(0.279 0.041 260.031);
-  /* slate-900 */
-  --foreground: oklch(0.208 0.042 265.755);
+  /* slate-400 */
+  --foreground: oklch(0.704 0.04 256.788);
+
+  /* slate-100 */
+  --title: oklch(0.968 0.007 247.896);
+  --subtitle: oklch(0.869 0.022 252.894);
 
   /************************
     Brand colors
@@ -41,12 +45,10 @@
 
   /* cyan-400 */
   --brand-primary: oklch(0.789 0.154 211.53);
-  /* white */
-  --brand-primary-foreground: oklch(0.985 0 0);
+  /* cyan-500 */
+  --brand-primary-dark: oklch(0.715 0.143 215.221);
   /* cyan-600 */
   --brand-secondary: oklch(0.609 0.126 221.723);
-  /* white */
-  --brand-secondary-foreground: oklch(0.985 0 0);
 
   /************************
     Borders and inputs
@@ -91,8 +93,9 @@
   --------------*/
 
   /* slate-500 */
-  --main-background: oklch(0.279 0.041 260.031);
-  --main-background-opacity: 0.9;
+  --main-background: linear-gradient(
+    oklab(0.279 -0.007098 -0.040381 / 0.9) 0%, 
+    oklab(0.208 -0.003109 -0.041885 / 0.9) 100%);
   /* slate-900 */
   --main-foreground: oklch(0.208 0.042 265.755);
 
@@ -102,8 +105,56 @@
 
   /* slate-800 */
   --menu-background: oklch(0.279 0.041 260.031);
+  /* slate-300 */
+  --menu-foreground: oklch(0.869 0.022 252.894);
+  /* slate-700 */
+  --menu-border: oklch(0.372 0.044 257.287 / 0.5);
+  /* slate-700 */
+  --menu-hover: oklch(0.372 0.044 257.287 / 0.5);
+  /* sm */
+  --menu-text-size: 14px;
+  
+  /*--------------
+    Header
+  --------------*/
+
   /* slate-900 */
-  --menu-foreground: oklch(0.208 0.042 265.755);
+  --header-background: oklch(0.208 0.042 265.755);
+  /* slate-300 */
+  --header-foreground: oklch(0.869 0.022 252.894);
+  /* slate-700 */
+  --header-border: oklch(0.372 0.044 257.287 / 0.5);
+  /* slate-700 */
+  --header-hover: oklch(0.372 0.044 257.287 / 0.5);
+
+  /*--------------
+    Sidebar
+  --------------*/
+
+  /* slate-900 */
+  --sidebar-background: oklch(0.208 0.042 265.755);
+  /* slate-400 */
+  --sidebar-foreground: oklch(0.704 0.04 256.788);
+  /* slate-700 */
+  --sidebar-border: oklch(0.372 0.044 257.287 / 0.3);
+  /* cyan-500 */
+  --sidebar-icon-hover: var(--brand-primary-dark);
+  /* slate-700 */
+  --sidebar-icon-hover-background: oklch(0.372 0.044 257.287 / 0.4);
+  /* slate-700 */
+  --sidebar-icon-active-background: oklch(0.372 0.044 257.287 / 0.2);
+
+  /* slate-300 */
+  --sidebar-item:oklch(0.869 0.022 252.894);
+  /* white */
+  --sidebar-item-hover: white;
+  /* slate-600 */
+  --sidebar-item-empty: oklch(0.446 0.043 257.281);
+
+  /* cyan-400 */
+  --sidebar-resize-handle-shadow-hover: 0 0 5px rgba(34,211,238,0.4);
+  /* cyan-400 */
+  --sidebar-resize-handle-shadow-active: 0 0 8px rgba(34,211,238,0.6);
 
   /*--------------
     Cards
@@ -123,32 +174,108 @@
   /* slate-900 */
   --popover-foreground: oklch(0.208 0.042 265.755);
 
-
-
-  /************************
+  /*--------------
     Inputs
-  *************************/
+  --------------*/
 
-  --input-focus-border-color: Highlight;
-  --input-focus-outline: 1px solid Canvas;
-  --input-unfocused-border-color: transparent;
-  --input-disabled-border-color: transparent;
-  --input-hover-border-color: black;
-
-  /************************
-    Sidebar specific colors
-  *************************/
-
-  /* slate-200 */
-  --sidebar: oklch(0.929 0.013 255.508);
-  /* slate-900 */
-  --sidebar-foreground: oklch(0.208 0.042 265.755);
-  /* slate-400 */
-  --sidebar-muted: oklch(0.704 0.04 256.788);
+  /* slate-700 */
+  --input-background: oklch(0.372 0.044 257.287 / 0.7);
   /* slate-300 */
-  --sidebar-border: oklch(0.869 0.022 252.894);
+  --input-foreground: oklch(0.869 0.022 252.894);
+  /* slate-400 */
+  --input-placeholder: oklch(0.704 0.04 256.788 / 0.7);
+  /* slate-600 */
+  --input-border: oklch(0.446 0.043 257.281);
+
+
+
+  /*--------------
+    Star
+  --------------*/
+
+  --star: oklch(0.795 0.184 86.047);
+  --star-hover: oklch(0.554 0.046 257.417);
+
+  /*--------------
+    QuoteBox
+  --------------*/
+
+  /* slate-700 */
+  --quote-box-background: oklch(0.372 0.044 257.287);
+  /* slate-300 */
+  --quote-box-foreground: oklch(0.869 0.022 252.894);
+  /* slate-700 */
+  --quote-box-selected: oklch(0.372 0.044 257.287 / 0.2);
+  /* slate-600 */
+  --quote-box-border: oklch(0.446 0.043 257.281 / 0.7);
+
+  /* slate-600 */
+  --tag-fill: oklch(0.446 0.043 257.281);
+  /* slate-500 */
+  --tag-fill-hover: oklch(0.554 0.046 257.417);
 }
 
 .theme-default-dark {
 
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-title: var(--title);
+  --color-subtitle: var(--subtitle);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-primary-dark: var(--brand-primary-dark);
+  --color-brand-secondary: var(--brand-secondary);
+
+  --color-main-background: var(--main-background);
+  --color-main-foreground: var(--main-foreground);
+
+  --color-menu: var(--menu-background);
+  --color-menu-foreground: var(--menu-foreground);
+  --color-menu-border: var(--menu-border);
+  --color-menu-hover: var(--menu-hover);
+
+  --color-header: var(--header-background);
+  --color-header-foreground: var(--header-foreground);
+  --color-header-border: var(--header-border);
+  --color-header-hover: var(--header-hover);
+
+  --color-sidebar: var(--sidebar-background);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-icon-hover: var(--sidebar-icon-hover);
+  --color-sidebar-icon-hover-background: var(--sidebar-icon-hover-background);
+  --color-sidebar-icon-active-background: var(--sidebar-icon-active-background);
+  --color-sidebar-item: var(--sidebar-item);
+  --color-sidebar-item-hover: var(--sidebar-item-hover);
+  --color-sidebar-item-empty: var(--sidebar-item-empty);
+
+  --color-input: var(--input-background);
+  --color-input-foreground: var(--input-foreground);
+  --color-input-placeholder: var(--input-placeholder);
+  --color-input-border: var(--input-border);
+
+  --color-star: var(--star);
+  --color-star-hover: var(--star-hover);
+
+  --color-quote-box-background: var(--quote-box-background);
+  --color-quote-box-foreground: var(--quote-box-foreground);
+  --color-quote-box-selected: var(--quote-box-selected);
+  --color-quote-box-border: var(--quote-box-border);
+
+  --color-tag-fill: var(--tag-fill);
+  --color-tag-fill-hover: var(--tag-fill-hover);
+
+  --text-size-menu: var(--menu-text-size);
+  
 }

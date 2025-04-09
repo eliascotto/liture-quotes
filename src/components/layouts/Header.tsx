@@ -11,7 +11,10 @@ import Logger from "@utils/logger";
 import SidebarLeft from "@components/icons/SidebarLeft";
 import clsx from "clsx";
 import { useEffect, useState } from "react";
-import { usePrimarySidebarStore } from "@stores/index";
+import { usePrimarySidebarStore, useAppStore } from "@stores/index";
+import TagIcon from "@icons/Tag";
+import Tooltip from "@components/Tooltip";
+import TagFill from "@components/icons/TagFill";
 
 const logger = Logger.getInstance();
 
@@ -48,6 +51,7 @@ function Header({
   onSearchExit,
   onReloadButtonClick,
 }: HeaderProps) {
+  const appStore = useAppStore();
   const primarySidebarStore = usePrimarySidebarStore();
 
   const [expandSidebarButtonVisible, setExpandSidebarButtonVisible] = useState(false);
@@ -87,14 +91,20 @@ function Header({
     }
   }
 
+  const handleTagsButtonClick = () => {
+    if (appStore.currentScreen === 'tags') {
+      appStore.setCurrentScreen(null);
+    } else {
+      appStore.setCurrentScreen('tags');
+    }
+  }
+
   return (
     <header
       className={clsx(
-        "z-20 border-slate-700/50 bg-slate-900 min-h-12",
+        "z-20 border-header-border bg-header min-h-12",
         "flex flex-row py-2.5 px-4 w-full items-center justify-between gap-4 shadow-md",
-        {
-          "border-b": primarySidebarStore.isOpen,
-        }
+        primarySidebarStore.isOpen && "border-b",
       )}
       data-tauri-drag-region
     >
@@ -127,12 +137,23 @@ function Header({
             <ArrowsCircle className="h-4 w-4" />
           </HeaderButton>
         )}
-        <HeaderButton
-          onClick={() => setShowingStarred(!showingStarred)}
-          isActive={showingStarred}
-        >
-          <StarStroke fill={showingStarred ? "currentColor" : "none"} className="h-4 w-4" />
-        </HeaderButton>
+        {/* Tags button */}
+        <Tooltip content="Show all tags">
+          <HeaderButton
+            onClick={handleTagsButtonClick}
+          >
+            {appStore.currentScreen === 'tags' ? <TagFill className="h-4 w-4 fill-cyan-400" /> : <TagIcon className="h-4 w-4" />}
+          </HeaderButton>
+        </Tooltip>
+        {/* Starred button */}
+        <Tooltip content="Show favourites">
+          <HeaderButton
+            onClick={() => setShowingStarred(!showingStarred)}
+            isActive={showingStarred}
+          >
+            <StarStroke fill={showingStarred ? "currentColor" : "none"} className="h-4 w-4" />
+          </HeaderButton>
+        </Tooltip>
         <SearchBox
           onSearch={(searchTerm: string, results: any) => {
             setSearch(searchTerm);

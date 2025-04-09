@@ -111,7 +111,7 @@ function PrimarySidebar({
     <div
       ref={navbarRef}
       className={clsx(
-        "relative h-full border-r border-slate-700/30 bg-slate-900 select-none transition-all ease-linear",
+        "relative h-full border-r border-sidebar-border bg-sidebar select-none transition-all ease-linear",
         !isOpen && "border-r-0",
         fullyExpanded ? "duration-10" : "duration-100",
       )}
@@ -140,7 +140,7 @@ function PrimarySidebar({
           <div className="flex items-center ml-[74px]">
             <button
               onClick={handleSidebarCollapse}
-              className="px-1.5 py-1.5 text-slate-400 hover:text-cyan-500 hover:bg-slate-700/20 rounded-md transition-all duration-200"
+              className="px-1.5 py-1.5 text-sidebar-foreground hover:text-brand-primary-dark hover:bg-sidebar-icon-hover-background rounded-md transition-all duration-200"
             >
               <SidebarLeft className="w-4 h-4" />
             </button>
@@ -151,12 +151,12 @@ function PrimarySidebar({
               <div className="flex space-x-1 select-none">
                 {/* Books Icon */}
                 <button
-                  onClick={() => appStore.setCurrentView("books")}
+                  onClick={() => appStore.setSidebarSelectedOption("books")}
                   className={clsx(
                     "px-1.5 py-1 rounded-md transition-all duration-200",
                     {
-                      "text-cyan-500 bg-slate-700/10": isBooks,
-                      "text-slate-400 hover:text-cyan-300 hover:bg-slate-700/20": !isBooks,
+                      "text-brand-primary-dark bg-sidebar-icon-active-background": isBooks,
+                      "text-sidebar-foreground hover:text-brand-primary-dark hover:bg-sidebar-icon-hover-background": !isBooks,
                     }
                   )}
                   title="Books"
@@ -166,12 +166,12 @@ function PrimarySidebar({
 
                 {/* Authors Icon */}
                 <button
-                  onClick={() => appStore.setCurrentView("authors")}
+                  onClick={() => appStore.setSidebarSelectedOption("authors")}
                   className={clsx(
                     "px-1.5 py-1 rounded-md transition-all duration-200",
                     {
-                      "text-cyan-500 bg-slate-700/10": !isBooks,
-                      "text-slate-400 hover:text-cyan-300 hover:bg-slate-700/20": isBooks,
+                      "text-brand-primary-dark bg-slate-700/20": !isBooks,
+                      "text-sidebar-foreground hover:text-brand-primary-dark hover:bg-sidebar-icon-hover-background": isBooks,
                     }
                   )}
                   title="Authors"
@@ -191,7 +191,7 @@ function PrimarySidebar({
         >
           {isEmpty && (
             <div className="flex-1 flex items-center justify-center h-full select-auto">
-              <div className="text-slate-500 italic text-sm">No {appStore.currentView}s to show</div>
+              <div className="text-slate-500 italic text-sm">No {appStore.sidebarSelectedOption}s to show</div>
             </div>
           )}
           {!isEmpty && (
@@ -205,8 +205,8 @@ function PrimarySidebar({
                   return (
                     <li
                       className={clsx(
-                        "cursor-pointer min-h-[32px] py-1.5 px-1.5 text-sm italic font-medium truncate rounded transition-all duration-200 hover:bg-slate-700/20 select-none",
-                        isSelected ? "text-cyan-400 bg-slate-700/30" : "text-slate-600 hover:text-white"
+                        "cursor-pointer min-h-[32px] py-1.5 px-1.5 text-sm italic font-medium truncate rounded transition-all duration-200 hover:bg-sidebar-icon-hover-background select-none",
+                        isSelected ? "text-brand-primary bg-sidebar-icon-active-background" : "text-sidebar-item-empty hover:text-sidebar-item-hover"
                       )}
                       onClick={() => onSelection(item)}>
                       No title
@@ -222,8 +222,8 @@ function PrimarySidebar({
                   >
                     <li
                       className={clsx(
-                        "cursor-pointer min-h-[32px] py-1.5 px-1.5 text-sm font-medium truncate rounded transition-all duration-200 hover:bg-slate-700/20 select-none",
-                        isSelected ? "text-cyan-400 bg-slate-700/30" : "text-slate-300 hover:text-white"
+                        "cursor-pointer min-h-[32px] py-1.5 px-1.5 text-sm font-medium truncate rounded transition-all duration-200 hover:bg-sidebar-icon-hover-background select-none",
+                        isSelected ? "text-brand-primary bg-sidebar-icon-active-background" : "text-sidebar-item hover:text-sidebar-item-hover"
                       )}
                       onClick={() => onSelection(item)}>
                       {cleanedText}
@@ -239,8 +239,8 @@ function PrimarySidebar({
       {/* Resize handle */}
       <div
         className={`absolute top-0 right-0 w-1 h-full cursor-col-resize z-10 transition-all duration-200 ${isResizing
-          ? 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.6)]'
-          : 'hover:bg-cyan-400/50 hover:shadow-[0_0_5px_rgba(34,211,238,0.4)]'
+          ? 'bg-brand-primary-dark shadow-(--sidebar-resize-handle-shadow-active)'
+          : 'hover:bg-brand-primary-dark/50 hover:shadow-(--sidebar-resize-handle-shadow-hover)'
           }`}
         onMouseDown={startResizing}
       />

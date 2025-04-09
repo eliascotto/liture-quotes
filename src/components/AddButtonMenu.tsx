@@ -129,19 +129,18 @@ function AddButtonMenu({
 
       {isPopoverOpen && (
         <div className={clsx(
-          "absolute top-full left-0 z-[60] min-w-40 bg-slate-800 border border-slate-700/50 ring-1 ring-black/5 z-50 rounded-md shadow-xl",
-          "border border-slate-700/50"
+          "absolute top-full left-0 z-[60] min-w-40 bg-menu border border-menu-border ring-1 ring-black/5 z-50 rounded-md shadow-xl",
         )}>
           <div className="my-0.5">
             <button
-              className="w-full text-left px-3 py-2 text-sm transition-colors duration-150 text-slate-300 hover:bg-slate-700/50 hover:text-slate-300 flex items-center"
+              className="w-full text-left px-3 py-2 text-sm transition-colors duration-150 text-menu-foreground hover:bg-menu-hover flex items-center"
               onClick={handleAddAuthor}
             >
               <UserIcon className="w-4 h-4 mr-2" />
               New Author
             </button>
             <button
-              className="w-full text-left px-3 py-2 text-sm transition-colors duration-150 text-slate-300 hover:bg-slate-700/50 hover:text-slate-300 flex items-center"
+              className="w-full text-left px-3 py-2 text-sm transition-colors duration-150 text-menu-foreground hover:bg-menu-hover flex items-center"
               onClick={handleAddBook}
             >
               <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -150,13 +149,15 @@ function AddButtonMenu({
               New Book
             </button>
             <div className="my-0.5 border-t border-slate-700/50"></div>
+
+
             <div
               className="relative group"
               onMouseEnter={() => setIsImportingMenuOpen(true)}
               onMouseLeave={() => setIsImportingMenuOpen(false)}
             >
               <button
-                className="w-full text-left px-3 py-2 text-sm transition-colors duration-150 text-slate-300 hover:bg-slate-700/50 hover:text-slate-300 flex items-center justify-between"
+                className="w-full text-left px-3 py-2 text-sm transition-colors duration-150 text-menu-foreground hover:bg-menu-hover flex items-center justify-between"
               >
                 <span className="flex items-center">
                   <ImportIcon className="w-4 h-4 mr-2" />
@@ -166,27 +167,28 @@ function AddButtonMenu({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
                 </svg>
               </button>
+
               <div className={clsx(
-                "absolute left-full top-0 z-50 min-w-52 bg-slate-800 border border-slate-700/50 ring-1 ring-black/5 rounded-md shadow-xl",
+                "absolute left-full top-0 z-50 min-w-52 bg-menu border border-menu-border ring-1 ring-black/5 rounded-md shadow-xl",
                 isImportingMenuOpen ? "block" : "hidden"
               )}>
                 <div className="my-0.5">
                   <button
-                    className="w-full text-left px-3 py-2 text-sm transition-colors duration-150 text-slate-300 hover:bg-slate-700/50 hover:text-slate-300"
+                    className="w-full text-left px-3 py-2 text-size-menu transition-colors duration-150 text-menu-foreground hover:bg-menu-hover"
                     onClick={handleImportKobo}
-                >
-                  From Kobo Reader file
-                </button>
-                <button
-                  className="w-full text-left px-3 py-2 text-sm transition-colors duration-150 text-slate-300 hover:bg-slate-700/50 hover:text-slate-300"
-                  onClick={handleImportKindle}
-                >
-                  From Kindle Clippings file
-                </button>
-                <button
-                  className="w-full text-left px-3 py-2 text-sm transition-colors duration-150 text-slate-300 hover:bg-slate-700/50 hover:text-slate-300"
-                  onClick={handleImportIBooks}
-                >
+                  >
+                    From Kobo Reader file
+                  </button>
+                  <button
+                    className="w-full text-left px-3 py-2 text-size-menu transition-colors duration-150 text-menu-foreground hover:bg-menu-hover"
+                    onClick={handleImportKindle}
+                  >
+                    From Kindle Clippings file
+                  </button>
+                  <button
+                    className="w-full text-left px-3 py-2 text-size-menu transition-colors duration-150 text-menu-foreground hover:bg-menu-hover"
+                    onClick={handleImportIBooks}
+                  >
                     From iBooks
                   </button>
                 </div>

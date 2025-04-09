@@ -34,7 +34,7 @@ function RandomQuoteBox({
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-slate-500">Loading quote...</div>
+        <div className="text-muted-foreground">Loading quote...</div>
       </div>
     );
   }
@@ -42,7 +42,7 @@ function RandomQuoteBox({
   if (!quote) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-slate-400 text-sm">Import some content to get started.</div>
+        <div className="text-foreground text-sm">Import some content to get started.</div>
       </div>
     );
   }
@@ -51,11 +51,11 @@ function RandomQuoteBox({
     <div className="flex flex-col items-center justify-center h-full p-8">
       <div className="max-w-2xl w-full">
         <blockquote className="relative p-8 select-none">
-          <p className="text-lg text-slate-400 italic mb-4 z-10 relative select-auto">
+          <p className="text-lg text-foreground italic mb-4 z-10 relative select-auto">
             {quote.content}
           </p>
           <div className="text-right">
-            <p className="text-slate-500 cursor-pointer hover:text-cyan-400"
+            <p className="text-muted-foreground cursor-pointer hover:text-cyan-400"
               onClick={() => quote.book_id && navigateToBook(quote.book_id)}>
               <span className="font-semibold">{cleanText(quote.book_title || "")}</span>
             </p>

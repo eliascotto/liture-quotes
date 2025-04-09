@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   useFloating,
   useClick,
@@ -13,11 +13,6 @@ import {
   OffsetOptions,
 } from '@floating-ui/react';
 import clsx from 'clsx';
-
-type OffsetValue = number | {
-  mainAxis?: number;
-  crossAxis?: number;
-};
 
 export type FloatingMenuProps = {
   children: React.ReactNode;
@@ -34,7 +29,11 @@ export type FloatingMenuProps = {
    * - An object with mainAxis (y) and crossAxis (x) values
    */
   offsetValue?: OffsetOptions;
+  flippedOffsetValue?: OffsetOptions;
 };
+
+const XAxisValues = ['top', 'bottom'] as const;
+const YAxisValues = ['left', 'right'] as const;
 
 const FloatingMenu = ({
   children,
@@ -46,8 +45,10 @@ const FloatingMenu = ({
   onOpenChange,
   usePortal = true,
   offsetValue = 4,
+  flippedOffsetValue,
 }: FloatingMenuProps) => {
   const [uncontrolledIsOpen, setUncontrolledIsOpen] = useState(false);
+  const triggerRef = useRef<HTMLElement | null>(null);
 
   const isControlled = controlledIsOpen !== undefined;
   const isOpen = isControlled ? controlledIsOpen : uncontrolledIsOpen;
@@ -60,26 +61,47 @@ const FloatingMenu = ({
     middleware: [
       // Apply offset based on placement
       offset((state) => {
-        const isTop = state.placement.includes('top');
+        const defaultPlacement = placement.split('-')[0]; // top, bottom, left, right
+        const isFlipped = state.placement.includes(XAxisValues.find(x => x !== defaultPlacement) ?? 'top');
 
-        if (typeof offsetValue === 'number') {
+        // If flippedOffsetValue is a number
+        if (isFlipped && typeof flippedOffsetValue === 'number') {
+          return {
+            mainAxis: flippedOffsetValue,
+            crossAxis: 0,
+          };
+        } else if (typeof offsetValue === 'number') {
           return {
             mainAxis: offsetValue,
             crossAxis: 0,
           };
         }
+
         // If offsetValue is undefined or a Derivable function
-        if (!offsetValue || typeof offsetValue === 'function') {
+        if (isFlipped && typeof flippedOffsetValue === 'function') {
+          return flippedOffsetValue(state);
+        } else if (typeof offsetValue === 'function') {
           return offsetValue(state);
         }
-        
-        const mainAxis = offsetValue.mainAxis ?? 4;
-        const crossAxis = offsetValue.crossAxis ?? 0;
 
-        return {
-          mainAxis: isTop ? -state.rects.reference.height - mainAxis : -state.rects.reference.height - mainAxis,
-          crossAxis,
-        };
+        // If offsetValue is a object
+        if (isFlipped && typeof flippedOffsetValue === 'object') {
+          const mainAxis = flippedOffsetValue.mainAxis ?? 4;
+          const crossAxis = flippedOffsetValue.crossAxis ?? 0;
+
+          return {
+            mainAxis,
+            crossAxis,
+          };
+        } else {
+          const mainAxis = offsetValue.mainAxis ?? 4;
+          const crossAxis = offsetValue.crossAxis ?? 0;
+
+          return {
+            mainAxis,
+            crossAxis,
+          };
+        }
       }),
 
       // Flip to opposite side if no space
@@ -91,6 +113,13 @@ const FloatingMenu = ({
     ],
     whileElementsMounted: autoUpdate,
   });
+
+  // Set the reference element to the trigger element
+  useEffect(() => {
+    if (triggerRef.current) {
+      refs.setReference(triggerRef.current);
+    }
+  }, [refs.setReference]);
 
   const click = useClick(context);
   const dismiss = useDismiss(context);
@@ -114,15 +143,20 @@ const FloatingMenu = ({
     </div>
   );
 
+  // Create a wrapper for the trigger that will capture the ref
+  const triggerWrapper = (
+    <div
+      ref={triggerRef as React.RefObject<HTMLDivElement>}
+      className={className}
+      {...getReferenceProps()}
+    >
+      {trigger}
+    </div>
+  );
+
   return (
     <>
-      <div
-        ref={refs.setReference}
-        className={className}
-        {...getReferenceProps()}
-      >
-        {trigger}
-      </div>
+      {triggerWrapper}
 
       {isOpen && (
         usePortal ? (

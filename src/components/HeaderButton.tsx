@@ -1,3 +1,5 @@
+import clsx from "clsx";
+
 type HeaderButtonProps = {
   onClick: () => void;
   isActive?: boolean;
@@ -8,11 +10,12 @@ function HeaderButton({ onClick, isActive = false, children }: HeaderButtonProps
   return (
     <button
       onClick={onClick}
-      className={`p-1.5 rounded-md transition-colors duration-200 ${
+      className={clsx(
+        "p-1.5 rounded-md transition-colors duration-200",
         isActive
-          ? 'text-cyan-400'
-          : 'text-slate-400 hover:text-cyan-400 hover:bg-slate-700/50'
-      }`}
+          ? 'text-brand-primary fill-brand-primary'
+          : 'text-header-foreground hover:text-brand-primary hover:bg-header-hover fill-header-foreground'
+      )}
     >
       {children}
     </button>

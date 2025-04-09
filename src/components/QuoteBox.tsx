@@ -114,9 +114,9 @@ function QuoteBox({
         {/* Star icon button */}
         <Tooltip content={quote.starred ? "Unstar Quote" : "Star Quote"} usePortal>
           <div className={clsx({
-            "text-yellow-500": !!quote.starred,
-            "text-slate-400": !quote.starred && selected,
-            "opacity-0 group-hover:opacity-100 text-slate-500": !quote.starred && !selected
+            "text-star": !!quote.starred,
+            "text-foreground": !quote.starred && selected,
+            "opacity-0 group-hover:opacity-100 text-star-hover": !quote.starred && !selected
           })}>
             <StarIcon fill={!!quote.starred} />
           </div>
@@ -150,10 +150,10 @@ function QuoteBox({
           <div
             className={clsx(
               "relative w-full select-none",
-              "text-slate-300 py-[8px] pl-4 pr-5 whitespace-pre-line transition-border duration-200 border",
-              "hover:bg-slate-700/30",
-              selected && "bg-slate-700/20  shadow-md",
-              selected ? "border-slate-600/70 rounded-sm border" : "border-transparent border-l-2 border-l-slate-700/90",
+              "text-quote-box-foreground py-[8px] pl-4 pr-5 whitespace-pre-line transition-border duration-200 border",
+              "hover:bg-quote-box-background/40",
+              selected && "bg-quote-box-background/20  shadow-md",
+              selected ? "border-quote-box-border rounded-sm border" : "border-transparent border-l-2 border-l-quote-box-border",
               empty && "text-opacity-30 cursor-default",
             )}
             style={{
@@ -168,18 +168,20 @@ function QuoteBox({
             <span className="select-auto">{empty ? "Empty" : quote.content}</span>
             {/* Quote context menu */}
             {(mouseOver || selected) && (
-              <QuoteDropdownMenu
-                offset={0}
-                isOpen={menuOpen}
-                onOpenChange={setMenuOpen}
-                onCopy={handleMenuCopy}
-                onEdit={handleMenuEdit}
-                onStar={handleMenuStar}
-                onRemove={handleMenuRemove}
-                isStarred={!!quote.starred}
-                scrollContainer={scrollContainerRef.current}
-                onTagsOptionClick={handleMenuTags}
-              />
+              <div className="absolute top-0 right-0">
+                <QuoteDropdownMenu
+                  offset={0}
+                  isOpen={menuOpen}
+                  onOpenChange={setMenuOpen}
+                  onCopy={handleMenuCopy}
+                  onEdit={handleMenuEdit}
+                  onStar={handleMenuStar}
+                  onRemove={handleMenuRemove}
+                  isStarred={!!quote.starred}
+                  scrollContainer={scrollContainerRef.current}
+                  onTagsOptionClick={handleMenuTags}
+                />
+              </div>
             )}
           </div>
         )}
@@ -197,7 +199,10 @@ function QuoteBox({
             ) : (
               <div
                 id={note.id}
-                className="ml-8 text-sm leading-6 italic text-slate-300/85 py-2.5 px-4 border-slate-700/50 group/note hover:bg-slate-700/50 select-none"
+                className={clsx(
+                  "ml-8 text-sm leading-6 italic text-quote-box-foreground/85 py-2.5 px-4 border-quote-box-border/50",
+                  "group/note hover:bg-quote-box-background/50 select-none"
+                )}
                 onDoubleClick={() => onNoteEdit && setNoteEditable(true)}
               >
                 <span className="select-auto">{note.content}</span>

@@ -66,7 +66,8 @@ export function QuoteDropdownMenu({
       trigger={verticalDotsButton}
       placement="bottom-end"
       menuClassName="w-32 py-0.5 backdrop-blur-sm"
-      offsetValue={{ mainAxis: 0, crossAxis: 20 }}
+      offsetValue={{ mainAxis: 30, crossAxis: 10 }}
+      flippedOffsetValue={{ mainAxis: 0, crossAxis: 10 }}
     >
       <button
         onClick={onCopy}

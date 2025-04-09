@@ -142,7 +142,7 @@ export interface SearchResults {
 }
 
 export interface PageState {
-  type: 'book' | 'author' | 'search' | 'starred' | 'tag';
+  type: 'book' | 'author' | 'search' | 'starred' | 'tag' | 'tags';
   data: Book | Author | Tag | { term: string, results: SearchResults } | string | null;
 }
 
