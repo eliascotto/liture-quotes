@@ -68,15 +68,15 @@ function SearchBox({ onSearch, onExit }: SearchBoxProps) {
       className="flex flex-row items-center relative"
       onSubmit={(e) => { e.preventDefault() }}
     >
-      <div className="absolute left-3 text-slate-400">
+      <div className="absolute left-3 text-sidebar-foreground">
         <SearchIcon />
       </div>
       <input
         className={clsx(
-          "bg-slate-800/70 border border-slate-700/50 text-slate-200 py-1.5 rounded-md",
+          "bg-sidebar border border-sidebar-border text-sidebar-foreground py-1.5 rounded-md",
           "pl-10 pr-8 text-sm w-64 focus:outline-none",
-          "focus:ring-1 focus:ring-cyan-400/70 focus:border-cyan-400/70",
-          "transition-all duration-200 placeholder:text-slate-500 select-none",
+          "focus:ring-1 focus:ring-brand-primary/70 focus:border-brand-primary/70",
+          "transition-all duration-200 placeholder:text-sidebar-item-empty select-none",
           isFocused && "w-72"
         )}
         value={search}
@@ -94,7 +94,7 @@ function SearchBox({ onSearch, onExit }: SearchBoxProps) {
       {search && (
         <button
           type="button"
-          className="absolute right-2.5 text-slate-400 hover:text-slate-200 p-1 rounded-full hover:bg-slate-700/50 cursor-pointer transition-colors duration-200"
+          className="absolute right-2.5 text-sidebar-foreground hover:text-sidebar-item-hover p-1 rounded-full hover:bg-sidebar-icon-hover-background cursor-pointer transition-colors duration-200"
           onClick={() => setSearch("")}
           aria-label="Clear search"
         >

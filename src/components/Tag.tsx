@@ -15,8 +15,8 @@ function TagComponent({ tag, onRemove, onClick, className, size = 'sm', noCursor
   return (
     <div
       className={clsx(
-        "flex flex-row items-center px-2 py-0.5 bg-slate-700/50 rounded-md font-medium text-slate-400",
-        "hover:bg-slate-600/70 hover:text-slate-300",
+        "flex flex-row items-center px-2 py-0.5 bg-quote-box-background rounded-md font-medium text-tag-fill",
+        "hover:bg-quote-box-background/70 hover:text-tag-fill-hover",
         noCursor ? "cursor-default" : "cursor-pointer",
         className,
         size === 'sm' && "text-xs",
@@ -35,7 +35,7 @@ function TagComponent({ tag, onRemove, onClick, className, size = 'sm', noCursor
       {onRemove && (
         <button
           onClick={onRemove}
-          className="text-slate-400 hover:text-slate-300 transition-opacity cursor-pointer"
+          className="text-tag-fill hover:text-tag-fill-hover transition-opacity cursor-pointer"
         >
           <XMarkIcon className="w-3 h-3" />
         </button>

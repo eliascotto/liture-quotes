@@ -24,10 +24,12 @@ function AuthorScreen({
             />
           </div>
           <div className="mb-4">
-            {books.length > 0 && (<h3 className="text-slate-300 font-medium text-lg mb-4 flex items-center">
-              {/* <BookOpen className="h-5 w-5 mr-2" /> */}
-              Books
-            </h3>)}
+            {books.length > 0 && (
+              <h3 className="text-muted font-medium text-lg mb-4 flex items-center">
+                {/* <BookOpen className="h-5 w-5 mr-2" /> */}
+                Books
+              </h3>
+            )}
             <div className="flex flex-col gap-3">
               {books.map((book) => {
                 const cleanedTitle = cleanText(book.title);
@@ -35,12 +37,15 @@ function AuthorScreen({
                 return (
                   <div
                     key={`book_${book.id}`}
-                    className="p-3 bg-slate-800 min-h-[48px] cursor-pointer hover:bg-slate-700/50 transition-all duration-200 group"
+                    className={clsx(
+                      "p-3 rounded-sm border border-transparent hover:border-quote-box-border min-h-[48px] cursor-pointer",
+                      "hover:bg-quote-box-background/50 transition-all duration-200 group",
+                    )}
                     onClick={() => onBookSelect(book)}
                   >
                     <Tooltip content={cleanText(book.title)} usePortal={true}>
                       <div className={clsx(
-                        "text-slate-300 group-hover:text-cyan-400 transition-colors duration-200 font-medium truncate",
+                        "text-muted transition-colors duration-200 font-medium truncate",
                         isEmpty && "italic"
                       )}>
                         {isEmpty ? "No title" : cleanedTitle}
@@ -60,11 +65,11 @@ function AuthorScreen({
       </div>
 
       <div className="sticky bottom-0 flex flex-row w-full h-8 items-center justify-between px-6 shadow-md bg-slate-900/80 border-t border-slate-700/30 backdrop-blur-sm z-10">
-        <div className="text-xs text-slate-400">
+        <div className="text-xs text-foreground">
           {author.name}
         </div>
-        <div className="text-xs text-slate-400">
-          Books: <span className="text-cyan-400 font-medium">{books.length}</span>
+        <div className="text-xs text-foreground">
+          Books: <span className="text-brand-primary font-medium">{books.length}</span>
         </div>
       </div>
     </>

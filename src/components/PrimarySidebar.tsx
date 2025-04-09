@@ -129,7 +129,7 @@ function PrimarySidebar({
             "sticky top-0 z-10 px-1.5 min-h-[55px] py-2.5 border-b",
             "flex items-center",
             {
-              "border-slate-700/30": isScrolled,
+              "border-sidebar-border": isScrolled,
               "border-transparent": !isScrolled,
             }
           )}
@@ -170,7 +170,7 @@ function PrimarySidebar({
                   className={clsx(
                     "px-1.5 py-1 rounded-md transition-all duration-200",
                     {
-                      "text-brand-primary-dark bg-slate-700/20": !isBooks,
+                      "text-brand-primary-dark bg-sidebar-icon-active-background": !isBooks,
                       "text-sidebar-foreground hover:text-brand-primary-dark hover:bg-sidebar-icon-hover-background": isBooks,
                     }
                   )}
@@ -191,7 +191,7 @@ function PrimarySidebar({
         >
           {isEmpty && (
             <div className="flex-1 flex items-center justify-center h-full select-auto">
-              <div className="text-slate-500 italic text-sm">No {appStore.sidebarSelectedOption}s to show</div>
+              <div className="text-sidebar-item-empty italic text-sm">No {appStore.sidebarSelectedOption}s to show</div>
             </div>
           )}
           {!isEmpty && (

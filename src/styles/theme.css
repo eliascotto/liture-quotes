@@ -31,12 +31,13 @@
   --color-slate-950: oklch(0.129 0.042 264.695); */
 
   /* slate-700 */
-  --background: oklch(0.279 0.041 260.031);
+  --background: oklch(0.372 0.044 257.287);
   /* slate-400 */
   --foreground: oklch(0.704 0.04 256.788);
 
   /* slate-100 */
   --title: oklch(0.968 0.007 247.896);
+  /* slate-300 */
   --subtitle: oklch(0.869 0.022 252.894);
 
   /************************
@@ -107,12 +108,16 @@
   --menu-background: oklch(0.279 0.041 260.031);
   /* slate-300 */
   --menu-foreground: oklch(0.869 0.022 252.894);
+  /* slate-100 */
+  --menu-foreground-hover: oklch(0.968 0.007 247.896);
   /* slate-700 */
   --menu-border: oklch(0.372 0.044 257.287 / 0.5);
   /* slate-700 */
   --menu-hover: oklch(0.372 0.044 257.287 / 0.5);
   /* sm */
   --menu-text-size: 14px;
+  /* white */
+  --menu-selected: white;
   
   /*--------------
     Header
@@ -186,8 +191,10 @@
   --input-placeholder: oklch(0.704 0.04 256.788 / 0.7);
   /* slate-600 */
   --input-border: oklch(0.446 0.043 257.281);
-
-
+  /* slate-300 */
+  --input-label: oklch(0.869 0.022 252.894);
+  /* red-400 */
+  --input-error: oklch(0.704 0.191 22.216);
 
   /*--------------
     Star
@@ -242,6 +249,7 @@
 
   --color-menu: var(--menu-background);
   --color-menu-foreground: var(--menu-foreground);
+  --color-menu-foreground-hover: var(--menu-foreground-hover);
   --color-menu-border: var(--menu-border);
   --color-menu-hover: var(--menu-hover);
 
@@ -264,6 +272,8 @@
   --color-input-foreground: var(--input-foreground);
   --color-input-placeholder: var(--input-placeholder);
   --color-input-border: var(--input-border);
+  --color-input-label: var(--input-label);
+  --color-input-error: var(--input-error);
 
   --color-star: var(--star);
   --color-star-hover: var(--star-hover);

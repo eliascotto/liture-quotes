@@ -142,7 +142,7 @@ function Header({
           <HeaderButton
             onClick={handleTagsButtonClick}
           >
-            {appStore.currentScreen === 'tags' ? <TagFill className="h-4 w-4 fill-cyan-400" /> : <TagIcon className="h-4 w-4" />}
+            {appStore.currentScreen === 'tags' ? <TagFill className="h-4 w-4 fill-brand-primary" /> : <TagIcon className="h-4 w-4" />}
           </HeaderButton>
         </Tooltip>
         {/* Starred button */}

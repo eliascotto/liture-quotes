@@ -110,7 +110,7 @@ function BookHeader({
         <Fragment>
           <div className="flex items-center justify-between select-none">
             <h1
-              className="text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text truncate text-ellipsis select-auto"
+              className="text-2xl font-bold text-title bg-clip-text truncate text-ellipsis select-auto"
               onClick={handleTitleClick}
             >
               {cleanText(book.title)}
@@ -123,10 +123,10 @@ function BookHeader({
             />
           </div>
           <div className="py-1.5 select-none">
-            <h3 className="text-slate-300 font-medium select-auto">
+            <h3 className="text-subtitle font-medium select-auto">
               Author:
               <span
-                className="text-slate-400 hover:text-cyan-400 transition-colors duration-200 cursor-pointer ml-1"
+                className="text-foreground hover:text-brand-primary transition-colors duration-200 cursor-pointer ml-1"
                 onClick={() => navigateToAuthor(author.id)}
               >
                 {author && cleanText(author.name)}

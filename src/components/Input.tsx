@@ -30,7 +30,7 @@ export default function Input({
       {label && (
         <label 
           htmlFor={id} 
-          className="block text-sm font-medium text-slate-300 mb-2"
+          className="block text-sm font-medium text-input-label mb-2"
         >
           {label}
         </label>
@@ -41,9 +41,9 @@ export default function Input({
         value={value}
         onChange={onChange}
         className={clsx(
-          "w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-md",
-          "text-sm text-slate-200 placeholder-slate-400",
-          "focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent",
+          "w-full px-3 py-2 bg-input border border-input-border rounded-md",
+          "text-sm text-input-foreground placeholder-input-placeholder",
+          "focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent",
           "transition-all duration-200",
           {
             "opacity-50 cursor-not-allowed": disabled
@@ -54,7 +54,7 @@ export default function Input({
         autoFocus={autoFocus}
       />
       {error && (
-        <p className="mt-1 text-sm text-red-400">{error}</p>
+        <p className="mt-1 text-sm text-input-error">{error}</p>
       )}
     </div>
   );

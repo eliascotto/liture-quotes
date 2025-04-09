@@ -115,7 +115,7 @@ function QuoteBox({
         <Tooltip content={quote.starred ? "Unstar Quote" : "Star Quote"} usePortal>
           <div className={clsx({
             "text-star": !!quote.starred,
-            "text-foreground": !quote.starred && selected,
+            "text-sidebar-foreground": !quote.starred && selected,
             "opacity-0 group-hover:opacity-100 text-star-hover": !quote.starred && !selected
           })}>
             <StarIcon fill={!!quote.starred} />
