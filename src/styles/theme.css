@@ -173,6 +173,19 @@
   --search-border: oklch(0.446 0.043 257.281 / 0.7);
 
   /*--------------
+    Tooltip
+  --------------*/
+
+  /* slate-800 */
+  --tooltip-background: oklch(0.279 0.041 260.031);
+  /* slate-600 */
+  --tooltip-overbackground: oklch(0.446 0.043 257.281 / 0.5);
+  /* slate-300 */
+  --tooltip-foreground: oklch(0.869 0.022 252.894);
+  /* slate-700 */
+  --tooltip-border: oklch(0.372 0.044 257.287 / 0.5);
+
+  /*--------------
     Popovers
   --------------*/
 
@@ -263,6 +276,11 @@
 
   --color-main-background: var(--main-background);
   --color-main-foreground: var(--main-foreground);
+
+  --color-tooltip: var(--tooltip-background);
+  --color-tooltip-overbackground: var(--tooltip-overbackground);
+  --color-tooltip-foreground: var(--tooltip-foreground);
+  --color-tooltip-border: var(--tooltip-border);
 
   --color-menu: var(--menu-background);
   --color-menu-foreground: var(--menu-foreground);

@@ -56,13 +56,13 @@ const Tooltip = React.memo((
     <div
       ref={refs.setFloating}
       style={floatingStyles}
-      className="bg-sidebar border max-w-2xl break-all border-sidebar-border rounded shadow-lg text-sm py-1.5 px-2.5 z-[1000] text-sidebar-foreground"
+      className="bg-tooltip border max-w-2xl break-all border-tooltip-border rounded shadow-lg text-sm py-1.5 px-2.5 z-[1000] text-tooltip-foreground"
       data-placement={placement}
       {...getFloatingProps()}
     >
       {content}
       {shortcut && (
-        <span className="ml-1 bg-sidebar-icon-hover-background px-1.5 py-0.5 rounded border border-sidebar-border">
+        <span className="ml-1 bg-tooltip-overbackground px-1.5 py-0.5 rounded border border-tooltip-border">
           {shortcut}
         </span>
       )}
