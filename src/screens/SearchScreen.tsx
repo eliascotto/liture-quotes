@@ -1,17 +1,13 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import QuoteBox from "@components/QuoteBox";
-import { Book, Author, Quote, QuoteFts } from "@customTypes/index.ts";
+import { Book, Author, Quote, QuoteFts, QuoteWithTagsRedux } from "@customTypes/index.ts";
 import Footer from "@components/Footer";
+import { useSearchStore } from "@stores/search";
+import { useQuoteStore } from "@stores/quotes";
 
 type SearchScreenProps = {
   books: Book[],
   authors: Author[],
-  search: string,
-  searchResults: {
-    quotes: QuoteFts[] | Quote[],
-    books: Book[],
-    authors: Author[]
-  },
   navigateToBook: (bookId: string) => void,
   navigateToAuthor: (authorId: string) => void,
   updateQuote: (note: Quote) => void,
@@ -20,6 +16,12 @@ type SearchScreenProps = {
 }
 
 function SearchScreen(props: SearchScreenProps) {
+  const searchStore = useSearchStore();
+  const quoteStore = useQuoteStore();
+
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const quotesContainerRef = useRef<HTMLDivElement>(null);
+
   const [selectedQuote, setSelectedQuote] = useState<QuoteFts | null>(null);
 
   // Find book and author for a note
@@ -29,20 +31,54 @@ function SearchScreen(props: SearchScreenProps) {
     return { book, author };
   };
 
-  const { quotes: searchQuotes = [], books: searchBooks = [], authors: searchAuthors = [] } = props.searchResults;
+  const searchQuotes = searchStore.results?.quotes || [];
+  const searchBooks = searchStore.results?.books || [];
+  const searchAuthors = searchStore.results?.authors || [];
+
   const hasResults = searchQuotes.length > 0 || searchBooks.length > 0 || searchAuthors.length > 0;
   const totalResults = searchQuotes.length + searchBooks.length + searchAuthors.length;
 
+  const updateQuote = async (quote: QuoteWithTagsRedux) => {
+    await quoteStore.updateQuote(quote);
+    await searchStore.searchBy();
+  }
+
+  const removeQuote = async (quote: QuoteWithTagsRedux) => {
+    await quoteStore.deleteQuote(quote);
+    await searchStore.searchBy();
+  }
+
+  const handleStarClick = async (quote: QuoteWithTagsRedux) => {
+    await quoteStore.toggleFavouriteQuote(quote.id);
+    await searchStore.searchBy();
+  }
+
+  // Handle click outside for selected quote
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (quotesContainerRef.current && !(quotesContainerRef.current as HTMLElement).contains(event.target as Node)) {
+        setSelectedQuote(null);
+        }
+      }
+  
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }, []);
+
   return (
-    <div className="flex-1 flex flex-col items-center w-full h-full" onClick={() => setSelectedQuote(null)}>
-      <div className="flex-1 flex flex-col overflow-y-auto overscroll-none w-full max-w-6xl px-10 lg:px-14 xl:px-20 py-6 min-h-0">
+    <>
+      <div
+        ref={scrollContainerRef}
+        className="flex-1 flex flex-col overflow-y-auto overscroll-none w-full max-w-6xl px-10 lg:px-14 xl:px-20 py-6 min-h-0">
         <div className="mb-6 pb-4 border-b border-slate-700/30 flex items-center">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <h3 className="text-slate-300 font-medium">
             Search Results for:
-            <span className="text-cyan-400 ml-2 font-semibold">{props.search}</span>
+            <span className="text-cyan-400 ml-2 font-semibold">{searchStore.search}</span>
           </h3>
         </div>
 
@@ -128,7 +164,11 @@ function SearchScreen(props: SearchScreenProps) {
               {searchQuotes.map((quote) => {
                 const { book, author } = getBookAndAuthor(quote);
                 return (
-                  <div key={`search-result-${quote.id}`} className="space-y-1">
+                  <div 
+                    key={`search-result-${quote.id}`} 
+                    className="space-y-1"
+                    ref={quotesContainerRef}
+                  >
                     {quote.book_title && quote.author_name && (
                       <div className="flex items-center text-xs text-slate-400 mb-1 ml-1">
                         <span
@@ -158,14 +198,16 @@ function SearchScreen(props: SearchScreenProps) {
                     )}
                     <QuoteBox
                       quote={quote}
+                      tags={quote.tags}
                       selected={!!selectedQuote && quote.id === selectedQuote?.id}
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedQuote(quote as QuoteFts);
                       }}
-                      onStarClick={() => props.starQuote(quote as Quote)}
-                      onEdit={(content) => props.updateQuote({ ...quote, content } as Quote)}
-                      onRemove={() => props.removeQuote(quote as Quote)}
+                      onStarClick={() => handleStarClick(quote)}
+                      onEdit={(content) => updateQuote({ ...quote, content })}
+                      onRemove={() => removeQuote(quote)}
+                      scrollContainerRef={scrollContainerRef}
                     />
                   </div>
                 );
@@ -183,11 +225,11 @@ function SearchScreen(props: SearchScreenProps) {
       </div>
 
       <Footer
-        leftContent={`Search: ${props.search}`}
+        leftContent={`Search: ${searchStore.search}`}
         dataType="Results"
         dataCount={totalResults}
       />
-    </div>
+    </>
   );
 }
 

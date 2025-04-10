@@ -8,6 +8,7 @@ import { Author } from "@customTypes/index";
 import Logger from "@utils/logger";
 import UserIcon from "@icons/User";
 import ImportIcon from "@icons/Import";
+import Tooltip from "./Tooltip";
 
 const logger = Logger.getInstance();
 
@@ -114,18 +115,19 @@ function AddButtonMenu({
 
   return (
     <div className="relative z-40" ref={popoverRef}>
-      <button
-        className={clsx(
-          "p-1.5 rounded-md transition-colors duration-200 bg-transparent",
-          "hover:text-cyan-400 hover:bg-slate-700/50",
-          isPopoverOpen ? "text-cyan-400" : "text-slate-300"
-        )}
-        title="Add new item"
-        onClick={togglePopover}
-        aria-expanded={isPopoverOpen}
-      >
-        <PlusIcon />
-      </button>
+      <Tooltip content="Add new item" usePortal>
+        <button
+          className={clsx(
+            "p-1.5 rounded-md transition-colors duration-200 bg-transparent",
+            "hover:text-cyan-400 hover:bg-slate-700/50",
+            isPopoverOpen ? "text-cyan-400" : "text-slate-300"
+          )}
+          onClick={togglePopover}
+          aria-expanded={isPopoverOpen}
+        >
+          <PlusIcon />
+        </button>
+      </Tooltip>
 
       {isPopoverOpen && (
         <div className={clsx(

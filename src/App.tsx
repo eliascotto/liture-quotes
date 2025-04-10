@@ -33,6 +33,7 @@ import {
 import { useQuoteStore, useAppStore } from "@stores/index";
 import TagScreen from "@screens/TagScreen";
 import TagsScreen from "@screens/TagsScreen";
+import { useSearchStore } from "@stores/search";
 
 const logger = Logger.getInstance();
 
@@ -46,6 +47,7 @@ function App() {
 
   // App 
   const appStore = useAppStore();
+  const searchStore = useSearchStore();
 
   const { addToast } = useToast();
 
@@ -55,14 +57,6 @@ function App() {
 
   // Quotes
   const quoteStore = useQuoteStore();
-
-  // Search
-  const [search, setSearch] = useState<string | null>(null);
-  const [searchResults, setSearchResults] = useState<SearchResults>({
-    quotes: [],
-    books: [],
-    authors: []
-  });
 
   // Current book
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
@@ -102,10 +96,10 @@ function App() {
         type: 'tags',
         data: null
       };
-    } else if (search) {
+    } else if (searchStore.search && searchStore.results) {
       return {
         type: 'search',
-        data: { term: search, results: searchResults }
+        data: { term: searchStore.search, results: searchStore.results }
       };
     } else if (appStore.sidebarSelectedOption === 'books' && selectedBook) {
       return {
@@ -119,7 +113,7 @@ function App() {
       };
     }
     return null;
-  }, [search, searchResults, appStore.sidebarSelectedOption, selectedBook, selectedAuthor, appStore.currentScreen]);
+  }, [searchStore.search, searchStore.results, appStore.sidebarSelectedOption, selectedBook, selectedAuthor, appStore.currentScreen]);
 
   // Apply a page state from history
   const applyPageState = useCallback((pageState: PageState) => {
@@ -130,16 +124,16 @@ function App() {
     switch (pageState.type) {
       case 'starred':
         appStore.setCurrentScreen('favourites');
-        setSearch(null);
+        searchStore.setSearch(null);
         break;
       case 'tag':
         appStore.setCurrentScreen('tag');
         tagStore.setSelectedTag(pageState.data as Tag);
-        setSearch(null);
+        searchStore.setSearch(null);
         break;
       case 'tags':
         appStore.setCurrentScreen('tags');
-        setSearch(null);
+        searchStore.setSearch(null);
         break;
       case 'book':
         appStore.setCurrentScreen(null);
@@ -148,7 +142,7 @@ function App() {
           setSelectedBook(pageState.data as Book);
           quoteStore.setSelectedBook(pageState.data as Book);
         }
-        setSearch(null);
+        searchStore.setSearch(null);
         break;
       case 'author':
         appStore.setCurrentScreen(null);
@@ -156,14 +150,14 @@ function App() {
         if (pageState.data && typeof pageState.data !== 'string') {
           setSelectedAuthor(pageState.data as Author);
         }
-        setSearch(null);
+        searchStore.setSearch(null);
         break;
       case 'search':
         appStore.setCurrentScreen(null);
         if (pageState.data && typeof pageState.data === 'object' && 'term' in pageState.data) {
           const searchData = pageState.data as { term: string, results: SearchResults };
-          setSearch(searchData.term);
-          setSearchResults(searchData.results);
+          searchStore.setSearch(searchData.term);
+          searchStore.setResults(searchData.results);
         }
         break;
     }
@@ -398,21 +392,12 @@ function App() {
     quoteStore.setSelectedBook(book);
   }
 
-  function onSearchExit() {
-    setSearch(null);
-    setSearchResults({
-      quotes: [],
-      books: [],
-      authors: []
-    });
-  }
-
   function clearNavigation() {
     appStore.setCurrentScreen(null);
     setSelectedBook(null);
     quoteStore.setSelectedBook(null);
     setSelectedAuthor(null);
-    setSearch(null);
+    searchStore.setSearch(null);
   }
 
   function onNavbarSelection(item: Book | Author) {
@@ -439,7 +424,7 @@ function App() {
       appStore.setSidebarSelectedOption("books");
       setSelectedBook(book);
       quoteStore.setSelectedBook(book);
-      setSearch(null); // Exit search mode
+      searchStore.setSearch(null); // Exit search mode
     }
   }
 
@@ -448,7 +433,7 @@ function App() {
     if (author) {
       appStore.setSidebarSelectedOption("authors");
       setSelectedAuthor(author);
-      setSearch(null); // Exit search mode
+      searchStore.setSearch(null); // Exit search mode
     }
   }
 
@@ -610,7 +595,6 @@ function App() {
 
   // App startup loading
   useEffect(() => {
-    addToast("Loading books and authors...");
     fetchBooksAndAuthors();
     quoteStore.fetchStarredQuotes();
     tagStore.fetchTags();
@@ -706,13 +690,11 @@ function App() {
         navigateToBook={navigateToBook}
       />
     )
-  } else if (search) {
+  } else if (searchStore.search && searchStore.results) {
     mainContent = (
       <SearchScreen
-        search={search}
         books={books}
         authors={authors}
-        searchResults={searchResults}
         updateQuote={updateQuote}
         starQuote={toggleFavouriteQuote}
         removeQuote={deleteQuote}
@@ -788,9 +770,6 @@ function App() {
             canGoForward={canGoForward}
             goBack={goBack}
             goForward={goForward}
-            onSearchExit={onSearchExit}
-            setSearch={setSearch}
-            setSearchResults={setSearchResults}
             onReloadButtonClick={handleAppReload}
           />
 

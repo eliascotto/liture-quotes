@@ -80,7 +80,7 @@ pub struct QuoteTag {
 pub struct QuoteFts {
     pub id: String,
     pub content: Option<String>,
-    pub chapter: Option<String>,
+    pub chapter_id: Option<String>,
     pub chapter_progress: Option<f64>,
     pub starred: Option<i64>,
     pub created_at: NaiveDateTime,
@@ -92,6 +92,7 @@ pub struct QuoteFts {
     pub author_id: Option<String>,
     pub book_title: Option<String>,
     pub author_name: Option<String>,
+    pub tags: Vec<Tag>,
 }
 
 // Metaschema

@@ -94,7 +94,7 @@ export interface QuoteWithTagsRedux extends QuoteRedux {
 export interface QuoteFts {
   id: string;
   content: string | null;
-  chapter: string | null;
+  chapter_id: string | null;
   chapter_progress: number | null;
   starred: number | null;
   created_at: string;
@@ -106,6 +106,7 @@ export interface QuoteFts {
   author_id: string | null;
   book_title: string | null;
   author_name: string | null;
+  tags: Tag[];
 }
 
 export interface SortOption {
@@ -136,7 +137,7 @@ export interface AppSettings {
 } 
 
 export interface SearchResults {
-  quotes: Quote[];
+  quotes: QuoteFts[];
   books: Book[];
   authors: Author[];
 }

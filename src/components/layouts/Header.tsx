@@ -29,9 +29,6 @@ type HeaderProps = {
   selectedAuthor: Author | null,
   showingStarred: boolean,
   setShowingStarred: (showing: boolean) => void,
-  setSearch: (search: string) => void,
-  setSearchResults: (results: any) => void,
-  onSearchExit: () => void,
   onReloadButtonClick: () => void,
 }
 
@@ -46,9 +43,6 @@ function Header({
   selectedAuthor,
   showingStarred,
   setShowingStarred,
-  setSearch,
-  setSearchResults,
-  onSearchExit,
   onReloadButtonClick,
 }: HeaderProps) {
   const appStore = useAppStore();
@@ -154,13 +148,7 @@ function Header({
             <StarStroke fill={showingStarred ? "currentColor" : "none"} className="h-4 w-4" />
           </HeaderButton>
         </Tooltip>
-        <SearchBox
-          onSearch={(searchTerm: string, results: any) => {
-            setSearch(searchTerm);
-            setSearchResults(results);
-          }}
-          onExit={onSearchExit}
-        />
+        <SearchBox />
       </div>
     </header>
   );

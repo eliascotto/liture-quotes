@@ -5,8 +5,7 @@
     - https://tailwindcss.com/docs/theme
     - https://github.com/shadcn-ui/ui/blob/main/apps/v4/app/themes.css
 *************************/
-.theme-default 
-{
+.theme-default {
   /************************
     Typography
   *************************/
@@ -94,9 +93,8 @@
   --------------*/
 
   /* slate-500 */
-  --main-background: linear-gradient(
-    oklab(0.279 -0.007098 -0.040381 / 0.9) 0%, 
-    oklab(0.208 -0.003109 -0.041885 / 0.9) 100%);
+  --main-background: linear-gradient(oklab(0.279 -0.007098 -0.040381 / 0.9) 0%,
+      oklab(0.208 -0.003109 -0.041885 / 0.9) 100%);
   /* slate-900 */
   --main-foreground: oklch(0.208 0.042 265.755);
 
@@ -118,7 +116,7 @@
   --menu-text-size: 14px;
   /* white */
   --menu-selected: white;
-  
+
   /*--------------
     Header
   --------------*/
@@ -150,16 +148,16 @@
   --sidebar-icon-active-background: oklch(0.372 0.044 257.287 / 0.2);
 
   /* slate-300 */
-  --sidebar-item:oklch(0.869 0.022 252.894);
+  --sidebar-item: oklch(0.869 0.022 252.894);
   /* white */
   --sidebar-item-hover: white;
   /* slate-600 */
   --sidebar-item-empty: oklch(0.446 0.043 257.281);
 
   /* cyan-400 */
-  --sidebar-resize-handle-shadow-hover: 0 0 5px rgba(34,211,238,0.4);
+  --sidebar-resize-handle-shadow-hover: 0 0 5px rgba(34, 211, 238, 0.4);
   /* cyan-400 */
-  --sidebar-resize-handle-shadow-active: 0 0 8px rgba(34,211,238,0.6);
+  --sidebar-resize-handle-shadow-active: 0 0 8px rgba(34, 211, 238, 0.6);
 
   /*--------------
     Search
@@ -178,12 +176,14 @@
 
   /* slate-800 */
   --tooltip-background: oklch(0.279 0.041 260.031);
-  /* slate-600 */
-  --tooltip-overbackground: oklch(0.446 0.043 257.281 / 0.5);
   /* slate-300 */
   --tooltip-foreground: oklch(0.869 0.022 252.894);
   /* slate-700 */
   --tooltip-border: oklch(0.372 0.044 257.287 / 0.5);
+  /* slate-600 */
+  --tooltip-shortcut-background: oklch(0.446 0.043 257.281 / 0.5);
+  /* slate-500 */
+  --tooltip-shortcut-border: oklch(0.554 0.046 257.417 / 0.5);
 
   /*--------------
     Popovers
@@ -249,12 +249,10 @@
   --footer-background: oklch(0.208 0.042 265.755);
   /* slate-700 */
   --footer-border: oklch(0.372 0.044 257.287 / 0.3);
-  
-}
-
-.theme-default-dark {
 
 }
+
+.theme-default-dark {}
 
 @theme inline {
   --color-background: var(--background);
@@ -278,9 +276,10 @@
   --color-main-foreground: var(--main-foreground);
 
   --color-tooltip: var(--tooltip-background);
-  --color-tooltip-overbackground: var(--tooltip-overbackground);
   --color-tooltip-foreground: var(--tooltip-foreground);
   --color-tooltip-border: var(--tooltip-border);
+  --color-tooltip-shortcut-background: var(--tooltip-shortcut-background);
+  --color-tooltip-shortcut-border: var(--tooltip-shortcut-border);
 
   --color-menu: var(--menu-background);
   --color-menu-foreground: var(--menu-foreground);
@@ -329,5 +328,5 @@
   --color-footer-border: var(--footer-border);
 
   --text-size-menu: var(--menu-text-size);
-  
+
 }

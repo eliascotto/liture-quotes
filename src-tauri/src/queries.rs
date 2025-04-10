@@ -410,29 +410,69 @@ pub async fn find_quotes<'e, E>(search: &str, executor: E) -> Result<Vec<QuoteFt
 where
     E: Executor<'e, Database = Sqlite>,
 {
-    sqlx::query_as::<_, QuoteFts>(
-        r#"SELECT 
-                q.id, 
-                q.content,
-                q.chapter_id,
-                q.chapter_progress,
-                q.starred,
-                q.created_at,
-                q.updated_at,
-                q.deleted_at,
-                q.imported_at,
-                q.original_id,
-                q.book_id,
-                q.author_id,
-                fts.book_title,
-                fts.author_name
-            FROM quote_fts fts
-            JOIN quote q ON q.id = fts.id
-            WHERE fts.content LIKE ?;"#,
+    let rows = sqlx::query(
+        r#"
+        SELECT 
+            q.id, 
+            q.content,
+            q.chapter_id,
+            q.chapter_progress,
+            q.starred,
+            q.created_at,
+            q.updated_at,
+            q.deleted_at,
+            q.imported_at,
+            q.original_id,
+            q.book_id,
+            q.author_id,
+            fts.book_title,
+            fts.author_name,
+            json_group_array(
+                json_object(
+                    'id', t.id,
+                    'name', t.name,
+                    'color', t.color
+                )
+            ) AS tags_json
+        FROM quote_fts fts
+        JOIN quote q ON q.id = fts.id
+        LEFT JOIN quote_tag qt ON q.id = qt.quote_id
+        LEFT JOIN tag t ON qt.tag_id = t.id
+        WHERE fts.content LIKE ?
+            AND q.deleted_at IS NULL
+        GROUP BY q.id;"#,
     )
     .bind(format!("%{}%", search))
     .fetch_all(executor)
-    .await
+    .await?;
+
+    let quotes = rows
+        .iter()
+        .map(|row| {
+            let tags_json: String = row.get("tags_json");
+            let tags: Vec<Tag> = serde_json::from_str(&tags_json).unwrap_or_default();
+
+            QuoteFts {
+                id: row.get("id"),
+                content: row.get("content"),
+                chapter_id: row.get("chapter_id"),
+                chapter_progress: row.get("chapter_progress"),
+                starred: row.get("starred"),
+                created_at: row.get("created_at"),
+                updated_at: row.get("updated_at"),
+                deleted_at: row.get("deleted_at"),
+                imported_at: row.get("imported_at"),
+                original_id: row.get("original_id"),
+                book_id: row.get("book_id"),
+                author_id: row.get("author_id"),
+                book_title: row.get("book_title"),
+                author_name: row.get("author_name"),
+                tags,
+            }
+        })
+        .collect();
+
+    Ok(quotes)
 }
 
 pub async fn find_quotes_by_book_title<'e, E>(
@@ -443,30 +483,70 @@ pub async fn find_quotes_by_book_title<'e, E>(
 where
     E: Executor<'e, Database = Sqlite>,
 {
-    sqlx::query_as::<_, QuoteFts>(
-        r#"SELECT 
-                q.id, 
-                q.content,
-                q.chapter_id,
-                q.chapter_progress,
-                q.starred,
-                q.created_at,
-                q.updated_at,
-                q.deleted_at,
-                q.imported_at,
-                q.original_id,
-                q.book_id,
-                q.author_id,
-                fts.book_title,
-                fts.author_name
-            FROM quote_fts fts
-            JOIN quote q ON q.id = fts.id
-            WHERE fts.content MATCH ? AND fts.book_title = ?;"#,
+    let rows = sqlx::query(
+        r#"
+        SELECT 
+            q.id, 
+            q.content,
+            q.chapter_id,
+            q.chapter_progress,
+            q.starred,
+            q.created_at,
+            q.updated_at,
+            q.deleted_at,
+            q.imported_at,
+            q.original_id,
+            q.book_id,
+            q.author_id,
+            fts.book_title,
+            fts.author_name,
+            json_group_array(
+                json_object(
+                    'id', t.id,
+                    'name', t.name,
+                    'color', t.color
+                )
+            ) AS tags_json
+        FROM quote_fts fts
+        JOIN quote q ON q.id = fts.id
+        LEFT JOIN quote_tag qt ON q.id = qt.quote_id
+        LEFT JOIN tag t ON qt.tag_id = t.id
+        WHERE fts.content MATCH ? AND fts.book_title = ?
+            AND q.deleted_at IS NULL
+        GROUP BY q.id;"#,
     )
     .bind(search)
     .bind(book_title)
     .fetch_all(executor)
-    .await
+    .await?;
+
+    let quotes = rows
+        .iter()
+        .map(|row| {
+            let tags_json: String = row.get("tags_json");
+            let tags: Vec<Tag> = serde_json::from_str(&tags_json).unwrap_or_default();
+
+            QuoteFts {
+                id: row.get("id"),
+                content: row.get("content"),
+                chapter_id: row.get("chapter_id"),
+                chapter_progress: row.get("chapter_progress"),
+                starred: row.get("starred"),
+                created_at: row.get("created_at"),
+                updated_at: row.get("updated_at"),
+                deleted_at: row.get("deleted_at"),
+                imported_at: row.get("imported_at"),
+                original_id: row.get("original_id"),
+                book_id: row.get("book_id"),
+                author_id: row.get("author_id"),
+                book_title: row.get("book_title"),
+                author_name: row.get("author_name"),
+                tags,
+            }
+        })
+        .collect();
+
+    Ok(quotes)
 }
 
 pub async fn find_quotes_by_author_name<'e, E>(
@@ -477,30 +557,70 @@ pub async fn find_quotes_by_author_name<'e, E>(
 where
     E: Executor<'e, Database = Sqlite>,
 {
-    sqlx::query_as::<_, QuoteFts>(
-        r#"SELECT 
-                q.id, 
-                q.content,
-                q.chapter_id,
-                q.chapter_progress,
-                q.starred,
-                q.created_at,
-                q.updated_at,
-                q.deleted_at,
-                q.imported_at,
-                q.original_id,
-                q.book_id,
-                q.author_id,
-                fts.book_title, 
-                fts.author_name
-            FROM quote_fts fts
-            JOIN quote q ON q.id = fts.id
-            WHERE fts.content MATCH ? AND fts.author_name = ?;"#,
+    let rows = sqlx::query(
+        r#"
+        SELECT 
+            q.id, 
+            q.content,
+            q.chapter_id,
+            q.chapter_progress,
+            q.starred,
+            q.created_at,
+            q.updated_at,
+            q.deleted_at,
+            q.imported_at,
+            q.original_id,
+            q.book_id,
+            q.author_id,
+            fts.book_title, 
+            fts.author_name,
+            json_group_array(
+                json_object(
+                    'id', t.id,
+                    'name', t.name,
+                    'color', t.color
+                )
+            ) AS tags_json
+        FROM quote_fts fts
+        JOIN quote q ON q.id = fts.id
+        LEFT JOIN quote_tag qt ON q.id = qt.quote_id
+        LEFT JOIN tag t ON qt.tag_id = t.id
+        WHERE fts.content MATCH ? AND fts.author_name = ?
+            AND q.deleted_at IS NULL
+        GROUP BY q.id;"#,
     )
     .bind(search)
     .bind(author_name)
     .fetch_all(executor)
-    .await
+    .await?;
+
+    let quotes = rows
+        .iter()
+        .map(|row| {
+            let tags_json: String = row.get("tags_json");
+            let tags: Vec<Tag> = serde_json::from_str(&tags_json).unwrap_or_default();
+
+            QuoteFts {
+                id: row.get("id"),
+                content: row.get("content"),
+                chapter_id: row.get("chapter_id"),
+                chapter_progress: row.get("chapter_progress"),
+                starred: row.get("starred"),
+                created_at: row.get("created_at"),
+                updated_at: row.get("updated_at"),
+                deleted_at: row.get("deleted_at"),
+                imported_at: row.get("imported_at"),
+                original_id: row.get("original_id"),
+                book_id: row.get("book_id"),
+                author_id: row.get("author_id"),
+                book_title: row.get("book_title"),
+                author_name: row.get("author_name"),
+                tags,
+            }
+        })
+        .collect();
+
+    Ok(quotes)
 }
 
 /// Find books by title

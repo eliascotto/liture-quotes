@@ -3,14 +3,12 @@ import { invoke } from "@tauri-apps/api/core"
 import SearchIcon from "./icons/Search"
 import XMarkIcon from "./icons/XMark"
 import clsx from "clsx"
+import { useSearchStore } from "@stores/search"
 
-type SearchBoxProps = {
-  onSearch: (search: string, results: any) => void,
-  onExit: () => void
-}
 
-function SearchBox({ onSearch, onExit }: SearchBoxProps) {
-  const [search, setSearch] = useState("")
+function SearchBox() {
+  const searchStore = useSearchStore();
+  
   const [isFocused, setIsFocused] = useState(false)
   const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null)
 
@@ -22,46 +20,38 @@ function SearchBox({ onSearch, onExit }: SearchBoxProps) {
     setIsFocused(false)
   }
 
+  const handleClear = () => {
+    searchStore.setSearch(null);
+    searchStore.setResults(null);
+  }
+
   // Handle search changes with debounce
   useEffect(() => {
     if (searchTimeout) {
       clearTimeout(searchTimeout)
     }
 
-    if (search === "") {
-      onExit();
+    if (searchStore.search === "") {
+      searchStore.setSearch(null);
+      searchStore.setResults(null);
+      return;
+    }
+
+    if (searchStore.search && searchStore.search.length < 3) {
       return;
     }
 
     // Debounce search to avoid too many requests
     const timeout = setTimeout(async () => {
-      try {
-        // Search notes
-        const quotesResults = await invoke("search_quotes", { search });
-
-        // Search books by title
-        const booksResults = await invoke("search_books_by_title", { search });
-
-        // Search authors by name
-        const authorsResults = await invoke("search_authors_by_name", { search });
-
-        // Combine all results
-        onSearch(search, {
-          quotes: quotesResults,
-          books: booksResults,
-          authors: authorsResults
-        });
-      } catch (error) {
-        console.error("Search error:", error);
-      }
-    }, 300);
+      await searchStore.searchBy();
+    }, 600); // 1 second debounce
 
     setSearchTimeout(timeout);
 
     return () => {
       if (timeout) clearTimeout(timeout);
     };
-  }, [search]);
+  }, [searchStore.search]);
 
   return (
     <form
@@ -79,10 +69,10 @@ function SearchBox({ onSearch, onExit }: SearchBoxProps) {
           "transition-all duration-200 placeholder:text-sidebar-item-empty select-none",
           isFocused && "w-72"
         )}
-        value={search}
+        value={searchStore.search || ""}
         onFocus={handleFocus}
         onBlur={handleBlur}
-        onChange={(e) => setSearch(e.currentTarget.value)}
+        onChange={(e) => searchStore.setSearch(e.currentTarget.value)}
         onKeyDown={(e) => {
           if (e.key === "Escape") {
             e.preventDefault()
@@ -90,12 +80,13 @@ function SearchBox({ onSearch, onExit }: SearchBoxProps) {
           }
         }}
         placeholder="Search..."
+        autoComplete="off"
       />
-      {search && (
+      {searchStore.search && (
         <button
           type="button"
           className="absolute right-2.5 text-sidebar-foreground hover:text-sidebar-item-hover p-1 rounded-full hover:bg-sidebar-icon-hover-background cursor-pointer transition-colors duration-200"
-          onClick={() => setSearch("")}
+          onClick={handleClear}
           aria-label="Clear search"
         >
           <XMarkIcon />
