@@ -1,6 +1,10 @@
 /************************
   Light theme (default)
 
+  TODO: unify the colors with a series of main variables to reuse.
+  So for example select-option-border -> border so var(--border)
+  Almost all borders should be a default, same as inputs, backgrounds, etc.
+
   References: 
     - https://tailwindcss.com/docs/theme
     - https://github.com/shadcn-ui/ui/blob/main/apps/v4/app/themes.css
@@ -10,8 +14,9 @@
     Typography
   *************************/
 
-  --font-family-base: -apple-system, BlinkMacSystemFont, "avenir next", avenir, "segoe ui", "helvetica neue",
-    helvetica, Cantarell, Ubuntu, roboto, noto, arial, sans-serif;
+  --font-family-base: -apple-system, BlinkMacSystemFont, "avenir next", avenir,
+   "segoe ui", "helvetica neue", helvetica, Cantarell, Ubuntu, roboto, noto,
+    arial, sans-serif;
 
   /************************
     Base colors
@@ -186,6 +191,22 @@
   --tooltip-shortcut-border: oklch(0.554 0.046 257.417 / 0.5);
 
   /*--------------
+    Select
+  --------------*/
+
+  /* slate-700 */
+  --select-background: oklch(0.372 0.044 257.287 / 0.5);
+  /* slate-600 */
+  --select-border: oklch(0.446 0.043 257.281);
+  /* slate-200 */
+  --select-foreground: oklch(0.929 0.013 255.508);
+  /* slate-400 */
+  --select-option-foreground: oklch(0.704 0.04 256.788);
+  /* slate-800 */
+  --select-option-background: oklch(0.279 0.041 260.031);
+  
+
+  /*--------------
     Popovers
   --------------*/
 
@@ -199,7 +220,7 @@
   --------------*/
 
   /* slate-700 */
-  --input-background: oklch(0.372 0.044 257.287 / 0.7);
+  --input-background: oklch(0.372 0.044 257.287 / 0.5);
   /* slate-300 */
   --input-foreground: oklch(0.869 0.022 252.894);
   /* slate-400 */
@@ -244,6 +265,22 @@
   /* white */
   --editable-box-button-foreground-hover: oklch(0.985 0 0);
 
+  /*--------------
+    Dialog
+  --------------*/
+
+  /* slate-900 */
+  --dialog-overlay: oklch(0.208 0.042 265.755 / 0.7);
+  /* slate-800 */
+  --dialog-background: oklch(0.279 0.041 260.031);
+  /* slate-700 */
+  --dialog-border: oklch(0.372 0.044 257.287 / 0.5);
+  /* slate-200 */
+  --dialog-foreground: oklch(0.929 0.013 255.508);
+  /* slate-400 */
+  --dialog-cancel-button: oklch(0.704 0.04 256.788);
+  /* slate-200 */
+  --dialog-cancel-button-hover: oklch(0.929 0.013 255.508);
 
   /*--------------
     Generic Box
@@ -382,6 +419,17 @@
   
   --color-footer: var(--footer-background);
   --color-footer-border: var(--footer-border);
+
+  --color-dialog-overlay: var(--dialog-overlay);
+  --color-dialog-background: var(--dialog-background);
+  --color-dialog-border: var(--dialog-border);
+  --color-dialog-foreground: var(--dialog-foreground);
+
+  --color-select: var(--select-background);
+  --color-select-foreground: var(--select-foreground);
+  --color-select-border: var(--select-border);
+  --color-select-option-background: var(--select-option-background);
+  --color-select-option-foreground: var(--select-option-foreground);
 
   --text-size-menu: var(--menu-text-size);
 

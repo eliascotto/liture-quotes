@@ -124,7 +124,7 @@ function Dialog({ isOpen, onClose, title, children }: DialogProps) {
     <>
       {/* Backdrop overlay with enhanced blur */}
       <div 
-        className={`fixed inset-0 bg-slate-900/70 backdrop-blur-md z-[9999] transition-opacity duration-300 ${
+        className={`fixed inset-0 bg-dialog-overlay backdrop-blur-md z-[9999] transition-opacity duration-300 ${
           isExiting ? 'opacity-0' : 'opacity-100'
         }`}
         aria-hidden="true"
@@ -143,18 +143,21 @@ function Dialog({ isOpen, onClose, title, children }: DialogProps) {
         <div 
           ref={dialogRef}
           className={clsx(
-            "bg-slate-800 border border-slate-700/50 rounded-md shadow-2xl w-full max-w-md",
+            "bg-dialog-background border border-dialog-border rounded-md shadow-2xl w-full max-w-md",
             "transition-all duration-300 transform",
             isExiting ? "scale-95 opacity-0" : "scale-100 opacity-100"
           )}
         >
-          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-700/50 bg-slate-800/90">
-            <h2 id="dialog-title" className="text-md font-medium text-slate-200">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-dialog-border bg-dialog-background/90">
+            <h2 id="dialog-title" className="text-md font-medium text-dialog-foreground">
               {title}
             </h2>
             <button
               onClick={handleClose}
-              className="text-slate-400 hover:text-slate-200 transition-colors outline-none focus:outline-none rounded-full p-1"
+              className={clsx(
+                "text-dialog-cancel-button hover:text-dialog-cancel-button-hover transition-colors outline-none",
+                "focus:outline-none rounded-full p-1",
+              )}
               aria-label="Close"
             >
               <XIcon className="w-4 h-4" />

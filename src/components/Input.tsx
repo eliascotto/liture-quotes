@@ -43,7 +43,7 @@ export default function Input({
         className={clsx(
           "w-full px-3 py-2 bg-input border border-input-border rounded-md",
           "text-sm text-input-foreground placeholder-input-placeholder",
-          "focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent",
+          "focus:outline-none focus:ring-2 focus:ring-brand-primary-dark focus:border-transparent",
           "transition-all duration-200",
           {
             "opacity-50 cursor-not-allowed": disabled

@@ -61,9 +61,9 @@ export default function DualSortMenu({
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={clsx(
-          "flex items-center space-x-2 px-3 py-1.5 rounded-md text-sm text-slate-300",
-          "hover:bg-slate-700/90 transition-colors",
-          isOpen ? "bg-slate-700/90" : "bg-transparent"
+          "flex items-center space-x-2 px-3 py-1.5 rounded-md text-sm text-muted",
+          "hover:bg-background/90 transition-colors",
+          isOpen ? "bg-background/90" : "bg-transparent"
         )}
       >
         <span>{getCurrentSortLabel()}</span>
@@ -74,22 +74,23 @@ export default function DualSortMenu({
 
       {isOpen && (
         <div className={clsx(
-          "absolute top-full right-0 mt-1 w-48 rounded-md shadow-lg bg-slate-800 ring-1 ring-black/5 z-50",
-          "border border-slate-700/50 border border-slate-700/50"
+          "absolute top-full right-0 mt-1 w-48 rounded-md shadow-lg bg-menu ring-1 ring-black/5 z-50",
+          "border border-menu-border"
         )}>
           <div className="py-1">
-            <div className="px-3 py-2 text-xs font-medium text-slate-400 uppercase tracking-wider">
+            <div className="px-3 py-2 text-xs font-medium text-foreground uppercase tracking-wider">
               {sortLabels?.primary ? sortLabels.primary : "Primary Sort"}
             </div>
             {sortByFields?.primary.map((field) => (
               <button
                 key={`primary-${field}`}
                 onClick={() => handlePrimarySortChange(field)}
-                className={`w-full text-left px-3 py-2 text-sm ${
+                className={clsx(
+                  "w-full text-left px-3 py-2 text-sm",
                   primarySort.field === field
-                    ? "bg-cyan-600 text-white"
-                    : "text-slate-300 hover:bg-slate-700"
-                }`}
+                    ? "bg-brand-secondary text-menu-selected"
+                    : "text-menu-foreground hover:bg-menu-hover hover:text-menu-foreground-hover"
+                )}
               >
                 <div className="flex items-center justify-between">
                   <span>{getSortLabel(field)}</span>
@@ -100,20 +101,21 @@ export default function DualSortMenu({
               </button>
             ))}
             
-            <hr className="my-2 border-slate-700" />
+            <hr className="my-2 border-menu-border" />
             
-            <div className="px-3 py-2 text-xs font-medium text-slate-400 uppercase tracking-wider">
+            <div className="px-3 py-2 text-xs font-medium text-foreground uppercase tracking-wider">
               {sortLabels?.secondary ? sortLabels.secondary : "Secondary Sort"}
             </div>
             {sortByFields?.secondary.map((field) => (
               <button
                 key={`secondary-${field}`}
                 onClick={() => handleSecondarySortChange(field)}
-                className={`w-full text-left px-3 py-2 text-sm ${
+                className={clsx(
+                  "w-full text-left px-3 py-2 text-sm",
                   secondarySort.field === field
-                    ? "bg-cyan-600 text-white"
-                    : "text-slate-300 hover:bg-slate-700"
-                }`}
+                    ? "bg-brand-secondary text-menu-selected"
+                    : "text-menu-foreground hover:bg-menu-hover hover:text-menu-foreground-hover"
+                )}
               >
                 <div className="flex items-center justify-between">
                   <span>{getSortLabel(field)}</span>

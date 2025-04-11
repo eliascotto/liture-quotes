@@ -61,21 +61,21 @@ export default function Select({
         id={id}
         onClick={() => !disabled && setIsOpen(!isOpen)}
         className={clsx(
-          "w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-md",
-          "text-sm text-left text-slate-200 flex items-center justify-between",
-          "focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent",
+          "w-full px-3 py-2 bg-select border border-select-border rounded-md",
+          "text-sm text-left text-select-foreground flex items-center justify-between",
+          "focus:outline-none focus:ring-2 focus:brand-primary-dark focus:border-transparent",
           "transition-all duration-200",
           {
             "opacity-50 cursor-not-allowed": disabled,
             "cursor-pointer": !disabled,
-            "ring-2 ring-cyan-500 border-transparent": isOpen
+            "ring-2 ring-brand-primary-dark border-transparent": isOpen
           }
         )}
         type="button"
         disabled={disabled}
       >
         <span className={clsx(
-          { "text-slate-400": !selectedOption }
+          { "text-select-option-foreground": !selectedOption }
         )}>
           {selectedOption ? selectedOption.name : placeholder}
         </span>
@@ -85,7 +85,7 @@ export default function Select({
       {isOpen && (
         <div className={clsx(
           "absolute top-full left-0 right-0 mt-1 overflow-y-auto rounded-md",
-          "shadow-lg bg-slate-800 border border-slate-700/50 z-50",
+          "shadow-lg bg-select-option-background border border-select z-50",
           "transition-all duration-200 animate-fadeIn",
           sizeClass && sizeClass,
           maxHeightPx && `max-h-[${maxHeightPx}px]`
@@ -101,8 +101,8 @@ export default function Select({
                 className={clsx(
                   "w-full text-left px-3 py-2 text-sm",
                   option.id === value
-                    ? "bg-cyan-600 text-white"
-                    : "text-slate-300 hover:bg-slate-700"
+                    ? "bg-brand-primary-dark text-white"
+                    : "text-input-foreground hover:bg-background"
                 )}
               >
                 {option.name}
@@ -113,7 +113,7 @@ export default function Select({
       )}
       
       {error && (
-        <p className="mt-1 text-sm text-red-400">{error}</p>
+        <p className="mt-1 text-sm text-input-error">{error}</p>
       )}
     </div>
   );
