@@ -130,6 +130,7 @@ function BookScreen({
         onEdit={(content) => quoteStore.updateQuote({ ...quote, content })}
         onRemove={() => handleRemoveQuote(quote)}
         onNoteEdit={updateNote}
+        onTagUpdate={() => quoteStore.fetchQuotes()}
         scrollContainerRef={pageContainerRef}
       />
     ))

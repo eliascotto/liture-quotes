@@ -54,8 +54,8 @@
     Borders and inputs
   *************************/
 
-  /* slate-400 */
-  --border: oklch(0.704 0.04 256.788);
+  /* slate-700 */
+  --generic-border: oklch(0.372 0.044 257.287 / 0.3);
   /* slate-300 */
   --input: oklch(0.869 0.022 252.894);
   /* cyan-400 */
@@ -229,17 +229,55 @@
   /* slate-700 */
   --quote-box-selected: oklch(0.372 0.044 257.287 / 0.2);
   /* slate-600 */
-  --quote-box-border: oklch(0.446 0.043 257.281 / 0.7);
+  --quote-box-border: oklch(0.446 0.043 257.281 / 0.5);
+
+  /* slate-800 */
+  --editable-box-background: oklch(0.279 0.041 260.031 / 0.8);
+  /* white */
+  --editable-box-foreground: oklch(0.985 0 0);
+  /* slate-600 */
+  --editable-box-border: oklch(0.446 0.043 257.281 / 0.5);
+  /* slate-700 */
+  --editable-box-separator: oklch(0.372 0.044 257.287 / 0.3);
+  /* slate-400 */
+  --editable-box-button-foreground: oklch(0.704 0.04 256.788 / 0.7);
+  /* white */
+  --editable-box-button-foreground-hover: oklch(0.985 0 0);
+
+
+  /*--------------
+    Generic Box
+  --------------*/
+
+  /* slate-800 */
+  --box-background: oklch(0.279 0.041 260.031 / 0.4);
+  /* slate-800 */
+  --box-background-hover: oklch(0.279 0.041 260.031 / 0.6);
+  /* slate-300 */
+  --box-foreground: oklch(0.869 0.022 252.894);
+  /* slate-700 */
+  --box-border: oklch(0.372 0.044 257.287 / 0.3);
+  /* slate-500 */
+  --box-border-hover: oklch(0.715 0.143 215.221 / 0.3);
+  
 
   /*--------------
     Tags
   --------------*/
 
   /* slate-600 */
-  --tag-fill: oklch(0.446 0.043 257.281);
+  --tag-icon-fill: oklch(0.446 0.043 257.281);
   /* slate-500 */
-  --tag-fill-hover: oklch(0.554 0.046 257.417);
+  --tag-icon-fill-hover: oklch(0.554 0.046 257.417);
 
+  /* slate-700 */
+  --tag-background: oklch(0.372 0.044 257.287 / 0.5);
+  /* slate-600 */
+  --tag-background-hover:  oklch(0.446 0.043 257.281 / 0.7);
+  /* slate-400 */
+  --tag-foreground: oklch(0.704 0.04 256.788);
+  /* slate-300 */
+  --tag-foreground-hover: oklch(0.869 0.022 252.894);
 
   /*--------------
     Footer
@@ -260,6 +298,8 @@
 
   --color-title: var(--title);
   --color-subtitle: var(--subtitle);
+
+  --color-generic-border: var(--generic-border);
 
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
@@ -321,9 +361,25 @@
   --color-quote-box-selected: var(--quote-box-selected);
   --color-quote-box-border: var(--quote-box-border);
 
-  --color-tag-fill: var(--tag-fill);
-  --color-tag-fill-hover: var(--tag-fill-hover);
+  --color-tag-icon-fill: var(--tag-icon-fill);
+  --color-tag-icon-fill-hover: var(--tag-icon-fill-hover);
+  --color-tag-background: var(--tag-background);
+  --color-tag-background-hover: var(--tag-background-hover);
+  --color-tag-foreground: var(--tag-foreground);
+  --color-tag-foreground-hover: var(--tag-foreground-hover);
 
+  --color-box-background: var(--box-background);
+  --color-box-background-hover: var(--box-background-hover);
+  --color-box-foreground: var(--box-foreground);
+  --color-box-border: var(--box-border);
+  --color-box-border-hover: var(--box-border-hover);
+
+  --color-editable-box-background: var(--editable-box-background);
+  --color-editable-box-border: var(--editable-box-border);
+  --color-editable-box-separator: var(--editable-box-separator);
+  --color-editable-box-button-foreground: var(--editable-box-button-foreground);
+  --color-editable-box-button-foreground-hover: var(--editable-box-button-foreground-hover);
+  
   --color-footer: var(--footer-background);
   --color-footer-border: var(--footer-border);
 

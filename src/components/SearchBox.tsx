@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react"
-import { invoke } from "@tauri-apps/api/core"
 import SearchIcon from "./icons/Search"
 import XMarkIcon from "./icons/XMark"
-import clsx from "clsx"
-import { useSearchStore } from "@stores/search"
-
+import clsx from "clsx" 
+import { useAppStore, useSearchStore } from "@stores/index";
 
 function SearchBox() {
+  const appStore = useAppStore();
   const searchStore = useSearchStore();
   
   const [isFocused, setIsFocused] = useState(false)
@@ -23,6 +22,7 @@ function SearchBox() {
   const handleClear = () => {
     searchStore.setSearch(null);
     searchStore.setResults(null);
+    appStore.setCurrentScreen(null);
   }
 
   // Handle search changes with debounce
@@ -31,13 +31,14 @@ function SearchBox() {
       clearTimeout(searchTimeout)
     }
 
-    if (searchStore.search === "") {
-      searchStore.setSearch(null);
-      searchStore.setResults(null);
-      return;
+    if (!searchStore.search || searchStore.search === "") {
+      return handleClear();
     }
 
+    appStore.setCurrentScreen('search');
+
     if (searchStore.search && searchStore.search.length < 3) {
+      searchStore.setResults(null);
       return;
     }
 

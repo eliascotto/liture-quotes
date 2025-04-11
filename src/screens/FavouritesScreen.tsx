@@ -143,7 +143,7 @@ function FavouritesScreen({
                   <Tooltip content={book.title} usePortal>
                     <button
                       onClick={() => navigateToBook(book.id)}
-                      className="text-lg font-medium text-slate-200 hover:text-cyan-400 transition-colors duration-200 truncate max-w-[90%] cursor-pointer truncate text-ellipsis"
+                      className="text-lg font-medium text-slate-200 hover:text-cyan-400 transition-colors duration-200 cursor-pointer"
                     >
                       {cleanText(book.title)}
                     </button>
@@ -166,6 +166,7 @@ function FavouritesScreen({
                       onEdit={(content) => updateQuote({ ...quote, content })}
                       onStarClick={() => handleStarClick(quote)}
                       onRemove={() => removeQuote(quote)}
+                      onTagUpdate={() => quoteStore.fetchStarredQuotes()}
                       scrollContainerRef={scrollContainerRef}
                     />
                   ))}

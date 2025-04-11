@@ -4,6 +4,7 @@ import { Book, Author, Quote, QuoteFts, QuoteWithTagsRedux } from "@customTypes/
 import Footer from "@components/Footer";
 import { useSearchStore } from "@stores/search";
 import { useQuoteStore } from "@stores/quotes";
+import clsx from "clsx";
 
 type SearchScreenProps = {
   books: Book[],
@@ -97,7 +98,10 @@ function SearchScreen(props: SearchScreenProps) {
                 return (
                   <div
                     key={`book-result-${book.id}`}
-                    className="bg-slate-800/40 rounded-md p-3 border border-slate-700/30 hover:border-cyan-500/30 hover:bg-slate-800/60 cursor-pointer transition-all duration-200"
+                    className={clsx(
+                      "bg-slate-800/40 rounded-md p-3 border border-slate-700/30 hover:border-cyan-500/30",
+                      "hover:bg-slate-800/60 cursor-pointer transition-all duration-200"
+                    )}
                     onClick={(e) => {
                       e.stopPropagation();
                       props.navigateToBook(book.id);
@@ -207,6 +211,7 @@ function SearchScreen(props: SearchScreenProps) {
                       onStarClick={() => handleStarClick(quote)}
                       onEdit={(content) => updateQuote({ ...quote, content })}
                       onRemove={() => removeQuote(quote)}
+                      onTagUpdate={() => searchStore.searchBy()}
                       scrollContainerRef={scrollContainerRef}
                     />
                   </div>
@@ -216,10 +221,16 @@ function SearchScreen(props: SearchScreenProps) {
           </div>
         )}
 
-        {!hasResults && (
+        {!hasResults && searchStore.search?.length && searchStore.search.length > 2 && (
           <div className="text-center py-10">
             <div className="text-slate-500 text-lg mb-2">No results found</div>
             <div className="text-slate-400 text-sm">Try a different search term</div>
+          </div>
+        )}
+        {!hasResults && searchStore.search?.length && searchStore.search.length < 3 && (
+          <div className="text-center py-10">
+            <div className="text-slate-500 text-lg mb-2">Search term too short</div>
+            <div className="text-slate-400 text-sm">Please enter at least 3 characters</div>
           </div>
         )}
       </div>

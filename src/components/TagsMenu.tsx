@@ -16,6 +16,7 @@ type TagsMenuProps = {
   quoteId: string;
   className?: string;
   onOpenChange?: (open: boolean) => void;
+  onTagUpdate?: () => void;
 };
 
 const TagsMenu = ({
@@ -24,6 +25,7 @@ const TagsMenu = ({
   quoteId,
   className,
   onOpenChange,
+  onTagUpdate,
 }: TagsMenuProps) => {
   const appStore = useAppStore();
   const tagStore = useTagStore();
@@ -51,24 +53,19 @@ const TagsMenu = ({
     let newTag = await tagStore.addTag(tagName);
     await tagStore.addTagToQuote(quoteId, newTag.id);
     quoteStore.fetchQuotes();
+    onTagUpdate?.();
   };
 
   const addTagToQuote = async (tagId: string) => {
     await tagStore.addTagToQuote(quoteId, tagId);
     quoteStore.fetchQuotes();
-
-    if (appStore.currentScreen === 'tag') {
-      quoteStore.fetchQuotesByTag(null);
-    }
+    onTagUpdate?.();
   };
 
   const onRemoveTag = async (tagId: string) => {
     await tagStore.deleteTagFromQuote(quoteId, tagId);
     quoteStore.fetchQuotes();
-
-    if (appStore.currentScreen === 'tag') {
-      quoteStore.fetchQuotesByTag(null);
-    }
+    onTagUpdate?.();
   };
 
   const handleAddTag = (e: React.FormEvent) => {
@@ -94,8 +91,8 @@ const TagsMenu = ({
 
   const trigger = (
     <div className={clsx(
-      "flex flex-row items-center gap-0.5 hover:fill-tag-fill-hover fill-tag-fill",
-      "text-tag-fill hover:text-tag-fill-hover"
+      "flex flex-row items-center gap-0.5 hover:fill-tag-icon-fill-hover fill-tag-icon-fill",
+      "text-tag-icon-fill hover:text-tag-icon-fill-hover"
     )}>
       <TagFill className="w-3.5 h-3.5" />
       <span className="text-xs font-semibold">{tags.length}</span>

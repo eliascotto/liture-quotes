@@ -66,18 +66,18 @@ export default function EditableQuoteBox({
     <div
       ref={editableBoxRef}
       id={quote.id}
-      className="bg-slate-800/80 shadow-lg rounded-sm border border-slate-600/50 pt-3 pb-2 px-5 backdrop-blur-sm select-none"
+      className="bg-editable-box-background shadow-lg rounded-sm border border-editable-box-border pt-3 pb-2 px-5 backdrop-blur-sm select-none"
     >
       <textarea
         ref={textareaRef}
-        className="outline-none bg-transparent w-full resize-none text-slate-200 focus:text-white transition-colors duration-200"
+        className="outline-none bg-transparent w-full resize-none text-editable-box-foreground transition-colors duration-200"
         autoFocus
         value={currentText ?? ""}
         onChange={(e) => setCurrentText(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
       />
-      <div className="flex justify-between items-center mt-0 border-t border-slate-700/30 pt-2 mt-1">
+      <div className="flex justify-between items-center mt-0 border-t border-editable-box-separator pt-2 mt-1">
         {tags && tags.length > 0 ? (
           <div className="flex flex-wrap gap-1">
             {tags.map((tag) => (
@@ -97,7 +97,7 @@ export default function EditableQuoteBox({
           <Tooltip content="Cancel quote" shortcut="Esc">
             <button
               onClick={onCancel}
-              className="px-3 py-1.5 text-sm text-slate-400 hover:text-white transition-colors duration-200"
+              className="px-3 py-1.5 text-sm text-editable-box-button-foreground hover:text-editable-box-button-foreground-hover transition-colors duration-200"
             >
               Cancel
             </button>
@@ -105,7 +105,7 @@ export default function EditableQuoteBox({
           <Tooltip content="Save quote" shortcut="⌘ ⏎">
             <button
               onClick={() => onSave(currentText ?? "")}
-              className="px-3 py-1.5 text-sm rounded-sm text-cyan-500 hover:bg-slate-700/50 font-medium transition-colors duration-200"
+              className="px-3 py-1.5 text-sm rounded-sm text-brand-primary-dark hover:bg-quote-box-selected font-medium transition-colors duration-200"
             >
               Save
             </button>

@@ -19,11 +19,12 @@ type QuoteBoxProps = {
   onEdit: (content: string) => void,
   onRemove: () => void,
   onNoteEdit?: (noteId: string, content: string) => void,
+  onTagUpdate?: () => void,
   scrollContainerRef: React.RefObject<HTMLElement | null>,
 }
 
 function QuoteBox({
-  quote, tags, note, onStarClick, onClick, selected, onEdit, onRemove, onNoteEdit,
+  quote, tags, note, onStarClick, onClick, selected, onEdit, onRemove, onNoteEdit, onTagUpdate,
   scrollContainerRef,
 }: QuoteBoxProps) {
   const [editable, setEditable] = useState(false);
@@ -132,6 +133,7 @@ function QuoteBox({
               onOpenChange={setTagsMenuOpen}
               tags={tags}
               quoteId={quote.id}
+              onTagUpdate={onTagUpdate}
             />
           </Tooltip>
         </div>

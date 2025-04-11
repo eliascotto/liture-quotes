@@ -690,7 +690,7 @@ function App() {
         navigateToBook={navigateToBook}
       />
     )
-  } else if (searchStore.search && searchStore.results) {
+  } else if (appStore.currentScreen === 'search') {
     mainContent = (
       <SearchScreen
         books={books}

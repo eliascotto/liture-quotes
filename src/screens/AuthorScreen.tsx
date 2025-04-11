@@ -39,8 +39,8 @@ function AuthorScreen({
                   <div
                     key={`book_${book.id}`}
                     className={clsx(
-                      "p-3 rounded-sm border border-transparent hover:border-quote-box-border min-h-[48px] cursor-pointer",
-                      "hover:bg-quote-box-background/50 transition-all duration-200 group",
+                      "bg-box-background rounded-md p-3 border border-box-border hover:border-box-border-hover",
+                      "hover:bg-box-background-hover cursor-pointer transition-all duration-200"
                     )}
                     onClick={() => onBookSelect(book)}
                   >

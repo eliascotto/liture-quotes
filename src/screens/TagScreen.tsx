@@ -181,6 +181,7 @@ function TagScreen({
                       onEdit={(content) => updateQuote({ ...quote, content })}
                       onStarClick={() => handleStarClick(quote)}
                       onRemove={() => removeQuote(quote)}
+                      onTagUpdate={() => quoteStore.fetchQuotesByTag(null)}
                       scrollContainerRef={scrollContainerRef}
                     />
                   ))}

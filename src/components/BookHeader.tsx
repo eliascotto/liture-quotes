@@ -41,22 +41,28 @@ function EditableTitle({
   };
 
   return (
-    <div ref={editableTitleRef} className="items-center w-full bg-slate-800/80 shadow-lg border border-slate-700/50 pt-3 pb-2 px-5 backdrop-blur-sm">
+    <div 
+      ref={editableTitleRef} 
+      className="items-center w-full bg-editable-box-background shadow-lg border border-editable-box-border pt-3 pb-2 px-5 backdrop-blur-sm rounded-sm"
+      >
       <textarea
         ref={inputRef}
         className={clsx(
-          "bg-transparent w-full text-2xl font-bold outline-none w-full text-white resize-none outline-none leading-[1]"
+          "bg-transparent w-full text-2xl font-bold outline-none w-full text-editable-box-foreground resize-none outline-none leading-[1]"
         )}
         value={currentTitle}
         onChange={(e) => setCurrentTitle(e.target.value)}
         onKeyDown={handleKeyDown}
         autoFocus
       />
-      <div className="flex justify-end mt-0 border-t border-slate-700/30 pt-2">
+      <div className="flex justify-end mt-0 border-t border-editable-box-separator pt-2">
         <Tooltip content="Cancel quote" shortcut="Esc">
           <button
             onClick={onCancel}
-            className="px-3 py-1.5 text-sm rounded-md text-slate-400 hover:text-white transition-colors duration-200"
+            className={clsx(
+              "px-3 py-1.5 text-sm rounded-md text-editable-box-button-foreground",
+              "hover:text-editable-box-button-foreground-hover transition-colors duration-200"
+            )}
           >
             Cancel
           </button>
@@ -64,7 +70,10 @@ function EditableTitle({
         <Tooltip content="Save quote" shortcut="⏎">
           <button
             onClick={() => onSave(currentTitle ?? "")}
-            className="px-3 py-1.5 text-sm rounded-md text-cyan-500 hover:bg-slate-700/50 font-medium transition-colors duration-200"
+            className={clsx(
+              "px-3 py-1.5 text-sm rounded-md text-brand-primary-dark",
+              "hover:bg-quote-box-selected font-medium transition-colors duration-200"
+            )}
           >
             Save
           </button>
@@ -99,7 +108,7 @@ function BookHeader({
 }: BookHeaderProps) 
 {
   return (
-    <div className="px-2 mb-3 pb-3 border-b border-slate-700/30 select-none">
+    <div className="px-2 mb-3 pb-3 border-b border-generic-border select-none">
       {isEditingTitle ? (
         <EditableTitle
           title={book.title}

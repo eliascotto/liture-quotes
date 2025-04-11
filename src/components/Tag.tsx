@@ -15,8 +15,8 @@ function TagComponent({ tag, onRemove, onClick, className, size = 'sm', noCursor
   return (
     <div
       className={clsx(
-        "flex flex-row items-center px-2 py-0.5 bg-quote-box-background rounded-md font-medium text-tag-fill",
-        "hover:bg-quote-box-background/70 hover:text-tag-fill-hover",
+        "flex flex-row items-center px-2 py-0.5 bg-tag-background rounded-md font-medium text-tag-foreground",
+        "hover:bg-tag-background-hover hover:text-tag-foreground-hover",
         noCursor ? "cursor-default" : "cursor-pointer",
         className,
         size === 'sm' && "text-xs",
