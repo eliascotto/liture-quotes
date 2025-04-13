@@ -53,8 +53,8 @@ export function QuoteDropdownMenu({
   const verticalDotsButton = (
     <div className="absolute top-0 right-0 rounded-sm p-0.5 pt-1.5">
       <DotsVertical className={clsx(
-        "h-5 w-5 hover:text-slate-400",
-        isOpen ? "text-slate-400" : "text-slate-500",
+        "h-5 w-5 hover:text-menu-icon-open",
+        isOpen ? "text-menu-icon-open" : "text-menu-icon",
       )} />
     </div>
   );
@@ -71,32 +71,32 @@ export function QuoteDropdownMenu({
     >
       <button
         onClick={onCopy}
-        className="w-full text-left px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition-colors duration-150 flex items-center gap-2"
+        className="w-full text-left px-3 py-1.5 text-sm text-menu-foreground hover:bg-background hover:text-menu-foreground-hover transition-colors duration-150 flex items-center gap-2"
       >
         {withIcons && <CopyIcon />} Copy
       </button>
       <button
         onClick={onEdit}
-        className="w-full text-left px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition-colors duration-150 flex items-center gap-2"
+        className="w-full text-left px-3 py-1.5 text-sm text-menu-foreground hover:bg-background hover:text-menu-foreground-hover transition-colors duration-150 flex items-center gap-2"
       >
         {withIcons && <EditIcon />} Edit
       </button>
       <button
         onClick={onStar}
-        className="w-full text-left px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition-colors duration-150 flex items-center gap-2"
+        className="w-full text-left px-3 py-1.5 text-sm text-menu-foreground hover:bg-background hover:text-menu-foreground-hover transition-colors duration-150 flex items-center gap-2"
       >
         {withIcons && <StarIcon fill={!isStarred} />} {isStarred ? "Unstar" : "Star"}
       </button>
       <button
-        className="w-full text-left px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition-colors duration-150 flex items-center gap-2"
+        className="w-full text-left px-3 py-1.5 text-sm text-menu-foreground hover:bg-background hover:text-menu-foreground-hover transition-colors duration-150 flex items-center gap-2"
         onClick={onTagsOptionClick}
       >
         Tags
       </button>
-      <div className="border-t border-slate-700/50 my-0.5"></div>
+      <div className="border-t border-menu-border my-0.5"></div>
       <button
         onClick={onRemove}
-        className="w-full text-left px-3 py-1.5 text-sm text-red-400 hover:bg-slate-700 transition-colors duration-150 flex items-center gap-2"
+        className="w-full text-left px-3 py-1.5 text-sm text-destructive hover:bg-background transition-colors duration-150 flex items-center gap-2"
       >
         {withIcons && <TrashIcon />} Delete
       </button>

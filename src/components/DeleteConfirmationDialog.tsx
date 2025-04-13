@@ -1,4 +1,4 @@
-import React from 'react';
+import clsx from 'clsx';
 import { useDialog } from '../context/DialogContext.tsx';
 
 type DeleteConfirmationDialogProps = {
@@ -12,8 +12,8 @@ const DeleteConfirmationDialog = ({ itemType, itemName, onConfirm }: DeleteConfi
 
   return (
     <div className="flex flex-col">
-      <p className="text-slate-300 mb-6">
-        {itemName 
+      <p className="text-dialog-foreground mb-6">
+        {itemName
           ? `Are you sure you want to delete "${itemName}"?`
           : `Are you sure you want to delete this ${itemType.toLowerCase()}?`
         }
@@ -21,14 +21,16 @@ const DeleteConfirmationDialog = ({ itemType, itemName, onConfirm }: DeleteConfi
       <div className="flex justify-end space-x-3">
         <button
           type="button"
-          className="px-3 py-1.5 bg-slate-700 text-sm text-white rounded hover:bg-slate-600 transition-colors"
+          className="px-3 py-1.5 bg-dialog-cancel-button text-sm text-dialog-foreground rounded
+                     hover:bg-dialog-cancel-button-hover transition-colors cursor-pointer"
           onClick={closeDialog}
         >
           Cancel
         </button>
         <button
           type="button"
-          className="px-3 py-1.5 bg-red-600 text-sm text-white rounded hover:bg-red-700 transition-colors"
+          className="px-3 py-1.5 bg-dialog-remove-button text-sm text-dialog-foreground rounded 
+                     hover:bg-dialog-remove-button-text-hover transition-colors cursor-pointer"
           onClick={() => {
             onConfirm();
             closeDialog();

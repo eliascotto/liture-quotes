@@ -17,7 +17,7 @@ function TagsScreen() {
   return (
     <div className="flex-1 flex flex-col items-center w-full h-full">
       <div className="flex-1 flex flex-col overflow-y-auto overscroll-none w-full max-w-6xl px-10 lg:px-14 xl:px-20 py-6 min-h-0">
-        <div className="flex flex-row justify-between items-center mb-6 pb-4 border-b border-slate-700/30">
+        <div className="flex flex-row justify-between items-center mb-6 pb-4 border-b border-generic-border">
           <h1 className="text-2xl font-bold text-title">
             Tags
           </h1>

@@ -6,6 +6,7 @@ import Tooltip from "@components/Tooltip";
 import { cleanText } from "@utils/index";
 import SidebarLeft from "@components/icons/SidebarLeft";
 import { usePrimarySidebarStore, useAppStore } from "@stores/index";
+import HeaderButton from "./HeaderButton";
 
 type PrimarySidebarProps = {
   property: string,
@@ -98,7 +99,7 @@ function PrimarySidebar({
   // Handle the navbar collapsing and uncollapsing animation
   useEffect(() => {
     if (!isOpen) {
-      
+
     } else {
       setWidth(lastWidth); // Instantly restore to default width when uncollapsing
       setTimeout(() => setFullyExpanded(true), 100);
@@ -138,46 +139,29 @@ function PrimarySidebar({
 
           {/* Sidebar Collapse Button */}
           <div className="flex items-center ml-[74px]">
-            <button
-              onClick={handleSidebarCollapse}
-              className="px-1.5 py-1.5 text-sidebar-foreground hover:text-brand-primary-dark hover:bg-sidebar-icon-hover-background rounded-md transition-all duration-200"
-            >
+            <HeaderButton onClick={handleSidebarCollapse}>
               <SidebarLeft className="w-4 h-4" />
-            </button>
+            </HeaderButton>
           </div>
 
           <div className="flex w-full justify-end items-center" data-tauri-drag-region>
             {isOpen && (
               <div className="flex space-x-1 select-none">
                 {/* Books Icon */}
-                <button
+                <HeaderButton
                   onClick={() => appStore.setSidebarSelectedOption("books")}
-                  className={clsx(
-                    "px-1.5 py-1 rounded-md transition-all duration-200",
-                    {
-                      "text-brand-primary-dark bg-sidebar-icon-active-background": isBooks,
-                      "text-sidebar-foreground hover:text-brand-primary-dark hover:bg-sidebar-icon-hover-background": !isBooks,
-                    }
-                  )}
-                  title="Books"
+                  isActive={isBooks}
                 >
-                  <BookIcon />
-                </button>
+                  <BookIcon className="w-4.5 h-4.5" />
+                </HeaderButton>
 
                 {/* Authors Icon */}
-                <button
+                <HeaderButton
                   onClick={() => appStore.setSidebarSelectedOption("authors")}
-                  className={clsx(
-                    "px-1.5 py-1 rounded-md transition-all duration-200",
-                    {
-                      "text-brand-primary-dark bg-sidebar-icon-active-background": !isBooks,
-                      "text-sidebar-foreground hover:text-brand-primary-dark hover:bg-sidebar-icon-hover-background": isBooks,
-                    }
-                  )}
-                  title="Authors"
+                  isActive={!isBooks}
                 >
-                  <UsersIcon />
-                </button>
+                  <UsersIcon className="w-4.5 h-4.5" />
+                </HeaderButton>
               </div>
             )}
           </div>

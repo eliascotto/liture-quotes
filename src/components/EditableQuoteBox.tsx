@@ -84,12 +84,13 @@ export default function EditableQuoteBox({
               <TagComponent
                 key={tag.id}
                 tag={tag}
+                size="md"
                 onClick={() => handleTagClick(tag)}
               />
             ))}
           </div>
         ) : (
-          <div className="text-xs italic text-slate-500">
+          <div className="text-xs italic text-muted-foreground">
             {info}
           </div>
         )}

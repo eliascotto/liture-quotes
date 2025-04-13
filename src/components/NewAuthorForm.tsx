@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useDialog } from "../context/DialogContext.tsx";
 import Input from "@components/Input.tsx";
+import Loading from "./icons/Loading.tsx";
 
 interface NewAuthorFormProps {
   onSubmit: (name: string) => Promise<boolean>;
@@ -15,24 +16,24 @@ function NewAuthorForm({ onSubmit, onCancel }: NewAuthorFormProps) {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    
+
     // Validate
     if (!name.trim()) {
       setError("Author name is required");
       return;
     }
-    
+
     if (name.trim().length < 2) {
       setError("Author name must be at least 2 characters");
       return;
     }
-    
+
     // Submit
     setIsSubmitting(true);
-    
+
     try {
       const success = await onSubmit(name.trim());
-      
+
       if (success) {
         // Close dialog on success
         closeDialog();
@@ -54,48 +55,45 @@ function NewAuthorForm({ onSubmit, onCancel }: NewAuthorFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <Input
-        type="text"
-        id="author-name"
-        label="Author Name"
-        value={name}
-        onChange={(e) => {
-          setName(e.target.value);
-          setError("");
-        }}
-        placeholder="Enter author name"
-        autoFocus
-        disabled={isSubmitting}
-      />
-      {error && (
-        <p className="mt-1 text-sm text-red-400">{error}</p>
-      )}
-      
-      <div className="flex justify-end space-x-3 pt-4 mt-4 border-t border-slate-700/30">
+      <div>
+        <Input
+          type="text"
+          id="author-name"
+          label="Author Name"
+          value={name}
+          onChange={(e) => {
+            setName(e.target.value);
+            setError("");
+          }}
+          placeholder="Enter author name"
+          autoFocus
+          disabled={isSubmitting}
+          error={error}
+        />
+      </div>
+
+      <div className="flex justify-end space-x-3 pt-4 mt-4 border-t border-generic-border">
         <button
           type="button"
           onClick={handleCancel}
-          className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm
+          className="px-3 py-1.5 text-sm bg-dialog-cancel-button hover:bg-dialog-cancel-button-hover text-dialog-foreground 
                     rounded-md transition-colors focus:outline-none focus:ring-2 
-                    focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-800"
+                    focus:ring-dialog-cancel-button-ring focus:ring-offset-2 focus:ring-offset-dialog-background cursor-pointer"
           disabled={isSubmitting}
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white text-sm
+          className="px-3 py-1.5 text-sm bg-dialog-action-button hover:bg-dialog-action-button-hover text-white 
                     rounded-md transition-colors focus:outline-none focus:ring-2 
-                    focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-800
-                    flex items-center"
+                    focus:ring-brand-primary focus:ring-offset-2 focus:ring-offset-dialog-background
+                    flex items-center cursor-pointer"
           disabled={isSubmitting}
         >
           {isSubmitting ? (
             <>
-              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
+              <Loading />
               Creating...
             </>
           ) : (

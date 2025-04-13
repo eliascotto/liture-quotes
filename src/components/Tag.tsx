@@ -5,7 +5,7 @@ import clsx from "clsx";
 type TagProps = {
   tag: Tag;
   className?: string;
-  size?: 'sm' | 'lg';
+  size?: 'sm' | 'md' | 'lg';
   noCursor?: boolean;
   onRemove?: () => void;
   onClick?: () => void;
@@ -20,8 +20,10 @@ function TagComponent({ tag, onRemove, onClick, className, size = 'sm', noCursor
         noCursor ? "cursor-default" : "cursor-pointer",
         className,
         size === 'sm' && "text-xs",
+        size === 'md' && "text-sm",
         size === 'lg' && "text-lg",
         size === 'sm' && "gap-1",
+        size === 'md' && "gap-1.5",
         size === 'lg' && "gap-2"
       )}
       onClick={onClick}
@@ -29,6 +31,7 @@ function TagComponent({ tag, onRemove, onClick, className, size = 'sm', noCursor
       <div className={clsx(
         "rounded-full",
         size === 'sm' && "size-2",
+        size === 'md' && "size-2",
         size === 'lg' && "size-2.5"
       )} style={{ backgroundColor: tag.color }}></div>
       {tag.name}

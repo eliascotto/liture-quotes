@@ -133,8 +133,8 @@ const FloatingMenu = ({
       ref={refs.setFloating}
       style={floatingStyles}
       className={clsx(
-        "z-50 min-w-[8rem] rounded-md bg-(--menu-background) shadow-lg ring-1 ring-black/5",
-        "border border-slate-700/50",
+        "z-50 min-w-[8rem] rounded-md bg-menu shadow-lg ring-1 ring-black/5",
+        "border border-menu-border",
         menuClassName
       )}
       {...getFloatingProps()}

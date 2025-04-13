@@ -60,7 +60,7 @@ function SearchBox() {
       onSubmit={(e) => { e.preventDefault() }}
     >
       <div className="absolute left-3 text-sidebar-foreground">
-        <SearchIcon />
+        <SearchIcon className="size-4" />
       </div>
       <input
         className={clsx(

@@ -739,7 +739,7 @@ function App() {
     <div
       className={clsx(
         "bg-transparent flex flex-col m-0 items-center justify-center",
-        "max-h-screen h-screen font-sans text-slate-100 rounded-lg overflow-hidden",
+        "max-h-screen h-screen font-sans text-foreground rounded-lg overflow-hidden",
         currentPlatform === "macos" && [
           "has-blur-effects",
           !windowState.isFullScreen &&

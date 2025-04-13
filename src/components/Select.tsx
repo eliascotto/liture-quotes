@@ -52,7 +52,7 @@ export default function Select({
   return (
     <div className="relative" ref={menuRef}>
       {label && (
-        <label htmlFor={id} className="block text-sm font-medium text-slate-300 mb-1">
+        <label htmlFor={id} className="block text-sm font-medium text-muted mb-1">
           {label}
         </label>
       )}

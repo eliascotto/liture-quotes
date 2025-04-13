@@ -11,9 +11,9 @@ function HeaderButton({ onClick, isActive = false, children }: HeaderButtonProps
     <button
       onClick={onClick}
       className={clsx(
-        "p-1.5 rounded-md transition-colors duration-200",
+        "p-1.5 rounded-md transition-all duration-200",
         isActive
-          ? 'text-brand-primary fill-brand-primary'
+          ? 'text-brand-primary-dark fill-brand-primary-dark hover:bg-header-hover'
           : 'text-header-foreground hover:text-brand-primary hover:bg-header-hover fill-header-foreground'
       )}
     >

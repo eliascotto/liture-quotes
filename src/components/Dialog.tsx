@@ -155,7 +155,7 @@ function Dialog({ isOpen, onClose, title, children }: DialogProps) {
             <button
               onClick={handleClose}
               className={clsx(
-                "text-dialog-cancel-button hover:text-dialog-cancel-button-hover transition-colors outline-none",
+                "text-dialog-cancel-button-text hover:text-dialog-cancel-button-text-hover transition-colors outline-none",
                 "focus:outline-none rounded-full p-1",
               )}
               aria-label="Close"

@@ -108,10 +108,6 @@ const TagsMenu = ({
       menuClassName="w-64"
     >
       <div className="py-2">
-        {/* <div className="px-3 pb-2 text-[10px] font-medium text-slate-400 uppercase tracking-wider">
-          Tags
-        </div> */}
-        
         {/* Add new tag form */}
         <form onSubmit={handleAddTag} className="px-2.5 pb-1">
           <div className="flex items-center gap-2">
@@ -156,14 +152,15 @@ const TagsMenu = ({
 
         {/* New tags list */}
         {filteredTags.length > 0 && (
-          <div className="max-h-48 overflow-y-auto border-t border-slate-600/50 mt-2 pt-2">
+          <div className="max-h-48 overflow-y-auto border-t border-generic-border mt-2 pt-2">
             {filteredTags.map((tag) => (
               <div
                 key={tag.id}
                 onClick={() => handleNewTagClick(tag.id)}
-                className="group flex items-center justify-between px-2 py-1 hover:bg-slate-700/50 cursor-pointer"
+                className="group flex items-center justify-between px-2 py-1 
+                           hover:bg-background/50 cursor-pointer"
               >
-                <span className="text-[13px] text-slate-300">{tag.name}</span>
+                <span className="text-[13px] text-muted">{tag.name}</span>
               </div>
             ))}
           </div>

@@ -3,6 +3,8 @@ import { useDialog } from '@context/DialogContext.tsx';
 import Select from '@components/Select.tsx';
 import Input from '@components/Input.tsx';
 import { Author, NewBookData } from '@customTypes/index';
+import clsx from 'clsx';
+import Loading from '@components/icons/Loading.tsx';
 
 type NewBookFormProps = {
   onSubmit: (bookData: NewBookData) => Promise<boolean>,
@@ -11,10 +13,9 @@ type NewBookFormProps = {
   selectedAuthor: Author | null,
 }
 
-function NewBookForm({ 
-  onSubmit, onCancel, authors, selectedAuthor 
-}: NewBookFormProps) 
-{
+function NewBookForm({
+  onSubmit, onCancel, authors, selectedAuthor
+}: NewBookFormProps) {
   const [title, setTitle] = useState('');
 
   const [authorOption, setAuthorOption] = useState<NewBookData['authorOption']>(
@@ -61,34 +62,34 @@ function NewBookForm({
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!title.trim()) {
       newErrors.title = 'Book title is required';
     } else if (title.trim().length < 2) {
       newErrors.title = 'Book title must be at least 2 characters';
     }
-    
+
     if (authorOption === 'existing' && !authorId) {
       newErrors.authorId = 'Please select an author';
     }
-    
+
     if (authorOption === 'new' && !authorName?.trim()) {
       newErrors.authorName = 'Author name is required';
     } else if (authorOption === 'new' && authorName && authorName.trim().length < 2) {
       newErrors.authorName = 'Author name must be at least 2 characters';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     if (!validate()) return;
-    
+
     setIsSubmitting(true);
-    
+
     try {
       const success = await onSubmit({
         title: title.trim(),
@@ -96,7 +97,7 @@ function NewBookForm({
         authorId: authorOption === 'existing' ? authorId : null,
         authorName: authorOption === 'new' && authorName ? authorName?.trim() : null
       });
-      
+
       if (success) {
         // Close dialog on success
         closeDialog();
@@ -106,9 +107,9 @@ function NewBookForm({
       }
     } catch (error) {
       console.error('Error submitting book:', error);
-      setErrors({ 
-        ...errors, 
-        form: 'An error occurred while creating the book' 
+      setErrors({
+        ...errors,
+        form: 'An error occurred while creating the book'
       });
       setIsSubmitting(false);
     }
@@ -122,11 +123,13 @@ function NewBookForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {errors.form && (
-        <div className="bg-red-500/20 border border-red-500/50 rounded-md p-3 text-sm text-red-300">
+        <div className="bg-dialog-error-background border border-dialog-error-border rounded-md p-3 text-sm
+                        text-dialog-error-foreground animate-fadeIn"
+        >
           {errors.form}
         </div>
       )}
-      
+
       <div>
         <Input
           id="book-title"
@@ -142,12 +145,12 @@ function NewBookForm({
           error={errors.title}
         />
       </div>
-      
+
       <div className="pt-2">
         <fieldset>
-          <legend className="block text-sm font-medium text-slate-300 mb-1.5">Author</legend>
-          
-          <div className="space-y-3 bg-slate-700/20 p-3 rounded-md border border-slate-700/50">
+          <legend className="block text-sm font-medium text-muted mb-1.5">Author</legend>
+
+          <div className="space-y-3 bg-background/20 p-3 rounded-md border border-background/50">
             {authors.length > 0 && (
               <div className="flex items-center">
                 <input
@@ -160,15 +163,15 @@ function NewBookForm({
                     setAuthorOption('existing');
                     setErrors({ ...errors, newAuthorName: '' });
                   }}
-                  className="h-4 w-5 text-cyan-500 focus:ring-cyan-400 bg-slate-700 border-slate-600"
+                  className="h-4 w-5 text-brand-primary-dark focus:ring-brand-primary bg-background border-input-border"
                   disabled={isSubmitting}
                 />
-                <label htmlFor="existing-author" className="ml-2 text-sm text-slate-300">
+                <label htmlFor="existing-author" className="ml-2 text-sm text-muted">
                   Select existing author
                 </label>
               </div>
             )}
-            
+
             <div className="flex items-center">
               <input
                 type="radio"
@@ -180,17 +183,17 @@ function NewBookForm({
                   setAuthorOption('new');
                   setErrors({ ...errors, authorId: '' });
                 }}
-                className="h-4 w-5 text-cyan-500 focus:ring-cyan-400 bg-slate-700 border-slate-600"
+                className="h-4 w-5 text-brand-primary-dark focus:ring-brand-primary bg-background border-input-border"
                 disabled={isSubmitting}
               />
-              <label htmlFor="new-author" className="ml-2 text-sm text-slate-300">
+              <label htmlFor="new-author" className="ml-2 text-sm text-muted">
                 Create new author
               </label>
             </div>
           </div>
         </fieldset>
       </div>
-      
+
       {authorOption === 'existing' && authors.length > 0 && (
         <div className="transition-all duration-200 animate-fadeIn">
           <Select
@@ -212,7 +215,7 @@ function NewBookForm({
           />
         </div>
       )}
-      
+
       {authorOption === 'new' && (
         <div className="transition-all duration-200 animate-fadeIn">
           <Input
@@ -229,32 +232,32 @@ function NewBookForm({
           />
         </div>
       )}
-      
-      <div className="flex justify-end space-x-3 pt-4 mt-4 border-t border-slate-700/30">
+
+      <div className="flex justify-end space-x-3 pt-4 mt-4">
+        {/* Cancel button */}
         <button
           type="button"
           onClick={handleCancel}
-          className="px-3 py-1.5 text-sm bg-slate-700 hover:bg-slate-600 text-slate-200 
+          className="px-3 py-1.5 text-sm bg-dialog-cancel-button hover:bg-dialog-cancel-button-hover text-dialog-foreground 
                     rounded-md transition-colors focus:outline-none focus:ring-2 
-                    focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-800"
+                    focus:ring-dialog-cancel-button-ring focus:ring-offset-2 focus:ring-offset-dialog-background cursor-pointer"
           disabled={isSubmitting}
         >
           Cancel
         </button>
+
+        {/* Action button */}
         <button
           type="submit"
-          className="px-3 py-1.5 text-sm bg-cyan-600 hover:bg-cyan-500 text-white 
+          className="px-3 py-1.5 text-sm bg-dialog-action-button hover:bg-dialog-action-button-hover text-white 
                     rounded-md transition-colors focus:outline-none focus:ring-2 
-                    focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-800
-                    flex items-center"
+                    focus:ring-brand-primary focus:ring-offset-2 focus:ring-offset-dialog-background
+                    flex items-center cursor-pointer"
           disabled={isSubmitting}
         >
           {isSubmitting ? (
             <>
-              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
+              <Loading />
               Creating...
             </>
           ) : (

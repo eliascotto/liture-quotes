@@ -119,8 +119,8 @@ function AddButtonMenu({
         <button
           className={clsx(
             "p-1.5 rounded-md transition-colors duration-200 bg-transparent",
-            "hover:text-cyan-400 hover:bg-slate-700/50",
-            isPopoverOpen ? "text-cyan-400" : "text-slate-300"
+            "hover:text-brand-primary hover:bg-header-hover",
+            isPopoverOpen ? "text-brand-primary" : "text-header-foreground"
           )}
           onClick={togglePopover}
           aria-expanded={isPopoverOpen}
@@ -150,7 +150,7 @@ function AddButtonMenu({
               </svg>
               New Book
             </button>
-            <div className="my-0.5 border-t border-slate-700/50"></div>
+            <div className="my-0.5 border-t border-separator"></div>
 
 
             <div
