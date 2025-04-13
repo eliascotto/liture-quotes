@@ -1,4 +1,4 @@
-export default function DotsVertical({ className = "h-5 w-5 text-slate-400" }: { className?: string }) {
+export default function DotsVertical({ className = "h-5 w-5 text-foreground" }: { className?: string }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

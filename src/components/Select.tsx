@@ -101,7 +101,7 @@ export default function Select({
                 className={clsx(
                   "w-full text-left px-3 py-2 text-sm",
                   option.id === value
-                    ? "bg-brand-primary-dark text-white"
+                    ? "bg-brand-primary-dark text-dialog-foreground"
                     : "text-input-foreground hover:bg-background"
                 )}
               >

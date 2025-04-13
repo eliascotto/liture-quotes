@@ -1,4 +1,4 @@
-export default function BookOpen({ className = "h-5 w-5 text-cyan-400" }: { className?: string }) {
+export default function BookOpen({ className = "h-5 w-5 text-brand-primary" }: { className?: string }) {
   return (
     <svg 
     xmlns="http://www.w3.org/2000/svg" 

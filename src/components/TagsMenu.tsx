@@ -125,7 +125,7 @@ const TagsMenu = ({
                 "w-full bg-input text-sm rounded-md px-2 py-1",
                 "border border-input-border",
                 "placeholder:text-input-placeholder",
-                "focus:outline-none focus:ring-1 focus:ring-cyan-500",
+                "focus:outline-none focus:ring-1 focus:ring-brand-primary-dark",
               )}
             />
           </div>

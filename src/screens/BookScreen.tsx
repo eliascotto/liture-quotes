@@ -163,7 +163,7 @@ function BookScreen({
     return chapters.map((chapter) => (
       quoteByChapter[chapter.id] ? (
         <div key={chapter.id} className={`flex flex-col ${QUOTES_GAP}`}>
-          <div className="text-sm text-slate-400">{chapter.title}</div>
+          <div className="text-sm text-foreground">{chapter.title}</div>
           {renderQuotes(quoteByChapter[chapter.id])}
         </div>
       ) : null
@@ -196,7 +196,8 @@ function BookScreen({
               <Tooltip content="Add new quote">
                 <button
                   onClick={handleCreateQuote}
-                  className="px-1.5 py-1.5 rounded-md text-slate-300 hover:bg-slate-700/90 transition-colors duration-200 flex items-center space-x-1"
+                  className="px-1.5 py-1.5 rounded-md text-muted hover:bg-main-foreground 
+                             transition-colors duration-200 flex items-center space-x-1"
                 >
                   <PlusIcon />
                 </button>
@@ -205,9 +206,10 @@ function BookScreen({
                 <Tooltip content="Toggle show notes">
                   <button
                     onClick={() => setShowNotes(!showNotes)}
-                    className="px-1.5 py-1.5 rounded-md text-slate-300 hover:bg-slate-700/90 transition-colors duration-200 flex items-center space-x-1"
+                    className="px-1.5 py-1.5 rounded-md text-muted hover:bg-main-foreground 
+                               transition-colors duration-200 flex items-center space-x-1"
                   >
-                    <ChatBubble className={clsx("h-4 w-4", showNotes && "text-cyan-400")} />
+                    <ChatBubble className={clsx("h-4 w-4", showNotes && "text-brand-primary")} />
                   </button>
                 </Tooltip>
               )}
@@ -215,9 +217,10 @@ function BookScreen({
                 <Tooltip content="Toggle show chapters">
                   <button
                     onClick={() => setShowChapters(!showChapters)}
-                    className="px-1.5 py-1.5 rounded-md text-slate-300 hover:bg-slate-700/90 transition-colors duration-200 flex items-center space-x-1"
+                    className="px-1.5 py-1.5 rounded-md text-muted hover:bg-main-foreground 
+                               transition-colors duration-200 flex items-center space-x-1"
                   >
-                    <DetailsIcon className={clsx("h-4 w-4", showChapters && "text-cyan-400")} />
+                    <DetailsIcon className={clsx("h-4 w-4", showChapters && "text-brand-primary")} />
                   </button>
                 </Tooltip>
               )}

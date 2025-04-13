@@ -14,7 +14,7 @@ function AuthorScreen({
     <>
       <div className="flex-1 flex flex-col overflow-y-auto overscroll-none w-full px-10 lg:px-14 xl:px-20 py-6 min-h-0">
         <div className="flex flex-col h-full w-full xl:max-w-5xl 2xl:max-w-6xl mx-auto">
-          <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-700/30">
+          <div className="flex items-center justify-between mb-6 pb-4 border-b border-generic-border">
             <h1 className="text-2xl font-bold text-title">
               {cleanText(author.name)}
             </h1>
@@ -57,7 +57,7 @@ function AuthorScreen({
               })}
             </div>
             {books.length === 0 && (
-              <div className="text-slate-500 italic text-center py-4">
+              <div className="text-muted-foreground italic text-center py-4">
                 No books found for this author
               </div>
             )}

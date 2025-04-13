@@ -95,7 +95,7 @@ describe('NavigationControls', () => {
     const backButton = screen.getByTitle('Go back');
     const forwardButton = screen.getByTitle('Go forward');
     
-    expect(backButton).toHaveClass('hover:text-cyan-400', 'hover:bg-slate-700/50');
-    expect(forwardButton).toHaveClass('hover:text-cyan-400', 'hover:bg-slate-700/50');
+    expect(backButton).toHaveClass('hover:text-brand-primary', 'hover:bg-slate-700/50');
+    expect(forwardButton).toHaveClass('hover:text-brand-primary', 'hover:bg-slate-700/50');
   });
 }); 

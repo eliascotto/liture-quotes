@@ -278,7 +278,11 @@
     Star
   --------------*/
 
+  /* yellow-500 */
   --star: oklch(0.795 0.184 86.047);
+
+  --star-not-fill: oklch(0.554 0.046 257.417 / 0.6);
+
   --star-hover: oklch(0.554 0.046 257.417);
 
   /*--------------
@@ -457,6 +461,7 @@
   --color-input-error: var(--input-error);
 
   --color-star: var(--star);
+  --color-star-not-fill: var(--star-not-fill);
   --color-star-hover: var(--star-hover);
 
   --color-quote-box-background: var(--quote-box-background);

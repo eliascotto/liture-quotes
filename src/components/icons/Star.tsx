@@ -9,7 +9,7 @@ export default function StarIcon({ fill }: { fill: boolean }) {
       height="16" 
       viewBox="0 0 16 16"
       className={clsx(
-        fill ? "text-yellow-500" : "text-slate-500/60"
+        fill ? "text-star" : "text-star-not-fill"
       )}
     >
       <path 

@@ -76,16 +76,19 @@ function NewAuthorForm({ onSubmit, onCancel }: NewAuthorFormProps) {
         <button
           type="button"
           onClick={handleCancel}
-          className="px-3 py-1.5 text-sm bg-dialog-cancel-button hover:bg-dialog-cancel-button-hover text-dialog-foreground 
+          className="px-3 py-1.5 text-sm bg-dialog-cancel-button hover:bg-dialog-cancel-button-hover 
+                    text-dialog-foreground 
                     rounded-md transition-colors focus:outline-none focus:ring-2 
-                    focus:ring-dialog-cancel-button-ring focus:ring-offset-2 focus:ring-offset-dialog-background cursor-pointer"
+                    focus:ring-dialog-cancel-button-ring focus:ring-offset-2 
+                    focus:ring-offset-dialog-background cursor-pointer"
           disabled={isSubmitting}
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="px-3 py-1.5 text-sm bg-dialog-action-button hover:bg-dialog-action-button-hover text-white 
+          className="px-3 py-1.5 text-sm bg-dialog-action-button hover:bg-dialog-action-button-hover
+                     text-dialog-foreground 
                     rounded-md transition-colors focus:outline-none focus:ring-2 
                     focus:ring-brand-primary focus:ring-offset-2 focus:ring-offset-dialog-background
                     flex items-center cursor-pointer"

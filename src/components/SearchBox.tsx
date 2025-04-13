@@ -86,7 +86,9 @@ function SearchBox() {
       {searchStore.search && (
         <button
           type="button"
-          className="absolute right-2.5 text-sidebar-foreground hover:text-sidebar-item-hover p-1 rounded-full hover:bg-sidebar-icon-hover-background cursor-pointer transition-colors duration-200"
+          className="absolute right-2.5 text-sidebar-foreground hover:text-sidebar-item-hover
+                     p-1 rounded-full hover:bg-sidebar-icon-hover-background cursor-pointer 
+                     transition-colors duration-200"
           onClick={handleClear}
           aria-label="Clear search"
         >

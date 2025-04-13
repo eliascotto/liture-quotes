@@ -111,8 +111,12 @@ function FavouritesScreen({
 
   return (
     <div className="flex-1 flex flex-col items-center w-full h-full" onClick={() => setSelectedQuote(null)}>
-      <div ref={scrollContainerRef} className="flex-1 flex flex-col overflow-y-auto overscroll-none w-full max-w-6xl px-10 lg:px-14 xl:px-20 py-6 min-h-0">
-        <div className="flex flex-row justify-between mb-6 pb-4 border-b border-slate-700/30">
+      <div
+        ref={scrollContainerRef}
+        className="flex-1 flex flex-col overflow-y-auto overscroll-none
+                   w-full max-w-6xl px-10 lg:px-14 xl:px-20 py-6 min-h-0"
+      >
+        <div className="flex flex-row justify-between mb-6 pb-4 border-b border-generic-border">
           <h1 className="text-2xl font-bold text-title">
             Starred Quotes
           </h1>
@@ -143,16 +147,17 @@ function FavouritesScreen({
                   <Tooltip content={book.title} usePortal>
                     <button
                       onClick={() => navigateToBook(book.id)}
-                      className="text-lg font-medium text-slate-200 hover:text-cyan-400 transition-colors duration-200 cursor-pointer"
+                      className="text-lg font-medium text-muted hover:text-brand-primary transition-colors
+                                duration-200 cursor-pointer"
                     >
                       {cleanText(book.title)}
                     </button>
                   </Tooltip>
-                  <span className="text-sm text-slate-500">by {cleanText(book.author)}</span>
+                  <span className="text-sm text-muted-foreground">by {cleanText(book.author)}</span>
                 </div>
 
                 {/* Quotes */}
-                <div ref={quotesContainerRef} className="flex flex-col gap-4 pl-4 border-slate-700/30">
+                <div ref={quotesContainerRef} className="flex flex-col gap-4 pl-4 border-generic-border">
                   {book.quotes.map((quote) => (
                     <QuoteBox
                       key={quote.id}
@@ -176,7 +181,7 @@ function FavouritesScreen({
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-12 px-4 text-center h-full">
-            <div className="text-slate-500 italic mb-2 text-sm">No favourite quotes yet</div>
+            <div className="text-muted-foreground italic mb-2 text-sm">No favourite quotes yet</div>
           </div>
         )}
       </div>

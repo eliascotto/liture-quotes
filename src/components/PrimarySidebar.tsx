@@ -189,8 +189,10 @@ function PrimarySidebar({
                   return (
                     <li
                       className={clsx(
-                        "cursor-pointer min-h-[32px] py-1.5 px-1.5 text-sm italic font-medium truncate rounded transition-all duration-200 hover:bg-sidebar-icon-hover-background select-none",
-                        isSelected ? "text-brand-primary bg-sidebar-icon-active-background" : "text-sidebar-item-empty hover:text-sidebar-item-hover"
+                        "cursor-pointer min-h-[32px] py-1.5 px-1.5 text-sm italic font-medium truncate",
+                        "rounded transition-all duration-200 hover:bg-sidebar-icon-hover-background select-none",
+                        isSelected ? "text-brand-primary bg-sidebar-icon-active-background"
+                          : "text-sidebar-item-empty hover:text-sidebar-item-hover"
                       )}
                       onClick={() => onSelection(item)}>
                       No title
@@ -206,7 +208,8 @@ function PrimarySidebar({
                   >
                     <li
                       className={clsx(
-                        "cursor-pointer min-h-[32px] py-1.5 px-1.5 text-sm font-medium truncate rounded transition-all duration-200 hover:bg-sidebar-icon-hover-background select-none",
+                        "cursor-pointer min-h-[32px] py-1.5 px-1.5 text-sm font-medium truncate",
+                        "rounded transition-all duration-200 hover:bg-sidebar-icon-hover-background select-none",
                         isSelected ? "text-brand-primary bg-sidebar-icon-active-background" : "text-sidebar-item hover:text-sidebar-item-hover"
                       )}
                       onClick={() => onSelection(item)}>
