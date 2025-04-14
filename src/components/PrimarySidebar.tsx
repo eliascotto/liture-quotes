@@ -7,6 +7,8 @@ import { cleanText } from "@utils/index";
 import SidebarLeft from "@components/icons/SidebarLeft";
 import { usePrimarySidebarStore, useAppStore } from "@stores/index";
 import HeaderButton from "./HeaderButton";
+import Books from "./icons/Books";
+import BooksFill from "./icons/BooksFill";
 
 type PrimarySidebarProps = {
   property: string,
@@ -127,10 +129,10 @@ function PrimarySidebar({
         {/* Sticky header with icons */}
         <div
           className={clsx(
-            "sticky top-0 z-10 px-1.5 min-h-[55px] py-2.5 border-b",
+            "sticky top-0 z-10 px-1.5 min-h-[52.5px] py-2.5 border-b",
             "flex items-center",
             {
-              "border-sidebar-border": isScrolled,
+              "border-sidebar-border shadow-sm": isScrolled,
               "border-transparent": !isScrolled,
             }
           )}
@@ -152,7 +154,7 @@ function PrimarySidebar({
                   onClick={() => appStore.setSidebarSelectedOption("books")}
                   isActive={isBooks}
                 >
-                  <BookIcon className="w-4.5 h-4.5" />
+                  {isBooks ? <BooksFill className="w-4.5 h-4.5" /> : <Books className="w-4.5 h-4.5" />}
                 </HeaderButton>
 
                 {/* Authors Icon */}
@@ -160,7 +162,7 @@ function PrimarySidebar({
                   onClick={() => appStore.setSidebarSelectedOption("authors")}
                   isActive={!isBooks}
                 >
-                  <UsersIcon className="w-4.5 h-4.5" />
+                  <UsersIcon className="w-4.5 h-4.5" fill={!isBooks ? "currentColor" : "none"} />
                 </HeaderButton>
               </div>
             )}
@@ -209,8 +211,10 @@ function PrimarySidebar({
                     <li
                       className={clsx(
                         "cursor-pointer min-h-[32px] py-1.5 px-1.5 text-sm font-medium truncate",
-                        "rounded transition-all duration-200 hover:bg-sidebar-icon-hover-background select-none",
-                        isSelected ? "text-brand-primary bg-sidebar-icon-active-background" : "text-sidebar-item hover:text-sidebar-item-hover"
+                        "rounded transition-all duration-200",
+                        "hover:bg-sidebar-icon-hover-background select-none",
+                        isSelected ? "text-brand-primary bg-sidebar-icon-active-background"
+                          : "text-sidebar-item hover:text-sidebar-item-hover"
                       )}
                       onClick={() => onSelection(item)}>
                       {cleanedText}
@@ -225,9 +229,10 @@ function PrimarySidebar({
 
       {/* Resize handle */}
       <div
-        className={`absolute top-0 right-0 w-1 h-full cursor-col-resize z-10 transition-all duration-200 ${isResizing
-          ? 'bg-brand-primary-dark shadow-(--sidebar-resize-handle-shadow-active)'
-          : 'hover:bg-brand-primary-dark/50 hover:shadow-(--sidebar-resize-handle-shadow-hover)'
+        className={`absolute top-0 right-0 w-1 h-full cursor-col-resize z-10 transition-all duration-200 
+          ${isResizing
+            ? 'bg-brand-primary-dark shadow-(--sidebar-resize-handle-shadow-active)'
+            : 'hover:bg-brand-primary-dark/50 hover:shadow-(--sidebar-resize-handle-shadow-hover)'
           }`}
         onMouseDown={startResizing}
       />

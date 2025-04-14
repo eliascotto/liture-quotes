@@ -88,7 +88,7 @@ export default function DualSortMenu({
                 className={clsx(
                   "w-full text-left px-3 py-2 text-sm",
                   primarySort.field === field
-                    ? "bg-brand-secondary text-menu-selected"
+                    ? "bg-menu-selected-background text-menu-selected-foreground"
                     : "text-menu-foreground hover:bg-menu-hover hover:text-menu-foreground-hover"
                 )}
               >
@@ -113,7 +113,7 @@ export default function DualSortMenu({
                 className={clsx(
                   "w-full text-left px-3 py-2 text-sm",
                   secondarySort.field === field
-                    ? "bg-brand-secondary text-menu-selected"
+                    ? "bg-menu-selected-background text-menu-selected-foreground"
                     : "text-menu-foreground hover:bg-menu-hover hover:text-menu-foreground-hover"
                 )}
               >

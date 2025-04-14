@@ -153,8 +153,8 @@ function QuoteBox({
             className={clsx(
               "relative w-full select-none",
               "text-quote-box-foreground py-[8px] pl-4 pr-5 whitespace-pre-line transition-border duration-200 border",
-              "hover:bg-quote-box-background/40",
-              selected && "bg-quote-box-background/20  shadow-md",
+              "hover:bg-quote-box-background",
+              selected && "bg-quote-box-background-selected  shadow-md",
               selected ? "border-quote-box-border rounded-sm border" : "border-transparent border-l-2 border-l-quote-box-border",
               empty && "text-opacity-30 cursor-default",
             )}
@@ -203,7 +203,7 @@ function QuoteBox({
                 id={note.id}
                 className={clsx(
                   "ml-8 text-sm leading-6 italic text-quote-box-foreground/85 py-2.5 px-4 border-quote-box-border/50",
-                  "group/note hover:bg-quote-box-background/50 select-none"
+                  "group/note hover:bg-quote-box-background select-none"
                 )}
                 onDoubleClick={() => onNoteEdit && setNoteEditable(true)}
               >

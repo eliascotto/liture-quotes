@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import clsx from "clsx";
 import ChevronDown from "@icons/ChevronDown";
+import useOnClickOutside from "@hooks/clickOutside";
 
 type SortMenuProps = {
   sortBy: string;
@@ -15,17 +16,8 @@ export default function SortMenu({
 {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !(menuRef.current as HTMLElement).contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  
+  useOnClickOutside(menuRef, () => setIsOpen(false));
 
   const getSortLabel = (field: string) => {
     return field.replace(/_/g, " ").replace(/\b\w/g, (l: string) => l.toUpperCase());
@@ -76,7 +68,7 @@ export default function SortMenu({
                 className={clsx(
                   "w-full text-left px-3 py-2 text-sm",
                   sortBy === field
-                    ? "bg-brand-secondary text-menu-selected"
+                    ? "bg-menu-selected-background text-menu-selected-foreground"
                     : "text-menu-foreground hover:bg-menu-hover hover:text-menu-foreground-hover"
                 )}
               >

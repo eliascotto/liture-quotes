@@ -31,7 +31,7 @@ const Tooltip = React.memo((
   const { refs, floatingStyles, placement, context } = useFloating({
     open: isOpen,
     onOpenChange: setIsOpen,
-      placement: 'bottom', // Default placement
+    placement: 'bottom', // Default placement
 
     middleware: [
       offset(5), // Distance from reference element
@@ -54,15 +54,17 @@ const Tooltip = React.memo((
   // Tooltip content
   const tooltipContent = (
     <div
+      className="bg-tooltip border max-w-2xl break-all border-tooltip-border rounded shadow-xl 
+                  text-sm py-1.5 px-2.5 z-[1000] text-tooltip-foreground"
       ref={refs.setFloating}
       style={floatingStyles}
-      className="bg-tooltip border max-w-2xl break-all border-tooltip-border rounded shadow-xl text-sm py-1.5 px-2.5 z-[1000] text-tooltip-foreground"
       data-placement={placement}
       {...getFloatingProps()}
     >
       {content}
       {shortcut && (
-        <span className="ml-1 bg-tooltip-shortcut-background px-1.5 py-0.5 rounded border border-tooltip-shortcut-border">
+        <span className="ml-1 bg-tooltip-shortcut-background px-1.5 py-0.5 rounded 
+                        border border-tooltip-shortcut-border">
           {shortcut}
         </span>
       )}

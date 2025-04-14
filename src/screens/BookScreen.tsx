@@ -196,7 +196,7 @@ function BookScreen({
               <Tooltip content="Add new quote">
                 <button
                   onClick={handleCreateQuote}
-                  className="px-1.5 py-1.5 rounded-md text-muted hover:bg-main-foreground 
+                  className="px-1.5 py-1.5 rounded-md text-muted hover:bg-main-button-background-hover 
                              transition-colors duration-200 flex items-center space-x-1"
                 >
                   <PlusIcon />
@@ -206,7 +206,7 @@ function BookScreen({
                 <Tooltip content="Toggle show notes">
                   <button
                     onClick={() => setShowNotes(!showNotes)}
-                    className="px-1.5 py-1.5 rounded-md text-muted hover:bg-main-foreground 
+                    className="px-1.5 py-1.5 rounded-md text-muted hover:bg-main-button-background-hover 
                                transition-colors duration-200 flex items-center space-x-1"
                   >
                     <ChatBubble className={clsx("h-4 w-4", showNotes && "text-brand-primary")} />
@@ -217,7 +217,7 @@ function BookScreen({
                 <Tooltip content="Toggle show chapters">
                   <button
                     onClick={() => setShowChapters(!showChapters)}
-                    className="px-1.5 py-1.5 rounded-md text-muted hover:bg-main-foreground 
+                    className="px-1.5 py-1.5 rounded-md text-muted hover:bg-main-button-background-hover 
                                transition-colors duration-200 flex items-center space-x-1"
                   >
                     <DetailsIcon className={clsx("h-4 w-4", showChapters && "text-brand-primary")} />

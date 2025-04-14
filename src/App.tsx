@@ -48,6 +48,7 @@ function App() {
   // App 
   const appStore = useAppStore();
   const searchStore = useSearchStore();
+  const tagStore = useTagStore();
 
   const { addToast } = useToast();
 
@@ -75,8 +76,10 @@ function App() {
   const isNavigating = useRef(false);
   const initialLoadComplete = useRef(false);
 
-  // Tags
-  const tagStore = useTagStore();
+  // Styles
+  const [hasLinearGradientBg, _] = useState(
+    !!getComputedStyle(document.getElementById('root')!).getPropertyValue('--main-background')
+  );
 
   // Get current page state
   // TODO: move this management to the app store
@@ -738,12 +741,10 @@ function App() {
   return (
     <div
       className={clsx(
-        "bg-transparent flex flex-col m-0 items-center justify-center",
+        "bg-app-background flex flex-col m-0 items-center justify-center",
         "max-h-screen h-screen font-sans text-foreground rounded-lg overflow-hidden",
         currentPlatform === "macos" && [
           "has-blur-effects",
-          !windowState.isFullScreen &&
-          "border border-transparent"
         ]
       )}
     >
@@ -775,9 +776,13 @@ function App() {
 
           <div className="flex flex-row w-full h-full overflow-hidden">
             {/* Main content area */}
-            <div
+            <div 
               className="flex-1 overflow-hidden backdrop-blur-sm"
-              style={{ background: 'var(--main-background)' }}>
+              style={{
+                // Do not use bg since it will not be applied if the user has a linear gradient background
+                background: 'var(--main-background)'
+              }}
+            >
               <div className="flex-1 flex flex-col items-center w-full h-full">
                 {mainContent}
               </div>

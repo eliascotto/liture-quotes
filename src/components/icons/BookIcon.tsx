@@ -1,6 +1,8 @@
-export default function BookIcon({ className = "w-5 h-5" }: { className?: string }) {
+export default function BookIcon(
+  { className = "w-5 h-5", fill = "none" }: { fill: string, className?: string }
+) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg className={className} fill={fill} viewBox="0 0 24 24" stroke="currentColor">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"

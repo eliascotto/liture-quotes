@@ -72,7 +72,7 @@ function NewAuthorForm({ onSubmit, onCancel }: NewAuthorFormProps) {
         />
       </div>
 
-      <div className="flex justify-end space-x-3 pt-4 mt-4 border-t border-generic-border">
+      <div className="flex justify-end space-x-3 pt-4 mt-4">
         <button
           type="button"
           onClick={handleCancel}
@@ -88,7 +88,7 @@ function NewAuthorForm({ onSubmit, onCancel }: NewAuthorFormProps) {
         <button
           type="submit"
           className="px-3 py-1.5 text-sm bg-dialog-action-button hover:bg-dialog-action-button-hover
-                     text-dialog-foreground 
+                     text-dialog-foreground-active
                     rounded-md transition-colors focus:outline-none focus:ring-2 
                     focus:ring-brand-primary focus:ring-offset-2 focus:ring-offset-dialog-background
                     flex items-center cursor-pointer"

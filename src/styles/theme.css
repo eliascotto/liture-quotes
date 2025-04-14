@@ -10,12 +10,213 @@
     - https://github.com/shadcn-ui/ui/blob/main/apps/v4/app/themes.css
 *************************/
 .theme-default {
+  --font-family-base: -apple-system, BlinkMacSystemFont, "avenir next", avenir,
+    "segoe ui", "helvetica neue", helvetica, Cantarell, Ubuntu, roboto, noto,
+    arial, sans-serif;
+
+  --white: oklch(0.999 0 0);
+
+  /* General foreground and background */
+  --background: oklch(0.97 0.007 247.896);
+  --background-external: oklch(0.97 0 0 / 0.8);
+  /* rgb(69, 94, 135) */
+  --foreground: oklch(0.48 0.0732 260);
+
+  /* Typography */
+  --title: oklch(0.23 0.0089 255.6 / 0.9);
+  --subtitle: oklch(0.25 0.02 260);
+
+  --brand-50: #f5f7fa;
+  --brand-100: #eaedf4;
+  --brand-200: #d0d9e7;
+  --brand-300: #a8b8d1;
+  --brand-400: #7892b8;
+  --brand-500: #5774a0;
+  --brand-600: #455e87;
+  --brand-700: #384b6c;
+  --brand-800: #31405b;
+  --brand-900: #2d384d;
+  --brand-950: #1e2533;
+
+  /* Brand */
+  --brand-primary: var(--brand-800);
+  --brand-primary-dark: var(--brand-900);
+  --brand-secondary: var(--brand-500);
+  --brand-fill: var(--brand-300);
+
+  /* Generic UI */
+  --generic-border: oklch(0.6 0.02 257.287 / 0.3);
+  --separator: oklch(0.6 0.03 260 / 0.5);
+  --input: oklch(0.97 0.007 247.896);
+  --ring: var(--brand-primary);
+
+  /* Status */
+  --success: oklch(0.44 0.21 151.711);
+  --warning: oklch(0.6 0.18 91.936);
+  --info: oklch(0.35 0.15 211.53);
+  --error: oklch(0.48 0.19 22.216);
+
+  /* Elements */
+  --muted: #5774a0;
+  --muted-foreground: oklch(0.45 0.03 257);
+  --muted-foreground-dark: oklch(0.3 0.03 257);
+  --accent: oklch(0.3 0.04 256.788);
+  --accent-foreground: oklch(0.95 0.01 265.755);
+  --destructive: oklch(0.48 0.19 22.216);
+  --destructive-foreground: var(--white);
+
+  /* App */
+  --app-background: white;
+
+  /* Main */
+  --main-background: oklch(0.99 0.0 0);
+  --main-foreground: oklch(0.25 0.03 265);
+
+  --main-button-background-hover: oklch(0.6 0.03 260 / 0.1);
+
+  /* Menu */
+  --menu-background: oklch(0.98 0.005 260);
+  --menu-foreground: oklch(0.25 0.02 252.894);
+  --menu-foreground-hover: oklch(0.1 0.01 247.896);
+  --menu-border: var(--generic-border);
+  --menu-hover: oklch(0.6 0.03 260 / 0.1);
+  --menu-text-size: 14px;
+  --menu-selected-foreground: oklch(0.25 0.02 260);
+  --menu-selected-background: oklch(0.8 0.02 257.287 / 0.2);
+  --menu-icon: oklch(0.4 0.04 257.417);
+  --menu-icon-open: oklch(0.3 0.04 256.788);
+
+  /* Header */
+  --header-background: var(--background-external);
+  --header-foreground: var(--foreground);
+  --header-border: oklch(0.7 0.03 257.287 / 0.5);
+  --header-hover: oklch(0.8 0.03 257.287 / 0.4);
+
+  --header-button-color: var(--header-foreground);
+  --header-button-color-active: var(--brand-primary);
+  --header-button-color-hover: var(--brand-primary-dark);
+
+  /* Sidebar */
+  --sidebar-background: var(--background-external);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-border: oklch(0.6 0.02 257.287 / 0.3);
+  --sidebar-icon-hover: var(--brand-primary-dark);
+  --sidebar-icon-hover-background: oklch(0.8 0.02 257.287 / 0.3);
+  --sidebar-icon-active-background: oklch(0.85 0.02 257.287 / 0.2);
+
+  --sidebar-item: oklch(0.47 0.0179 260.7);
+  --sidebar-item-hover: oklch(0.1 0.01 255);
+  --sidebar-item-empty: oklch(0.5 0.02 257.281);
+
+  /* Search */
+  --search-background: var(--white);
+  --search-foreground: oklch(0.2 0.02 252.894);
+  --search-border: var(--generic-border);
+
+  /* Toasts */
+  --toast-background: oklch(0.97 0.02 257.287);
+  --toast-foreground: oklch(0.2 0.02 252.894);
+  --toast-border: oklch(0.85 0.02 257.287);
+  --toast-success: oklch(0.48 0.19 151.711);
+  --toast-border-success: oklch(0.55 0.2 149.579);
+  --toast-error: oklch(0.48 0.19 22.216);
+  --toast-border-error: oklch(0.55 0.2 25.331);
+  --toast-warning: oklch(0.6 0.18 91.936);
+  --toast-border-warning: oklch(0.65 0.18 86.047);
+
+  /* Tooltip */
+  --tooltip-background: oklch(0.95 0.01 260);
+  --tooltip-foreground: var(--brand-800);
+  --tooltip-border: oklch(0.7 0.03 257.287 / 0.4);
+  --tooltip-shortcut-background: oklch(0.8 0.02 257.281 / 0.5);
+  --tooltip-shortcut-border: oklch(0.7 0.02 257.417 / 0.5);
+
+  /* Select */
+  --select-background: oklch(0.96 0.01 257.287 / 0.5);
+  --select-border: oklch(0.5 0.03 257.281);
+  --select-foreground: oklch(0.2 0.01 255.508);
+  --select-option-foreground: oklch(0.3 0.04 256.788);
+  --select-option-background: oklch(0.95 0.01 260.031);
+
+  /* Popover */
+  --popover: oklch(0.985 0.007 247.896);
+  --popover-foreground: oklch(0.2 0.04 265.755);
+
+  /* Input */
+  --input-background: oklch(0.96 0.01 257.287);
+  --input-foreground: oklch(0.2 0.02 252.894);
+  --input-placeholder: oklch(0.3 0.04 256.788 / 0.7);
+  --input-border: oklch(0.5 0.03 257.281);
+  --input-label: oklch(0.25 0.02 252.894);
+  --input-error: oklch(0.48 0.19 22.216);
+
+  /* Stars */
+  --star: oklch(0.795 0.184 86.047);
+  --star-not-fill: oklch(0.5 0.02 257.417 / 0.4);
+  --star-hover: oklch(0.5 0.03 257.417);
+
+  /* Quote box */
+  --quote-box-background: oklch(0.97 0.02 257.287 / 0.6);
+  --quote-box-background-selected: oklch(0.97 0.02 257.287 / 0.6);
+  --quote-box-foreground: oklch(0.2 0.01 255.508);
+  --quote-box-selected: oklch(0.85 0.02 257.287 / 0.2);
+  --quote-box-border: oklch(0.5 0.03 257.281 / 0.5);
+
+  /* Editable box */
+  --editable-box-background: oklch(0.98 0.01 260.031 / 0.6);
+  --editable-box-foreground: var(--title);
+  --editable-box-border: oklch(0.5 0.03 257.281 / 0.5);
+  --editable-box-separator: oklch(0.7 0.02 257.287 / 0.3);
+  --editable-box-button-foreground: oklch(0.3 0.03 256.788 / 0.7);
+  --editable-box-button-foreground-hover: oklch(0.1 0.01 0);
+
+  /* Dialog */
+  --dialog-overlay: oklch(0.95 0.01 265.755 / 0.7);
+  --dialog-background: var(--white);
+  --dialog-border: oklch(0.7 0.03 257.287 / 0.5);
+  --dialog-foreground: oklch(0.2 0.01 255.508);
+  --dialog-foreground-active: oklch(0.929 0.013 255.508);
+  --dialog-action-button: var(--brand-secondary);
+  --dialog-action-button-hover: var(--brand-primary-dark);
+  --dialog-cancel-button: oklch(0.85 0.02 257.287);
+  --dialog-cancel-button-hover: oklch(0.8 0.02 257.281);
+  --dialog-cancel-button-ring: oklch(0.6 0.03 256.788);
+  --dialog-cancel-button-text: oklch(0.4 0.03 256.788);
+  --dialog-cancel-button-text-hover: oklch(0.3 0.02 255.508);
+  --dialog-remove-button: oklch(0.65 0.2 27.325);
+  --dialog-remove-button-text-hover: oklch(0.6 0.18 27.518);
+  --dialog-error-background: oklch(0.6 0.2 25.331 / 0.2);
+  --dialog-error-foreground: oklch(0.48 0.19 22.216);
+  --dialog-error-border: oklch(0.6 0.2 25.331 / 0.5);
+
+  /* Generic Box */
+  --box-background: var(--brand-50);
+  --box-background-hover: var(--brand-100);
+  --box-foreground: oklch(0.869 0.022 252.894);
+  --box-border: var(--generic-border);
+  --box-border-hover: var(--generic-border);
+
+  /* Tags */
+  --tag-icon-fill: oklch(0.446 0.043 257.281 / 0.4);
+  --tag-icon-fill-hover: oklch(0.554 0.046 257.417);
+
+  --tag-background: var(--brand-100);
+  --tag-background-hover: var(--brand-200);
+  --tag-foreground: var(--color-gray-500);
+  --tag-foreground-hover: var(--color-gray-600);
+
+  /* Footer */
+  --footer-background: var(--background-external);
+  --footer-border: var(--generic-border);
+}
+
+.theme-default-dark {
   /************************
     Typography
   *************************/
 
   --font-family-base: -apple-system, BlinkMacSystemFont, "avenir next", avenir,
-   "segoe ui", "helvetica neue", helvetica, Cantarell, Ubuntu, roboto, noto,
+    "segoe ui", "helvetica neue", helvetica, Cantarell, Ubuntu, roboto, noto,
     arial, sans-serif;
 
   /************************
@@ -31,17 +232,7 @@
     Base colors
   *************************/
 
-  /* --color-slate-50: oklch(0.984 0.003 247.858);
-  --color-slate-100: oklch(0.968 0.007 247.896);
-  --color-slate-200: oklch(0.929 0.013 255.508);
-  --color-slate-300: oklch(0.869 0.022 252.894);
-  --color-slate-400: oklch(0.704 0.04 256.788);
-  --color-slate-500: oklch(0.554 0.046 257.417);
-  --color-slate-600: oklch(0.446 0.043 257.281);
-  --color-slate-700: oklch(0.372 0.044 257.287);
-  --color-slate-800: oklch(0.279 0.041 260.031);
-  --color-slate-900: oklch(0.208 0.042 265.755);
-  --color-slate-950: oklch(0.129 0.042 264.695); */
+  --app-background: transparent;
 
   /* slate-700 */
   --background: oklch(0.372 0.044 257.287);
@@ -52,7 +243,7 @@
   --title: oklch(0.968 0.007 247.896);
   /* slate-300 */
   --subtitle: oklch(0.869 0.022 252.894);
-  
+
 
   /************************
     Brand colors
@@ -117,6 +308,8 @@
   /* slate-900 */
   --main-foreground: oklch(0.208 0.042 265.755);
 
+  --main-button-background-hover: oklch(0.372 0.044 257.287 / 0.9);
+
   /*--------------
     Menus
   --------------*/
@@ -134,7 +327,8 @@
   /* sm */
   --menu-text-size: 14px;
   /* white */
-  --menu-selected: var(--white);
+  --menu-selected-foreground: oklch(0.869 0.022 252.894);
+  --menu-selected-background: oklch(0.8 0.02 257.287 / 0.2);
   /* slate-500 */
   --menu-icon: oklch(0.554 0.046 257.417);
   /* slate-400 */
@@ -153,6 +347,9 @@
   /* slate-700 */
   --header-hover: oklch(0.372 0.044 257.287 / 0.5);
 
+  --header-button-color: var(--header-foreground);
+  --header-button-color-hover: var(--brand-primary-dark);
+  --header-button-color-active: var(--brand-primary-dark);
   /*--------------
     Sidebar
   --------------*/
@@ -168,7 +365,7 @@
   /* slate-700 */
   --sidebar-icon-hover-background: oklch(0.372 0.044 257.287 / 0.4);
   /* slate-700 */
-  --sidebar-icon-active-background: oklch(0.372 0.044 257.287 / 0.2);
+  --sidebar-icon-active-background: var(--main-background);
 
   /* slate-300 */
   --sidebar-item: oklch(0.869 0.022 252.894);
@@ -215,7 +412,7 @@
   --toast-warning: oklch(0.852 0.199 91.936);
   /* yellow-400 */
   --toast-border-warning: oklch(0.795 0.184 86.047);
-  
+
 
   /*--------------
     Tooltip
@@ -246,7 +443,7 @@
   --select-option-foreground: oklch(0.704 0.04 256.788);
   /* slate-800 */
   --select-option-background: oklch(0.279 0.041 260.031);
-  
+
 
   /*--------------
     Popovers
@@ -290,7 +487,8 @@
   --------------*/
 
   /* slate-700 */
-  --quote-box-background: oklch(0.372 0.044 257.287);
+  --quote-box-background: oklch(0.372 0.044 257.287 / 0.4);
+  --quote-box-background-selected: oklch(0.372 0.044 257.287 / 0.2);
   /* slate-200 */
   --quote-box-foreground: oklch(0.929 0.013 255.508);
   /* slate-700 */
@@ -323,6 +521,7 @@
   --dialog-border: oklch(0.372 0.044 257.287 / 0.5);
   /* slate-200 */
   --dialog-foreground: oklch(0.929 0.013 255.508);
+  --dialog-foreground-active: oklch(0.929 0.013 255.508);
   /* cyan-600 */
   --dialog-action-button: var(--brand-secondary);
   /* cyan-500 */
@@ -362,7 +561,7 @@
   --box-border: oklch(0.372 0.044 257.287 / 0.3);
   /* slate-500 */
   --box-border-hover: oklch(0.715 0.143 215.221 / 0.3);
-  
+
 
   /*--------------
     Tags
@@ -376,7 +575,7 @@
   /* slate-700 */
   --tag-background: oklch(0.372 0.044 257.287 / 0.5);
   /* slate-600 */
-  --tag-background-hover:  oklch(0.446 0.043 257.281 / 0.7);
+  --tag-background-hover: oklch(0.446 0.043 257.281 / 0.7);
   /* slate-400 */
   --tag-foreground: oklch(0.704 0.04 256.788);
   /* slate-300 */
@@ -386,18 +585,18 @@
     Footer
   --------------*/
 
-  /* slate-900 */
   --footer-background: oklch(0.208 0.042 265.755 / 0.8);
-  /* slate-700 */
   --footer-border: oklch(0.372 0.044 257.287 / 0.3);
-
 }
-
-.theme-default-dark {}
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
+  --color-app-background: var(--app-background);
+
+  --color-main-background: var(--main-background);
+  --color-main-foreground: var(--main-foreground);
 
   --color-title: var(--title);
   --color-subtitle: var(--subtitle);
@@ -419,6 +618,8 @@
   --color-main-background: var(--main-background);
   --color-main-foreground: var(--main-foreground);
 
+  --color-main-button-background-hover: var(--main-button-background-hover);
+
   --color-tooltip: var(--tooltip-background);
   --color-tooltip-foreground: var(--tooltip-foreground);
   --color-tooltip-border: var(--tooltip-border);
@@ -430,7 +631,8 @@
   --color-menu-foreground-hover: var(--menu-foreground-hover);
   --color-menu-border: var(--menu-border);
   --color-menu-hover: var(--menu-hover);
-  --color-menu-selected: var(--menu-selected);
+  --color-menu-selected-foreground: var(--menu-selected-foreground);
+  --color-menu-selected-background: var(--menu-selected-background);
   --color-menu-icon: var(--menu-icon);
   --color-menu-icon-open: var(--menu-icon-open);
 
@@ -442,7 +644,9 @@
   --color-header-foreground: var(--header-foreground);
   --color-header-border: var(--header-border);
   --color-header-hover: var(--header-hover);
-
+  --color-header-button-color: var(--header-button-color);
+  --color-header-button-color-hover: var(--header-button-color-hover);
+  --color-header-button-color-active: var(--header-button-color-active);
   --color-sidebar: var(--sidebar-background);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-border: var(--sidebar-border);
@@ -465,6 +669,7 @@
   --color-star-hover: var(--star-hover);
 
   --color-quote-box-background: var(--quote-box-background);
+  --color-quote-box-background-selected: var(--quote-box-background-selected);
   --color-quote-box-foreground: var(--quote-box-foreground);
   --color-quote-box-selected: var(--quote-box-selected);
   --color-quote-box-border: var(--quote-box-border);
@@ -483,11 +688,12 @@
   --color-box-border-hover: var(--box-border-hover);
 
   --color-editable-box-background: var(--editable-box-background);
+  --color-editable-box-foreground: var(--editable-box-foreground);
   --color-editable-box-border: var(--editable-box-border);
   --color-editable-box-separator: var(--editable-box-separator);
   --color-editable-box-button-foreground: var(--editable-box-button-foreground);
   --color-editable-box-button-foreground-hover: var(--editable-box-button-foreground-hover);
-  
+
   --color-footer: var(--footer-background);
   --color-footer-border: var(--footer-border);
 
@@ -496,6 +702,8 @@
   --color-dialog-background: var(--dialog-background);
   --color-dialog-border: var(--dialog-border);
   --color-dialog-foreground: var(--dialog-foreground);
+  --dialog-foreground: oklch(0.929 0.013 255.508);
+  --color-dialog-foreground-active: var(--dialog-foreground-active);
   --color-dialog-action-button: var(--dialog-action-button);
   --color-dialog-action-button-hover: var(--dialog-action-button-hover);
   --color-dialog-cancel-button: var(--dialog-cancel-button);
@@ -516,5 +724,4 @@
   --color-select-option-foreground: var(--select-option-foreground);
 
   --text-size-menu: var(--menu-text-size);
-
 }

@@ -97,7 +97,7 @@ function Header({
     <header
       className={clsx(
         "z-20 border-header-border bg-header min-h-12",
-        "flex flex-row py-2.5 px-4 w-full items-center justify-between gap-4 shadow-md",
+        "flex flex-row py-2.5 px-4 w-full items-center justify-between gap-4 shadow-sm",
         primarySidebarStore.isOpen && "border-b",
       )}
       data-tauri-drag-region
@@ -136,7 +136,9 @@ function Header({
           <HeaderButton
             onClick={handleTagsButtonClick}
           >
-            {appStore.currentScreen === 'tags' ? <TagFill className="h-4 w-4 fill-brand-primary" /> : <TagIcon className="h-4 w-4" />}
+            {appStore.currentScreen === 'tags' ? 
+              <TagFill className="h-4 w-4 fill-brand-primary-dark" /> : 
+              <TagIcon className="h-4 w-4" />}
           </HeaderButton>
         </Tooltip>
         {/* Starred button */}

@@ -13,8 +13,8 @@ function HeaderButton({ onClick, isActive = false, children }: HeaderButtonProps
       className={clsx(
         "p-1.5 rounded-md transition-all duration-200",
         isActive
-          ? 'text-brand-primary-dark fill-brand-primary-dark hover:bg-header-hover'
-          : 'text-header-foreground hover:text-brand-primary hover:bg-header-hover fill-header-foreground'
+          ? 'text-header-button-color-active fill-header-button-color-active hover:bg-header-hover'
+          : 'text-header-button-color fill-header-button-color hover:text-header-button-color-hover hover:bg-header-hover'
       )}
     >
       {children}
