@@ -177,7 +177,7 @@ function PrimarySidebar({
         >
           {isEmpty && (
             <div className="flex-1 flex items-center justify-center h-full select-auto">
-              <div className="text-sidebar-item-empty italic text-sm">No {appStore.sidebarSelectedOption}s to show</div>
+              <div className="text-sidebar-item-empty italic text-sm">No {appStore.sidebarSelectedOption} to show</div>
             </div>
           )}
           {!isEmpty && (

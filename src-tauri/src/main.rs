@@ -5,6 +5,7 @@ use liture_notes_lib::menu;
 use objc::{msg_send, sel, sel_impl};
 use std::env;
 use tauri::{Manager, Runtime, WindowEvent};
+use tauri_plugin_dialog::DialogExt;
 
 const WINDOW_CONTROL_PAD_X: f64 = 18.0;
 const WINDOW_CONTROL_PAD_Y: f64 = 26.0;
@@ -111,11 +112,19 @@ async fn main() {
         .setup(|app| {
             let app_handle = app.handle().clone();
 
-            // Spawn a new task to initialize the database pool
+            // Initialize the database pool
             tauri::async_runtime::spawn(async move {
-                liture_notes_lib::db::init_pool(app_handle)
-                    .await
-                    .expect("Failed to initialize database pool");
+                match liture_notes_lib::db::init_pool(app_handle.clone()).await {
+                    Ok(_) => {
+                        // Only show the main window after successful initialization
+                        if let Some(window) = app_handle.get_window("main") {
+                            let _ = window.show();
+                        }
+                    }
+                    Err(e) => {
+                        log::error!("Failed to initialize database: {}", e);
+                    }
+                }
             });
 
             #[cfg(target_os = "macos")]

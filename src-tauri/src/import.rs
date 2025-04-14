@@ -18,7 +18,7 @@ use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
 use uuid::Uuid;
 
 /// Payload for the import events.
-/// 
+///
 /// * `device` - The device that is importing the data.
 /// * `message` - The message to display to the user. Can be a success message or an error message.
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -683,8 +683,8 @@ fn parse_clipping(lines: &[String]) -> Result<Clipping, String> {
 async fn import_clippings(path: &str) -> Result<String, ImportError> {
     let clippings = read_clippings_file(path).map_err(|e| e)?;
 
-    let mut books = HashMap::new();
-    let mut authors = HashMap::new();
+    let mut books_id_map = HashMap::new();
+    let mut authors_id_map = HashMap::new();
     let mut tx = db::get_pool()
         .begin()
         .await
@@ -693,30 +693,26 @@ async fn import_clippings(path: &str) -> Result<String, ImportError> {
     let mut imported_quotes = 0;
 
     for clipping in clippings.iter() {
+        let mut book_exists = false;
         // Create book if it doesn't exist
-        if !books.contains_key(&clipping.title) {
-            match queries::get_book_by_original_id(clipping.title.clone(), &mut *tx).await {
-                Ok(existing_book) => {
-                    books.insert(clipping.title.clone(), existing_book.id.clone());
-                }
-                Err(_) => {
-                    let book = queries::insert_book_with_defaults(clipping.title.clone(), None, None, &mut *tx)
-                        .await
-                        .map_err(|e| {
-                            ImportError::DbError(e, "Failed to insert book".to_string())
-                        })?;
-                    books.insert(clipping.title.clone(), book.id.clone());
-                    imported_books += 1;
-                }
+        if !books_id_map.contains_key(&clipping.title) {
+            if let Ok(existing_book) =
+                queries::get_book_by_original_id(clipping.title.clone(), &mut *tx).await
+            {
+                books_id_map.insert(clipping.title.clone(), existing_book.id.clone());
+                book_exists = true;
+                continue;
             }
+        } else {
+            book_exists = true;
         }
 
         // Create author if it doesn't exist
         if let Some(author_name) = &clipping.author {
-            if !authors.contains_key(author_name) {
+            if !authors_id_map.contains_key(author_name) {
                 match queries::get_author_by_name(author_name.clone(), &mut *tx).await {
                     Ok(existing_author) => {
-                        authors.insert(author_name.clone(), existing_author.id.clone());
+                        authors_id_map.insert(author_name.clone(), existing_author.id.clone());
                     }
                     Err(_) => {
                         let author = queries::insert_author(author_name.clone(), &mut *tx)
@@ -724,17 +720,26 @@ async fn import_clippings(path: &str) -> Result<String, ImportError> {
                             .map_err(|e| {
                                 ImportError::DbError(e, "Failed to insert author".to_string())
                             })?;
-                        authors.insert(author_name.clone(), author.id.clone());
+                        authors_id_map.insert(author_name.clone(), author.id.clone());
                     }
                 }
             }
         }
 
-        let book_id = books.get(&clipping.title).unwrap();
         let author_id: Option<String> = match &clipping.author {
-            Some(author_name) => authors.get(author_name).cloned(),
+            Some(author_name) => authors_id_map.get(author_name).cloned(),
             None => None,
         };
+
+        if !book_exists {
+            let book = queries::insert_book_with_defaults(clipping.title.clone(), None, None, &mut *tx)
+                .await
+                .map_err(|e| ImportError::DbError(e, "Failed to insert book".to_string()))?;
+            books_id_map.insert(clipping.title.clone(), book.id.clone());
+            imported_books += 1;
+        }
+
+        let book_id = books_id_map.get(&clipping.title).unwrap();
 
         if clipping.entry_type == "Highlight" {
             if let Some(content) = &clipping.content {

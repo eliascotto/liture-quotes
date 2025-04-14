@@ -114,7 +114,7 @@
   --search-border: var(--generic-border);
 
   /* Toasts */
-  --toast-background: oklch(0.97 0.02 257.287);
+  --toast-background: var(--brand-50);
   --toast-foreground: oklch(0.2 0.02 252.894);
   --toast-border: oklch(0.85 0.02 257.287);
   --toast-success: oklch(0.48 0.19 151.711);
@@ -696,6 +696,17 @@
 
   --color-footer: var(--footer-background);
   --color-footer-border: var(--footer-border);
+
+  /* toast */
+  --color-toast-background: var(--toast-background);
+  --color-toast-foreground: var(--toast-foreground);
+  --color-toast-border: var(--toast-border);
+  --color-toast-success: var(--toast-success);
+  --color-toast-border-success: var(--toast-border-success);
+  --color-toast-error: var(--toast-error);
+  --color-toast-border-error: var(--toast-border-error);
+  --color-toast-warning: var(--toast-warning);
+  --color-toast-border-warning: var(--toast-border-warning);
 
   /* dialog */
   --color-dialog-overlay: var(--dialog-overlay);

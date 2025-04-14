@@ -1,7 +1,7 @@
 {
-  "productName": "Liture Notes",
+  "productName": "Liture Quotes",
   "version": "0.1.0",
-  "identifier": "com.liture.notes",
+  "identifier": "com.liture.quotes",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1424",
@@ -23,7 +23,7 @@
 				"fullscreen": false,
 				"alwaysOnTop": false,
 				"focus": false,
-				"visible": true,
+				"visible": false,
 				"dragDropEnabled": true,
 				"decorations": true,
 				"transparent": true,
