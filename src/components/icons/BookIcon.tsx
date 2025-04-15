@@ -1,5 +1,5 @@
 export default function BookIcon(
-  { className = "w-5 h-5", fill = "none" }: { fill: string, className?: string }
+  { className = "w-5 h-5", fill = "none" }: { fill?: string, className?: string }
 ) {
   return (
     <svg className={className} fill={fill} viewBox="0 0 24 24" stroke="currentColor">

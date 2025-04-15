@@ -12,7 +12,9 @@ export function convertStarredQuoteToQuote(starredQuote: types.QuoteRedux): type
     ...starredQuote,
     content: starredQuote.content,
     deleted_at: null,
-    chapter: null,
+    chapter_id: null,
     chapter_progress: null,
+    imported_at: null,
+    original_id: null,
   };
 }

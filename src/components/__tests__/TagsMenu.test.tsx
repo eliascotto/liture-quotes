@@ -26,6 +26,7 @@ describe('TagsMenu', () => {
       <TagsMenu
         tags={mockTags}
         quoteId="1"
+        isOpen={true}
       />
     );
 
@@ -38,6 +39,7 @@ describe('TagsMenu', () => {
       <TagsMenu
         tags={mockTags}
         quoteId="1"
+        isOpen={true}
       />
     );
 
@@ -55,7 +57,8 @@ describe('TagsMenu', () => {
       <TagsMenu
         tags={[]}
         quoteId="1"
-      />
+        isOpen={true}
+        />
     );
 
     const trigger = screen.getByTestId('tag-icon').parentElement;
@@ -69,6 +72,7 @@ describe('TagsMenu', () => {
       <TagsMenu
         tags={mockTags}
         quoteId="1"
+        isOpen={true}
       />
     );
 
@@ -89,6 +93,7 @@ describe('TagsMenu', () => {
       <TagsMenu
         tags={mockTags}
         quoteId="1"
+        isOpen={true}
       />
     );
 
@@ -109,6 +114,7 @@ describe('TagsMenu', () => {
       <TagsMenu
         tags={mockTags}
         quoteId="1"
+        isOpen={true}
       />
     );
 
@@ -131,6 +137,7 @@ describe('TagsMenu', () => {
       <TagsMenu
         tags={mockTags}
         quoteId="1"
+        isOpen={true}
         className="custom-class"
       />
     );

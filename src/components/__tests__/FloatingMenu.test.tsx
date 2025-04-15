@@ -161,7 +161,6 @@ describe('FloatingMenu', () => {
       <FloatingMenu 
         trigger={mockTrigger} 
         isOpen={true}
-        offset={8}
       >
         {mockContent}
       </FloatingMenu>
@@ -176,10 +175,6 @@ describe('FloatingMenu', () => {
       <FloatingMenu 
         trigger={mockTrigger} 
         isOpen={true}
-        offset={{
-          mainAxis: 8,
-          crossAxis: 4,
-        }}
       >
         {mockContent}
       </FloatingMenu>
@@ -194,7 +189,6 @@ describe('FloatingMenu', () => {
       <FloatingMenu 
         trigger={<div style={{ height: '50px' }}>Trigger</div>}
         isOpen={true}
-        useReferenceHeight={true}
       >
         {mockContent}
       </FloatingMenu>

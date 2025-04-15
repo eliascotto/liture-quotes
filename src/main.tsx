@@ -7,9 +7,11 @@ import { DialogProvider } from "./context/DialogContext.tsx";
 import { ToastProvider } from "./context/ToastContext.tsx";
 import { attachConsole } from "@tauri-apps/plugin-log";
 
-// Attach the backend logs to the webview console
-// Call detach() to detach the console
-const detach = await attachConsole();
+if (import.meta.env.DEV) {
+  // Attach the backend logs to the webview console
+  // Call detach() to detach the console
+  const detach = await attachConsole();
+}
 
 applyTheme();
 

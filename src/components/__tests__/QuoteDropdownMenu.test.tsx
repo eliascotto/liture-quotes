@@ -13,7 +13,8 @@ describe('QuoteDropdownMenu', () => {
     onRemove: vi.fn(),
     isStarred: false,
     withIcons: true,
-    trigger: <button>Menu</button>
+    trigger: <button>Menu</button>,
+    onTagsOptionClick: vi.fn(),
   };
 
   beforeEach(() => {
