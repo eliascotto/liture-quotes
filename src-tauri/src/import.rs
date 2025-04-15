@@ -694,14 +694,13 @@ async fn import_clippings(path: &str) -> Result<String, ImportError> {
 
     for clipping in clippings.iter() {
         let mut book_exists = false;
-        // Create book if it doesn't exist
+        // Check if book already exists, and add it to the books_id_map
         if !books_id_map.contains_key(&clipping.title) {
             if let Ok(existing_book) =
                 queries::get_book_by_original_id(clipping.title.clone(), &mut *tx).await
             {
                 books_id_map.insert(clipping.title.clone(), existing_book.id.clone());
                 book_exists = true;
-                continue;
             }
         } else {
             book_exists = true;
@@ -732,9 +731,14 @@ async fn import_clippings(path: &str) -> Result<String, ImportError> {
         };
 
         if !book_exists {
-            let book = queries::insert_book_with_defaults(clipping.title.clone(), None, None, &mut *tx)
-                .await
-                .map_err(|e| ImportError::DbError(e, "Failed to insert book".to_string()))?;
+            let book = queries::insert_book_with_defaults(
+                clipping.title.clone(),
+                author_id.clone(),
+                None,
+                &mut *tx,
+            )
+            .await
+            .map_err(|e| ImportError::DbError(e, "Failed to insert book".to_string()))?;
             books_id_map.insert(clipping.title.clone(), book.id.clone());
             imported_books += 1;
         }

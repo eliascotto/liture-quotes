@@ -1,7 +1,7 @@
 [package]
 name        = "liture-quotes"
 version     = "0.1.0"
-description = "Notes Manager"
+description = "Quotes Manager"
 authors     = ["Elia Scotto"]
 edition     = "2021"
 

@@ -80,18 +80,16 @@ fn setup_file_submenu(app: &mut tauri::App) -> tauri::Result<tauri::menu::Submen
 fn setup_app_submenu(app: &mut tauri::App) -> tauri::Result<tauri::menu::Submenu<Wry>> {
     use tauri::menu::{AboutMetadataBuilder, SubmenuBuilder};
 
-    let config = app.config();
-    let app_name_default = String::from("Notes");
-    let app_name = config.product_name.as_ref().unwrap_or(&app_name_default);
-
     // Build the app submenu
-    SubmenuBuilder::new(app, app_name)
+    SubmenuBuilder::new(app, "Quotes")
         .about(Some(
             AboutMetadataBuilder::new()
-                .name(Some("Notes".to_string()))
+                .name(Some("Quotes by Liture".to_string()))
                 .authors(Some(vec!["Elia Scotto".to_string()]))
                 .license(Some(env!("CARGO_PKG_VERSION")))
                 .version(Some(env!("CARGO_PKG_VERSION")))
+                .website(Some("https://liture.co/"))
+                .website_label(Some("Liture.co"))
                 .build(),
         ))
         .separator()

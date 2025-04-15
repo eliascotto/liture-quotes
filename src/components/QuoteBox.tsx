@@ -151,7 +151,7 @@ function QuoteBox({
         ) : (
           <div
             className={clsx(
-              "relative w-full select-none",
+              "relative w-full select-none min-h-[42px]",
               "text-quote-box-foreground py-[8px] pl-4 pr-5 whitespace-pre-line transition-border duration-200 border",
               "hover:bg-quote-box-background",
               selected && "bg-quote-box-background-selected  shadow-md",

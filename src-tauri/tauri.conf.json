@@ -1,5 +1,5 @@
 {
-  "productName": "Liture Quotes",
+  "productName": "Quotes",
   "version": "0.1.0",
   "identifier": "com.liture.quotes",
   "build": {
@@ -13,7 +13,7 @@
 		"macOSPrivateApi": true,
     "windows": [
       {
-        "title": "Liture Notes",
+        "title": "Quotes",
         "hiddenTitle": true,
         "width": 1200,
         "height": 800,

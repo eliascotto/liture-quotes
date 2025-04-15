@@ -43,38 +43,103 @@ pub enum DbError {
 
 pub async fn init_pool(app: tauri::AppHandle) -> Result<(), DbError> {
     let mut initialized = false;
-    let app_dir = app
-        .path()
-        .app_data_dir()
-        .expect("Failed to get app data directory");
+    
+    // Get the app data directory
+    let app_dir = match app.path().app_data_dir() {
+        Ok(dir) => dir,
+        Err(e) => {
+            log::error!("Failed to get app data directory: {}", e);
+            return Err(DbError::DirectoryCreation);
+        }
+    };
 
     log::info!("App data directory: {}", app_dir.display());
 
     // Create the app config directory if it doesn't exist
     if !app_dir.exists() {
-        fs::create_dir_all(&app_dir).map_err(|_| DbError::DirectoryCreation)?;
+        log::info!("Creating app data directory at: {}", app_dir.display());
+        match fs::create_dir_all(&app_dir) {
+            Ok(_) => log::info!("Successfully created app data directory"),
+            Err(e) => {
+                log::error!("Failed to create app data directory: {}", e);
+                return Err(DbError::DirectoryCreation);
+            }
+        }
+    }
+
+    // Verify directory permissions
+    match fs::metadata(&app_dir) {
+        Ok(metadata) => {
+            if !metadata.is_dir() {
+                log::error!("App data path exists but is not a directory");
+                return Err(DbError::DirectoryCreation);
+            }
+            log::info!("App data directory exists and is accessible");
+        },
+        Err(e) => {
+            log::error!("Failed to access app data directory: {}", e);
+            return Err(DbError::DirectoryCreation);
+        }
     }
 
     let db_path = app_dir.join("main.db");
     let db_url = format!("sqlite:{}", db_path.display());
+    log::info!("Database path: {}", db_path.display());
 
-    // Check if database exists, if not create it
-    if !sqlx::Sqlite::database_exists(&db_url).await? {
-        sqlx::Sqlite::create_database(&db_url).await?;
+    // Check if database file exists
+    let db_exists = db_path.exists();
+    log::info!("Database file exists: {}", db_exists);
+
+    if !db_exists {
+        log::info!("Database file does not exist, creating it...");
+        // Create an empty file to ensure the database can be created
+        match fs::File::create(&db_path) {
+            Ok(_) => log::info!("Created empty database file"),
+            Err(e) => {
+                log::error!("Failed to create empty database file: {}", e);
+                return Err(DbError::DirectoryCreation);
+            }
+        }
         initialized = true;
+    } else {
+        log::info!("Database file exists, skipping creation");
     }
 
     // SQLite will create the database file if it doesn't exist
+    log::info!("Connecting to database...");
     let pool = SqlitePoolOptions::new()
         .max_connections(5)
         .connect(&db_url)
-        .await?;
+        .await
+        .map_err(|e| {
+            log::error!("Failed to connect to database: {}", e);
+            e
+        })?;
+    log::info!("Connected to database successfully");
 
-    DB_POOL.set(pool.clone()).expect("Failed to set database pool");
+    // Set the database pool
+    match DB_POOL.set(pool.clone()) {
+        Ok(_) => log::info!("Database pool set successfully"),
+        Err(_) => {
+            log::error!("Failed to set database pool");
+            return Err(DbError::Sqlx(sqlx::Error::Configuration("Failed to set database pool".into())));
+        }
+    }
 
     if initialized {
-        sqlx::migrate!("../migrations").run(&pool).await?;
-        init_db_with_defaults(&pool).await?;
+        log::info!("Running database migrations...");
+        sqlx::migrate!("../migrations").run(&pool).await.map_err(|e| {
+            log::error!("Failed to run migrations: {}", e);
+            e
+        })?;
+        log::info!("Migrations completed successfully");
+
+        log::info!("Initializing database with defaults...");
+        init_db_with_defaults(&pool).await.map_err(|e| {
+            log::error!("Failed to initialize database with defaults: {}", e);
+            e
+        })?;
+        log::info!("Database initialized with defaults successfully");
     }
 
     Ok(())
@@ -232,7 +297,13 @@ pub async fn init_db_with_defaults(pool: &SqlitePool) -> Result<(), DbInitError>
 }
 
 pub fn get_pool() -> &'static SqlitePool {
-    DB_POOL.get().expect("Database pool not initialized")
+    match DB_POOL.get() {
+        Some(pool) => pool,
+        None => {
+            log::error!("Database pool not initialized. This is a critical error.");
+            panic!("Database pool not initialized. Please restart the application.");
+        }
+    }
 }
 
 pub async fn close_pool() {

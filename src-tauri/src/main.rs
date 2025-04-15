@@ -8,7 +8,7 @@ use tauri::{Manager, Runtime, WindowEvent};
 use tauri_plugin_dialog::DialogExt;
 
 const WINDOW_CONTROL_PAD_X: f64 = 18.0;
-const WINDOW_CONTROL_PAD_Y: f64 = 26.0;
+const WINDOW_CONTROL_PAD_Y: f64 = 24.0;
 
 struct UnsafeWindowHandle(*mut std::ffi::c_void);
 unsafe impl Send for UnsafeWindowHandle {}
