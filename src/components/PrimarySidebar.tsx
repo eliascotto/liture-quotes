@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, MouseEvent, UIEvent } from "react";
 import clsx from "clsx";
-import BookIcon from "@icons/BookIcon";
+import { platform } from '@tauri-apps/plugin-os';
 import UsersIcon from "@icons/UsersIcon";
 import Tooltip from "@components/Tooltip";
 import { cleanText } from "@utils/index";
@@ -46,6 +46,8 @@ function PrimarySidebar({
 
   const navbarRef = useRef(null);
   const scrollContainerRef = useRef(null);
+
+  const [currentPlatform, _] = useState(platform());
 
   const handleScroll = (e: UIEvent<HTMLDivElement>) => {
     const scrollTop = (e.target as HTMLElement).scrollTop;
@@ -140,7 +142,10 @@ function PrimarySidebar({
         >
 
           {/* Sidebar Collapse Button */}
-          <div className="flex items-center ml-[74px]">
+          <div className={clsx(
+            "flex items-center", 
+            currentPlatform == "macos" && "ml-[74px]"
+          )}>
             <HeaderButton onClick={handleSidebarCollapse}>
               <SidebarLeft className="w-4 h-4" />
             </HeaderButton>
