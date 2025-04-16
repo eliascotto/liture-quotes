@@ -111,7 +111,7 @@ function PrimarySidebar({
   }, [isOpen]);
 
   const isBooks = property === "title";
-  const conditionalDragEnabled = currentPlatform === "macos" ? {"data-tauri-drag-region": true} : {};
+  const conditionalDragEnabled = currentPlatform === "macos" ? { "data-tauri-drag-region": true } : {};
 
   return (
     <div
@@ -144,7 +144,7 @@ function PrimarySidebar({
 
           {/* Sidebar Collapse Button */}
           <div className={clsx(
-            "flex items-center", 
+            "flex items-center",
             currentPlatform == "macos" && "ml-[74px]"
           )}>
             <HeaderButton onClick={handleSidebarCollapse}>
