@@ -11,13 +11,21 @@ use tauri::{Runtime, WindowEvent};
 use objc::{msg_send, sel, sel_impl};
 
 #[cfg(target_os = "macos")]
-const WINDOW_CONTROL_PAD_X: f64 = 18.0;
-const WINDOW_CONTROL_PAD_Y: f64 = 24.0;
+mod macos {
+    pub const WINDOW_CONTROL_PAD_X: f64 = 18.0;
+    pub const WINDOW_CONTROL_PAD_Y: f64 = 24.0;
 
-#[cfg(target_os = "macos")]
-struct UnsafeWindowHandle(*mut std::ffi::c_void);
-unsafe impl Send for UnsafeWindowHandle {}
-unsafe impl Sync for UnsafeWindowHandle {}
+    pub struct UnsafeWindowHandle(pub *mut std::ffi::c_void);
+    
+    impl UnsafeWindowHandle {
+        pub fn new(ptr: *mut std::ffi::c_void) -> Self {
+            Self(ptr)
+        }
+    }
+    
+    unsafe impl Send for UnsafeWindowHandle {}
+    unsafe impl Sync for UnsafeWindowHandle {}
+}
 
 // This function is needed to configure window shadows on macOS
 #[cfg(target_os = "macos")]
@@ -53,14 +61,14 @@ impl<R: Runtime> WindowExt for tauri::Window<R> {
     }
 
     fn update_window_controls_pos(&self) {
-        let window_handle = UnsafeWindowHandle(self.ns_window().unwrap());
+        let window_handle = macos::UnsafeWindowHandle::new(self.ns_window().unwrap());
 
         let _ = self.run_on_main_thread(move || {
             let handle = window_handle;
             set_window_controls_pos(
                 handle.0 as cocoa::base::id,
-                WINDOW_CONTROL_PAD_X,
-                WINDOW_CONTROL_PAD_Y,
+                macos::WINDOW_CONTROL_PAD_X,
+                macos::WINDOW_CONTROL_PAD_Y,
             );
         });
     }
