@@ -49,6 +49,7 @@ impl std::fmt::Display for ParseError {
 
 impl std::error::Error for ParseError {}
 
+#[cfg(target_os = "macos")]
 fn setup_file_submenu(app: &mut tauri::App) -> tauri::Result<tauri::menu::Submenu<Wry>> {
     use tauri::menu::{MenuItemBuilder, SubmenuBuilder};
 
@@ -77,6 +78,7 @@ fn setup_file_submenu(app: &mut tauri::App) -> tauri::Result<tauri::menu::Submen
         .build()
 }
 
+#[cfg(target_os = "macos")]
 fn setup_app_submenu(app: &mut tauri::App) -> tauri::Result<tauri::menu::Submenu<Wry>> {
     use tauri::menu::{AboutMetadataBuilder, SubmenuBuilder};
 
@@ -101,6 +103,7 @@ fn setup_app_submenu(app: &mut tauri::App) -> tauri::Result<tauri::menu::Submenu
         .build()
 }
 
+#[cfg(target_os = "macos")]
 fn setup_edit_submenu(app: &mut tauri::App) -> tauri::Result<tauri::menu::Submenu<Wry>> {
     use tauri::menu::SubmenuBuilder;
 
@@ -115,6 +118,7 @@ fn setup_edit_submenu(app: &mut tauri::App) -> tauri::Result<tauri::menu::Submen
         .build()
 }
 
+#[cfg(target_os = "macos")]
 fn setup_view_submenu(app: &mut tauri::App) -> tauri::Result<tauri::menu::Submenu<Wry>> {
     use tauri::menu::SubmenuBuilder;
 
@@ -125,6 +129,7 @@ fn setup_view_submenu(app: &mut tauri::App) -> tauri::Result<tauri::menu::Submen
         .build()
 }
 
+#[cfg(target_os = "macos")]
 fn setup_help_submenu(app: &mut tauri::App) -> tauri::Result<tauri::menu::Submenu<Wry>> {
     use tauri::menu::SubmenuBuilder;
 

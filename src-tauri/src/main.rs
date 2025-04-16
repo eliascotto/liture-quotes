@@ -2,10 +2,11 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use liture_notes_lib::menu;
-use objc::{msg_send, sel, sel_impl};
 use std::env;
 use tauri::{Manager, Runtime, WindowEvent};
-use tauri_plugin_dialog::DialogExt;
+
+#[cfg(target_os = "macos")]
+use objc::{msg_send, sel, sel_impl};
 
 const WINDOW_CONTROL_PAD_X: f64 = 18.0;
 const WINDOW_CONTROL_PAD_Y: f64 = 24.0;

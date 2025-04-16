@@ -1,4 +1,3 @@
-use sqlx::migrate::MigrateDatabase; // required for database_exists and create_database
 use sqlx::sqlite::SqlitePoolOptions;
 use sqlx::{Sqlite, SqlitePool, Transaction};
 use sqlx::migrate::MigrateError;
