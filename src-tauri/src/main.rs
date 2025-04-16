@@ -3,14 +3,18 @@
 
 use liture_notes_lib::menu;
 use std::env;
-use tauri::{Manager, Runtime, WindowEvent};
+use tauri::Manager;
 
+#[cfg(target_os = "macos")]
+use tauri::{Runtime, WindowEvent};
 #[cfg(target_os = "macos")]
 use objc::{msg_send, sel, sel_impl};
 
+#[cfg(target_os = "macos")]
 const WINDOW_CONTROL_PAD_X: f64 = 18.0;
 const WINDOW_CONTROL_PAD_Y: f64 = 24.0;
 
+#[cfg(target_os = "macos")]
 struct UnsafeWindowHandle(*mut std::ffi::c_void);
 unsafe impl Send for UnsafeWindowHandle {}
 unsafe impl Sync for UnsafeWindowHandle {}

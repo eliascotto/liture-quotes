@@ -47,7 +47,7 @@ function PrimarySidebar({
   const navbarRef = useRef(null);
   const scrollContainerRef = useRef(null);
 
-  const [currentPlatform, _] = useState(platform());
+  const currentPlatform = platform();
 
   const handleScroll = (e: UIEvent<HTMLDivElement>) => {
     const scrollTop = (e.target as HTMLElement).scrollTop;

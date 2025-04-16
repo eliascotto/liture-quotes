@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { platform } from '@tauri-apps/plugin-os';
 import NavigationControls from "@components/NavigationControls";
 import HeaderButton from "@components/HeaderButton.tsx";
 import AddButtonMenu from "@components/AddButtonMenu";
@@ -49,6 +50,8 @@ function Header({
   const primarySidebarStore = usePrimarySidebarStore();
 
   const [expandSidebarButtonVisible, setExpandSidebarButtonVisible] = useState(false);
+
+  const currentPlatform = platform();
 
   useEffect(() => {
     if (!primarySidebarStore.isOpen) {
@@ -102,9 +105,13 @@ function Header({
       )}
       data-tauri-drag-region
     >
-      <div className={clsx("flex flex-row items-center gap-4", {
-        "ml-[64px]": !primarySidebarStore.isOpen,
-      })}>
+      <div className={clsx(
+        "flex flex-row items-center gap-4",
+        {
+          // Spacing for macOS
+          "ml-[64px]": (!primarySidebarStore.isOpen && currentPlatform == "macos"),
+        }
+      )}>
         {expandSidebarButtonVisible && (
           <HeaderButton onClick={() => primarySidebarStore.setIsOpen(true)}>
             <SidebarLeft className="h-4 w-4" />
@@ -136,8 +143,8 @@ function Header({
           <HeaderButton
             onClick={handleTagsButtonClick}
           >
-            {appStore.currentScreen === 'tags' ? 
-              <TagFill className="h-4 w-4 fill-brand-primary-dark" /> : 
+            {appStore.currentScreen === 'tags' ?
+              <TagFill className="h-4 w-4 fill-brand-primary-dark" /> :
               <TagIcon className="h-4 w-4" />}
           </HeaderButton>
         </Tooltip>

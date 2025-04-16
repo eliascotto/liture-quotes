@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, use } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import clsx from 'clsx';
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
@@ -77,8 +77,9 @@ function App() {
   const initialLoadComplete = useRef(false);
 
   // Styles
-  const [hasLinearGradientBg, _] = useState(
-    !!getComputedStyle(document.getElementById('root')!).getPropertyValue('--main-background')
+  const themeWithMainBgTransparent = useMemo(() =>
+    !!getComputedStyle(document.getElementById('root')!).getPropertyValue('--main-background-transparent'),
+    []
   );
 
   // Get current page state
@@ -776,11 +777,13 @@ function App() {
 
           <div className="flex flex-row w-full h-full overflow-hidden">
             {/* Main content area */}
-            <div 
+            <div
               className="flex-1 overflow-hidden backdrop-blur-sm"
               style={{
                 // Do not use bg since it will not be applied if the user has a linear gradient background
-                background: 'var(--main-background)'
+                // Use a transparent background only on macOS
+                background: themeWithMainBgTransparent && currentPlatform === "macos" ?
+                  'var(--main-background-transparent)' : 'var(--main-background)'
               }}
             >
               <div className="flex-1 flex flex-col items-center w-full h-full">

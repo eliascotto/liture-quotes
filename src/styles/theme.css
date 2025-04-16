@@ -303,8 +303,12 @@
   --------------*/
 
   /* slate-500 */
-  --main-background: linear-gradient(oklab(0.279 -0.007098 -0.040381 / 0.9) 0%,
+  --main-background: linear-gradient(oklab(0.279 -0.007098 -0.040381) 0%,
+      oklab(0.208 -0.003109 -0.041885) 100%);
+
+  --main-background-transparent: linear-gradient(oklab(0.279 -0.007098 -0.040381 / 0.9) 0%,
       oklab(0.208 -0.003109 -0.041885 / 0.9) 100%);
+
   /* slate-900 */
   --main-foreground: oklch(0.208 0.042 265.755);
 
