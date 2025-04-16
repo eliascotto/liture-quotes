@@ -111,6 +111,7 @@ function PrimarySidebar({
   }, [isOpen]);
 
   const isBooks = property === "title";
+  const conditionalDragEnabled = currentPlatform === "macos" ? {"data-tauri-drag-region": true} : {};
 
   return (
     <div
@@ -138,7 +139,7 @@ function PrimarySidebar({
               "border-transparent": !isScrolled,
             }
           )}
-          data-tauri-drag-region={currentPlatform === "macos"}
+          {...conditionalDragEnabled}
         >
 
           {/* Sidebar Collapse Button */}
@@ -151,7 +152,7 @@ function PrimarySidebar({
             </HeaderButton>
           </div>
 
-          <div className="flex w-full justify-end items-center" data-tauri-drag-region={currentPlatform === "macos"}>
+          <div className="flex w-full justify-end items-center" {...conditionalDragEnabled}>
             {isOpen && (
               <div className="flex space-x-1 select-none">
                 {/* Books Icon */}
