@@ -103,7 +103,7 @@ function Header({
         "flex flex-row py-2.5 px-4 w-full items-center justify-between gap-4 shadow-sm",
         primarySidebarStore.isOpen && "border-b",
       )}
-      data-tauri-drag-region
+      data-tauri-drag-region={currentPlatform === "macos"}
     >
       <div className={clsx(
         "flex flex-row items-center gap-4",

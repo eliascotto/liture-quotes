@@ -138,7 +138,7 @@ function PrimarySidebar({
               "border-transparent": !isScrolled,
             }
           )}
-          data-tauri-drag-region
+          data-tauri-drag-region={currentPlatform === "macos"}
         >
 
           {/* Sidebar Collapse Button */}
@@ -151,7 +151,7 @@ function PrimarySidebar({
             </HeaderButton>
           </div>
 
-          <div className="flex w-full justify-end items-center" data-tauri-drag-region>
+          <div className="flex w-full justify-end items-center" data-tauri-drag-region={currentPlatform === "macos"}>
             {isOpen && (
               <div className="flex space-x-1 select-none">
                 {/* Books Icon */}
