@@ -1,0 +1,9 @@
+services:
+  tauri-linux-builder:
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+    working_dir: /app
