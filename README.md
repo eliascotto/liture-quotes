@@ -5,7 +5,7 @@
   </p>
 	<h1 align="center"><b>Liture Quotes</b></h1>
 	<p align="center">
-		A book highlights manager.
+		A book highlights manager for the desktop.
     <br />
     <a href="https://liture.co"><strong>liture.co »</strong></a>
     <br />
