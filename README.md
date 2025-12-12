@@ -22,6 +22,16 @@ A modern, cross-platform quotes management application built with Tauri and Reac
 
 ![app-screenshot](assets/screen01.png)
 
+### Note for MacOS users
+
+This app is not signed and Apple ~sucks~ doesn't like that, so you will probably see an error when you open it; "Quote is damaged and can’t be opened. You should move it to the bin".
+
+Run this command in the terminal to fix it.
+
+```bash
+sudo xattr -rd com.apple.quarantine /Applications/Quotes.app
+```
+
 ## Features
 
 - 📚 Import quotes from popular e-reader platforms:
