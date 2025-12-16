@@ -1,8 +1,5 @@
 
 <p align="center">
-  <p align="center">
-   <img width="150" height="150" src="assets/appicon.png" alt="Logo">
-  </p>
 	<h1 align="center"><b>Liture Quotes</b></h1>
 	<p align="center">
 		A book highlights manager for the desktop.
