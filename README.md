@@ -1,21 +1,10 @@
+# Liture
 
-<p align="center">
-	<h1 align="center"><b>Liture Quotes</b></h1>
-	<p align="center">
-		A book highlights manager for the desktop.
-    <br />
-    <a href="https://liture.co"><strong>liture.co »</strong></a>
-    <br />
-    <br />
-    <b>Download for </b>
-    <a href="https://github.com/eliascotto/liture-quotes/releases/download/1.0.0/Quotes_1.0.0_aarch64_macos.dmg">MacOS</a> ·
-		<a href="https://github.com/eliascotto/liture-quotes/releases/download/1.0.0/Quotes_1.0.0_x64-setup_windows.exe">Windows</a> ·
-		<a href="https://github.com/eliascotto/liture-quotes/releases/download/1.0.0/Quotes_1.0.0_amd64_linux.deb">Linux</a>
-  </p>
-</p>
-
+> A book highlights manager for the desktop.
 
 A modern, cross-platform quotes management application built with Tauri and React. Liture helps you organize and manage your favorite quotes from books, with support for importing from popular e-reader platforms.
+
+Blog post: [Liture, how I manage my reading notes](https://scotto.me/blog/2025-12-17-liture-how-i-manage-my-reading-notes/)
 
 ![app-screenshot](assets/screen01.png)
 
